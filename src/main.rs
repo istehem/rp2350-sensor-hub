@@ -1,87 +1,75 @@
-//! Blinks the LED on a Pico board
-//!
-//! This will blink an LED attached to GP25, which is the pin the Pico uses for the on-board LED.
 #![no_std]
 #![no_main]
 
-use defmt::*;
-use defmt_rtt as _;
-use embedded_hal::digital::OutputPin;
-use panic_probe as _;
-use rp235x_hal::clocks::init_clocks_and_plls;
-use rp235x_hal::{self as hal, entry};
-use rp235x_hal::{Clock, pac};
+extern crate alloc;
 
-// Provide an alias for our BSP so we can switch targets quickly.
-// Uncomment the BSP you included in Cargo.toml, the rest of the code does not need to change.
-// use some_bsp;
+use embassy_executor::Spawner;
+use embassy_rp::{
+    bind_interrupts,
+    gpio::{Input, Level, Output, Pull},
+    i2c::{self, Config as I2cConfig, I2c},
+    peripherals::I2C1,
+};
+use embedded_alloc::LlffHeap;
+use {defmt_rtt as _, panic_probe as _};
 
-/// Tell the Boot ROM about our application
-#[unsafe(link_section = ".start_block")]
-#[used]
-pub static IMAGE_DEF: hal::block::ImageDef = hal::block::ImageDef::secure_exe();
-
-#[entry]
-fn main() -> ! {
-    info!("Program start");
-    let mut pac = pac::Peripherals::take().unwrap();
-    let core = cortex_m::Peripherals::take().unwrap();
-    let mut watchdog = hal::Watchdog::new(pac.WATCHDOG);
-    let sio = hal::Sio::new(pac.SIO);
-
-    // External high-speed crystal on the pico board is 12Mhz
-    let external_xtal_freq_hz = 12_000_000u32;
-    let clocks = init_clocks_and_plls(
-        external_xtal_freq_hz,
-        pac.XOSC,
-        pac.CLOCKS,
-        pac.PLL_SYS,
-        pac.PLL_USB,
-        &mut pac.RESETS,
-        &mut watchdog,
-    )
-    .ok()
-    .unwrap();
-
-    let mut delay = cortex_m::delay::Delay::new(core.SYST, clocks.system_clock.freq().to_Hz());
-
-    let pins = hal::gpio::Pins::new(
-        pac.IO_BANK0,
-        pac.PADS_BANK0,
-        sio.gpio_bank0,
-        &mut pac.RESETS,
-    );
-
-    // This is the correct pin on the Raspberry Pico 2 board. On other boards, even if they have an
-    // on-board LED, it might need to be changed.
-    //
-    // Notably, on the Pico 2 W, the LED is not connected to any of the RP2350 GPIOs but to the cyw43 module instead.
-    // One way to do that is by using [embassy](https://github.com/embassy-rs/embassy/blob/main/examples/rp/src/bin/wifi_blinky.rs)
-    //
-    // If you have a Pico W and want to toggle a LED with a simple GPIO output pin, you can connect an external
-    // LED to one of the GPIO pins, and reference that pin here. Don't forget adding an appropriate resistor
-    // in series with the LED.
-    let mut led_pin = pins.gpio25.into_push_pull_output();
-
-    loop {
-        info!("on!");
-        led_pin.set_high().unwrap();
-        delay.delay_ms(500);
-        info!("off!");
-        led_pin.set_low().unwrap();
-        delay.delay_ms(500);
-    }
+mod game {
+    pub mod cache;
+    pub mod entities;
+    pub mod error;
+    pub mod player;
+    pub mod tasks;
 }
 
-/// Program metadata for `picotool info`
-#[unsafe(link_section = ".bi_entries")]
-#[used]
-pub static PICOTOOL_ENTRIES: [rp235x_hal::binary_info::EntryAddr; 5] = [
-    rp235x_hal::binary_info::rp_cargo_bin_name!(),
-    rp235x_hal::binary_info::rp_cargo_version!(),
-    rp235x_hal::binary_info::rp_program_description!(c"RP2350 Template"),
-    rp235x_hal::binary_info::rp_cargo_homepage_url!(),
-    rp235x_hal::binary_info::rp_program_build_attribute!(),
-];
+#[cfg(feature = "temperature")]
+mod temperature_and_humidity {
+    pub mod error;
+    pub mod tasks;
+    pub use embassy_rp::{
+        gpio::Flex,
+        peripherals::PIO0,
+        pio::{InterruptHandler, Pio},
+    };
+}
+#[cfg(feature = "temperature")]
+pub use temperature_and_humidity::{Flex, InterruptHandler, PIO0, Pio};
 
-// End of file
+const I2C_FREQUENCY: u32 = 400_000;
+
+#[global_allocator]
+static HEAP: LlffHeap = LlffHeap::empty();
+
+bind_interrupts!(struct Irqs {
+    I2C1_IRQ => i2c::InterruptHandler<I2C1>;
+    #[cfg(feature = "temperature")]
+    PIO0_IRQ_0 => InterruptHandler<PIO0>;
+});
+
+#[embassy_executor::main]
+async fn main(spawner: Spawner) {
+    {
+        unsafe { HEAP.init(cortex_m_rt::heap_start() as usize, 8 * 1024) }
+    }
+    let p = embassy_rp::init(Default::default());
+
+    let mut config = I2cConfig::default();
+    config.frequency = I2C_FREQUENCY;
+
+    let led = Output::new(p.PIN_25, Level::Low);
+    let sensor = Input::new(p.PIN_21, Pull::Up);
+    let i2c = I2c::new_async(p.I2C1, p.PIN_7, p.PIN_6, Irqs, config);
+
+    game::tasks::spawn_tasks(&spawner, sensor, led, i2c).await;
+
+    #[cfg(feature = "temperature")]
+    {
+        let pio = p.PIO0;
+        let Pio {
+            mut common, sm0, ..
+        } = Pio::new(pio, Irqs);
+        let mut pin = common.make_pio_pin(p.PIN_17);
+        pin.set_pull(Pull::Up);
+
+        temperature_and_humidity::tasks::spawn_tasks(&spawner, pin, common, sm0).await;
+    }
+}
