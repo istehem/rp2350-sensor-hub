@@ -16,24 +16,24 @@ compile_error!(
 );
 
 #[cfg(all(
-    feature = "rp2040",
+    feature = "rp235xa",
     all(feature = "rp_no_pio", not(feature = "rp_pio"))
 ))]
 mod dht_rp;
 
 #[cfg(all(
-    feature = "rp2040",
+    feature = "rp235xa",
     all(feature = "rp_no_pio", not(feature = "rp_pio"))
 ))]
 pub use dht_rp::DHTSensor;
 
 #[cfg(all(
-    feature = "rp2040",
+    feature = "rp235xa",
     all(feature = "rp_pio", not(feature = "rp_no_pio"))
 ))]
 mod dht_rp_pio;
 #[cfg(all(
-    feature = "rp2040",
+    feature = "rp235xa",
     all(feature = "rp_pio", not(feature = "rp_no_pio"))
 ))]
 pub use dht_rp_pio::DHTSensor;

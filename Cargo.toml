@@ -109,4 +109,4 @@ lto = 'fat'
 opt-level = 3
 
 [features]
-temperature = ["embassy-dht-sensor" ]
+temperature = ["embassy-dht-sensor"]
