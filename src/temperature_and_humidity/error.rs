@@ -1,4 +1,4 @@
-use embassy_dht_sensor::DHTSensorError;
+use embassy_dht_rp2350_sensor::DHTSensorError;
 
 #[derive(Clone, Debug)]
 pub enum FormattableDHTSensorError {

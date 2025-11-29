@@ -1,5 +1,5 @@
 use defmt::info;
-use embassy_dht_sensor::DHTSensor;
+use embassy_dht_rp2350_sensor::DHTSensor;
 use embassy_executor::Spawner;
 use embassy_rp::{
     peripherals::PIO0,

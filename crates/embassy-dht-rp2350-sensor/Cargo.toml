@@ -15,7 +15,6 @@ rp_pio = []
 rp_no_pio = []
 
 [lib]
-name = "embassy_dht_sensor"
 path = "src/lib.rs"
 
 [dependencies]
