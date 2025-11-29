@@ -1,12 +1,10 @@
 [package]
-name = "embassy-dht-sensor"
-version = "0.2.7"
+name = "embassy-dht-rp2350-sensor"
+version = "0.0.1"
 edition = "2021"
-authors = ["Mark Berner"]
+authors = ["istehem", "Mark Berner (original author)"]
 license = "MIT OR Apache-2.0"
-homepage = "https://github.com/mark2b/embassy-dht-sensor"
-description = "DHT sensor driver for the Embassy async runtime"
-readme = "README.md"
+description = "Fork of the DHT sensor driver for the Embassy async runtime that runs on rp2350"
 
 [features]
 default = ["rp235xa", "dht2x", "rp_pio"]
