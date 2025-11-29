@@ -26,7 +26,6 @@ rp235x-hal = { version = "0.3", features = [
 ] }
 
 display-interface = "0.5.0"
-embassy-dht-sensor = { version = "0.2.7", optional = true }
 embassy-executor = { version = "0.9.1", features = [
   "arch-cortex-m",
   "executor-thread",
@@ -59,6 +58,7 @@ u8g2-fonts = { workspace = true }
 
 game-logic = { path = "./crates/game-logic" }
 pico-display = { path = "./crates/pico-display" }
+embassy-dht-sensor = { path = "./crates/embassy-dht-sensor", optional = true }
 
 [workspace.dependencies]
 embedded-graphics = "0.8.1"
@@ -109,4 +109,4 @@ lto = 'fat'
 opt-level = 3
 
 [features]
-temperature = []
+temperature = ["embassy-dht-sensor" ]
