@@ -33,6 +33,7 @@ jobs:
       - run: cargo install flip-link
       - run: cargo build --all
       - run: cargo build --all --release
+      - run: cargo build --all --release --features temperature
   linting:
     name: Linting
     runs-on: ubuntu-latest
