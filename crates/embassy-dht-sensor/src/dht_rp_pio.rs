@@ -42,7 +42,7 @@ impl<'a, PIO: Instance, const SM: usize> DHTSensor<'a, PIO, SM> {
             cfg.set_in_pins(&[&self.data_pin]);
             cfg.set_jmp_pin(&self.data_pin);
 
-            cfg.clock_divider = 416.666667f32.to_fixed(); // 300KHz at 125 MHz system clock
+            cfg.clock_divider = 416.666_66_f32.to_fixed(); // 300KHz at 125 MHz system clock
             cfg.fifo_join = FifoJoin::Duplex;
 
             cfg.shift_in = embassy_rp::pio::ShiftConfig {
@@ -62,8 +62,8 @@ impl<'a, PIO: Instance, const SM: usize> DHTSensor<'a, PIO, SM> {
             .push((START_LOW_INTERVAL_US as f32 * 0.333) as u32); // 1 cycle = 3.33us at 300KHz
         let data = self.sm.rx().wait_pull().await;
         let checksum_data = self.sm.rx().wait_pull().await as u8;
-        let humidity_data = u16::from((data >> 16) as u16);
-        let temperature_data = u16::from((data & 0xffff) as u16);
+        let humidity_data = (data >> 16) as u16;
+        let temperature_data = (data & 0xffff) as u16;
         self.sm.set_enable(false);
 
         // Calculate checksum
@@ -89,11 +89,10 @@ impl<'a, PIO: Instance, const SM: usize> DHTSensor<'a, PIO, SM> {
                     return Ok(response.clone());
                 }
             }
-        } else {
-            if now.as_secs() < crate::dht::MIN_REQUEST_INTERVAL_SECS {
-                return Err(DHTSensorError::NoData);
-            }
+        } else if now.as_secs() < crate::dht::MIN_REQUEST_INTERVAL_SECS {
+            return Err(DHTSensorError::NoData);
         }
+
         match self.read_raw_data().await {
             Ok(data) => {
                 let humidity = dht::humidity(&data[0]);
@@ -106,12 +105,10 @@ impl<'a, PIO: Instance, const SM: usize> DHTSensor<'a, PIO, SM> {
                     self.last_response = Some(response.clone());
                     self.last_read_time = Some(embassy_time::Instant::now());
                     Ok(response)
+                } else if let Some(response) = &self.last_response {
+                    Ok(response.clone())
                 } else {
-                    if let Some(response) = &self.last_response {
-                        Ok(response.clone())
-                    } else {
-                        Err(InvalidData)
-                    }
+                    Err(InvalidData)
                 }
             }
             Err(e) => {
