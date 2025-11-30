@@ -29,12 +29,17 @@ pub async fn spawn_tasks(
     spi: PioSpi<'static, Pio, 0, DMA_CH0>,
 ) {
     let fw = include_bytes!("../../cyw43-firmware/43439A0.bin");
-    let _clm = include_bytes!("../../cyw43-firmware/43439A0_clm.bin");
+    let clm = include_bytes!("../../cyw43-firmware/43439A0_clm.bin");
 
     let state = STATE.init(cyw43::State::new());
-    let (_net_device, control, runner) = cyw43::new(state, pwr, spi, fw).await;
+    let (_net_device, mut control, runner) = cyw43::new(state, pwr, spi, fw).await;
 
     spawner.spawn(cyw43_task(runner)).unwrap();
+
+    control.init(clm).await;
+    control
+        .set_power_management(cyw43::PowerManagementMode::PowerSave)
+        .await;
 
     spawner.spawn(wifi_blink(control)).unwrap();
 }
