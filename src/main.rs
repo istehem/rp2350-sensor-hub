@@ -8,7 +8,8 @@ use embassy_rp::{
     bind_interrupts,
     gpio::{Input, Level, Output, Pull},
     i2c::{self, Config as I2cConfig, I2c},
-    peripherals::I2C1,
+    peripherals::{I2C1, PIO1},
+    pio::InterruptHandler,
 };
 use embedded_alloc::LlffHeap;
 use {defmt_rtt as _, panic_probe as _};
@@ -37,7 +38,7 @@ mod temperature_and_humidity {
 }
 
 #[cfg(feature = "temperature")]
-pub use temperature_and_humidity::{Flex, InterruptHandler, PIO0, Pio};
+pub use temperature_and_humidity::{Flex, PIO0, Pio};
 
 const I2C_FREQUENCY: u32 = 400_000;
 
@@ -46,6 +47,7 @@ static HEAP: LlffHeap = LlffHeap::empty();
 
 bind_interrupts!(struct Irqs {
     I2C1_IRQ => i2c::InterruptHandler<I2C1>;
+    PIO1_IRQ_0 => InterruptHandler<PIO1>;
     #[cfg(feature = "temperature")]
     PIO0_IRQ_0 => InterruptHandler<PIO0>;
 });
