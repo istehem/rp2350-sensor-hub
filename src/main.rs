@@ -65,6 +65,7 @@ async fn main(spawner: Spawner) {
     let i2c = I2c::new_async(p.I2C1, p.PIN_7, p.PIN_6, Irqs, config);
 
     game::tasks::spawn_tasks(&spawner, sensor, led, i2c).await;
+
     network::tasks::spawn_tasks(&spawner).await;
 
     #[cfg(feature = "temperature")]
