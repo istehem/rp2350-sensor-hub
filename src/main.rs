@@ -21,6 +21,10 @@ mod game {
     pub mod tasks;
 }
 
+mod network {
+    pub mod tasks;
+}
+
 #[cfg(feature = "temperature")]
 mod temperature_and_humidity {
     pub mod error;
@@ -31,6 +35,7 @@ mod temperature_and_humidity {
         pio::{InterruptHandler, Pio},
     };
 }
+
 #[cfg(feature = "temperature")]
 pub use temperature_and_humidity::{Flex, InterruptHandler, PIO0, Pio};
 
@@ -60,6 +65,7 @@ async fn main(spawner: Spawner) {
     let i2c = I2c::new_async(p.I2C1, p.PIN_7, p.PIN_6, Irqs, config);
 
     game::tasks::spawn_tasks(&spawner, sensor, led, i2c).await;
+    network::tasks::spawn_tasks(&spawner).await;
 
     #[cfg(feature = "temperature")]
     {
