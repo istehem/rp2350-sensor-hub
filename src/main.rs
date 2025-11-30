@@ -3,13 +3,14 @@
 
 extern crate alloc;
 
+use cyw43_pio::{PioSpi, RM2_CLOCK_DIVIDER};
 use embassy_executor::Spawner;
 use embassy_rp::{
     bind_interrupts,
     gpio::{Input, Level, Output, Pull},
     i2c::{self, Config as I2cConfig, I2c},
     peripherals::{I2C1, PIO1},
-    pio::InterruptHandler,
+    pio::{InterruptHandler, Pio},
 };
 use embedded_alloc::LlffHeap;
 use {defmt_rtt as _, panic_probe as _};
@@ -30,15 +31,11 @@ mod network {
 mod temperature_and_humidity {
     pub mod error;
     pub mod tasks;
-    pub use embassy_rp::{
-        gpio::Flex,
-        peripherals::PIO0,
-        pio::{InterruptHandler, Pio},
-    };
+    pub use embassy_rp::{gpio::Flex, peripherals::PIO0};
 }
 
 #[cfg(feature = "temperature")]
-pub use temperature_and_humidity::{Flex, PIO0, Pio};
+pub use temperature_and_humidity::{Flex, PIO0};
 
 const I2C_FREQUENCY: u32 = 400_000;
 
@@ -62,13 +59,11 @@ async fn main(spawner: Spawner) {
     let mut config = I2cConfig::default();
     config.frequency = I2C_FREQUENCY;
 
-    let led = Output::new(p.PIN_25, Level::Low);
+    let alt_led = Output::new(p.PIN_2, Level::Low);
     let sensor = Input::new(p.PIN_21, Pull::Up);
     let i2c = I2c::new_async(p.I2C1, p.PIN_7, p.PIN_6, Irqs, config);
 
-    game::tasks::spawn_tasks(&spawner, sensor, led, i2c).await;
-
-    network::tasks::spawn_tasks(&spawner).await;
+    game::tasks::spawn_tasks(&spawner, sensor, alt_led, i2c).await;
 
     #[cfg(feature = "temperature")]
     {
@@ -81,4 +76,21 @@ async fn main(spawner: Spawner) {
 
         temperature_and_humidity::tasks::spawn_tasks(&spawner, pin, common, sm0).await;
     }
+
+    let pwr = Output::new(p.PIN_23, Level::Low);
+    let cs = Output::new(p.PIN_25, Level::High);
+    let mut pio = Pio::new(p.PIO1, Irqs);
+    let spi = PioSpi::new(
+        &mut pio.common,
+        pio.sm0,
+        // SPI communication won't work if the speed is too high, so we use a divider larger than `DEFAULT_CLOCK_DIVIDER`.
+        // See: https://github.com/embassy-rs/embassy/issues/3960.
+        RM2_CLOCK_DIVIDER,
+        pio.irq0,
+        cs,
+        p.PIN_24,
+        p.PIN_29,
+        p.DMA_CH0,
+    );
+    network::tasks::spawn_tasks(&spawner).await;
 }
