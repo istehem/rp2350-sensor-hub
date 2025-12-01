@@ -25,16 +25,19 @@ type Pio = PIO1;
 
 pub async fn spawn_tasks(
     spawner: &Spawner,
-    pwr: Output<'static>,
+    power: Output<'static>,
     spi: PioSpi<'static, Pio, 0, DMA_CH0>,
 ) {
-    let fw = include_bytes!("../../cyw43-firmware/43439A0.bin");
+    let firmware = include_bytes!("../../cyw43-firmware/43439A0.bin");
+    // Country Locale Matrix
     let clm = include_bytes!("../../cyw43-firmware/43439A0_clm.bin");
 
     let state = STATE.init(cyw43::State::new());
-    let (_net_device, mut control, runner) = cyw43::new(state, pwr, spi, fw).await;
+    let (_net_device, mut control, runner) = cyw43::new(state, power, spi, firmware).await;
 
     spawner.spawn(cyw43_task(runner)).unwrap();
+    // TODO remove me; should not be neded
+    Timer::after(Duration::from_millis(2000)).await;
 
     control.init(clm).await;
     control

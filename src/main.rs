@@ -77,8 +77,8 @@ async fn main(spawner: Spawner) {
         temperature_and_humidity::tasks::spawn_tasks(&spawner, pin, common, sm0).await;
     }
 
-    let pwr = Output::new(p.PIN_23, Level::Low);
-    let cs = Output::new(p.PIN_25, Level::High);
+    let power = Output::new(p.PIN_23, Level::Low);
+    let chip_select = Output::new(p.PIN_25, Level::High);
     let mut pio = Pio::new(p.PIO1, Irqs);
     let spi = PioSpi::new(
         &mut pio.common,
@@ -87,10 +87,12 @@ async fn main(spawner: Spawner) {
         // See: https://github.com/embassy-rs/embassy/issues/3960.
         RM2_CLOCK_DIVIDER,
         pio.irq0,
-        cs,
+        chip_select,
+        // Wireless SPI Data
         p.PIN_24,
+        // Wireless SPI Clock
         p.PIN_29,
         p.DMA_CH0,
     );
-    network::tasks::spawn_tasks(&spawner, pwr, spi).await;
+    network::tasks::spawn_tasks(&spawner, power, spi).await;
 }
