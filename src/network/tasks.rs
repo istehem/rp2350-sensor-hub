@@ -36,8 +36,6 @@ pub async fn spawn_tasks(
     let (_net_device, mut control, runner) = cyw43::new(state, power, spi, firmware).await;
 
     spawner.spawn(cyw43_task(runner)).unwrap();
-    // TODO remove me; should not be neded
-    Timer::after(Duration::from_millis(2000)).await;
 
     control.init(clm).await;
     control
