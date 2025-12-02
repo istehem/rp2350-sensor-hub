@@ -22,12 +22,9 @@ pub static PICOTOOL_ENTRIES: [embassy_rp::binary_info::EntryAddr; 4] = [
 static STATE: StaticCell<cyw43::State> = StaticCell::new();
 type Pio = embassy_rp::peripherals::PIO1;
 type Dma = embassy_rp::peripherals::DMA_CH0;
+type WifiPioSpi = PioSpi<'static, Pio, 0, Dma>;
 
-pub async fn spawn_tasks(
-    spawner: &Spawner,
-    power: Output<'static>,
-    spi: PioSpi<'static, Pio, 0, Dma>,
-) {
+pub async fn spawn_tasks(spawner: &Spawner, power: Output<'static>, spi: WifiPioSpi) {
     let firmware = include_bytes!("../../cyw43-firmware/43439A0.bin");
     // Country Locale Matrix
     let clm = include_bytes!("../../cyw43-firmware/43439A0_clm.bin");
@@ -60,8 +57,6 @@ async fn wifi_blink(mut control: cyw43::Control<'static>) {
 }
 
 #[embassy_executor::task]
-async fn cyw43_task(
-    runner: cyw43::Runner<'static, Output<'static>, PioSpi<'static, Pio, 0, Dma>>,
-) -> ! {
+async fn cyw43_task(runner: cyw43::Runner<'static, Output<'static>, WifiPioSpi>) -> ! {
     runner.run().await
 }
