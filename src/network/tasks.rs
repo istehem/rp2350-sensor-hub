@@ -42,9 +42,20 @@ pub async fn spawn_tasks(
         .set_power_management(cyw43::PowerManagementMode::PowerSave)
         .await;
 
-    spawner.spawn(wifi_blink(control)).unwrap();
+    let delay = Duration::from_millis(1000);
+    loop {
+        info!("led on!");
+        control.gpio_set(0, true).await;
+        Timer::after(delay).await;
+
+        info!("led off!");
+        control.gpio_set(0, false).await;
+        Timer::after(delay).await;
+    }
+    // spawner.spawn(wifi_blink(control)).unwrap();
 }
 
+/*
 #[embassy_executor::task]
 async fn wifi_blink(mut control: cyw43::Control<'static>) {
     let delay = Duration::from_millis(250);
@@ -58,6 +69,7 @@ async fn wifi_blink(mut control: cyw43::Control<'static>) {
         Timer::after(delay).await;
     }
 }
+*/
 
 #[embassy_executor::task]
 async fn cyw43_task(

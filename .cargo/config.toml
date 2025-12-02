@@ -29,4 +29,4 @@ rustflags = [
 target = "thumbv8m.main-none-eabihf"
 
 [env]
-DEFMT_LOG = "debug,cyw43=debug"
+DEFMT_LOG = "debug,cyw43=info"
