@@ -12,7 +12,9 @@ use embassy_rp::{
     peripherals::{I2C1, PIO1},
     pio::{InterruptHandler, Pio},
 };
+use embassy_sync::{blocking_mutex::raw::NoopRawMutex, channel::Channel};
 use embedded_alloc::LlffHeap;
+use static_cell::StaticCell;
 use {defmt_rtt as _, panic_probe as _};
 
 mod game {
@@ -37,6 +39,9 @@ mod temperature_and_humidity {
 #[cfg(feature = "temperature")]
 pub use temperature_and_humidity::{Flex, PIO0};
 
+type LedChannel = Channel<NoopRawMutex, bool, 4>;
+static LED_CHANNEL: StaticCell<LedChannel> = StaticCell::new();
+
 const I2C_FREQUENCY: u32 = 400_000;
 
 #[global_allocator]
@@ -59,11 +64,11 @@ async fn main(spawner: Spawner) {
     let mut config = I2cConfig::default();
     config.frequency = I2C_FREQUENCY;
 
-    let alt_led = Output::new(p.PIN_2, Level::Low);
+    let led_channel = LED_CHANNEL.init(Channel::new());
     let sensor = Input::new(p.PIN_21, Pull::Up);
     let i2c = I2c::new_async(p.I2C1, p.PIN_7, p.PIN_6, Irqs, config);
 
-    game::tasks::spawn_tasks(&spawner, sensor, alt_led, i2c).await;
+    game::tasks::spawn_tasks(&spawner, sensor, led_channel, i2c).await;
 
     #[cfg(feature = "temperature")]
     {

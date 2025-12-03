@@ -2,7 +2,7 @@ use defmt::info;
 use display_interface::DisplayError;
 use embassy_executor::Spawner;
 use embassy_futures::select::{Either, select};
-use embassy_rp::gpio::{Input, Output};
+use embassy_rp::gpio::Input;
 use embassy_rp::i2c::I2c;
 use embassy_rp::peripherals::I2C1;
 use embassy_sync::{blocking_mutex::raw::NoopRawMutex, channel::Channel, mutex::Mutex};
@@ -46,15 +46,17 @@ static DISPLAY_STATE_CHANNEL: StaticCell<DisplayStateChannel> = StaticCell::new(
 type GameStateChannel = Channel<NoopRawMutex, GameState, 4>;
 static GAME_STATE_CHANNEL: StaticCell<GameStateChannel> = StaticCell::new();
 
+type LedChannel = Channel<NoopRawMutex, bool, 4>;
+
 pub async fn spawn_tasks(
     spawner: &Spawner,
     sensor: Input<'static>,
-    led: Output<'static>,
+    led_channel: &'static LedChannel,
     i2c: I2c<'static, I2C1, embassy_rp::i2c::Async>,
 ) {
     let roll_channel = ROLL_CHANNEL.init(Channel::new());
     spawner
-        .spawn(break_beam_roller_task(sensor, led, roll_channel))
+        .spawn(break_beam_roller_task(sensor, led_channel, roll_channel))
         .unwrap();
 
     let interface = I2CDisplayInterface::new(i2c);
@@ -96,7 +98,7 @@ pub async fn spawn_tasks(
 #[embassy_executor::task]
 async fn break_beam_roller_task(
     mut sensor: Input<'static>,
-    mut led: Output<'static>,
+    led_channel: &'static LedChannel,
     roll_channel: &'static RollChannel,
 ) {
     let mut seed: Option<u64> = None;
@@ -105,7 +107,7 @@ async fn break_beam_roller_task(
     loop {
         sensor.wait_for_any_edge().await;
         if sensor.is_high() {
-            led.set_high();
+            led_channel.send(true).await;
 
             if let (Some(beam_broken_at), None) = (beam_broken_at, seed) {
                 let duration = beam_broken_at.elapsed().as_micros();
@@ -116,7 +118,7 @@ async fn break_beam_roller_task(
                 info!("Beam broken for {} mus.", duration);
             }
         } else {
-            led.set_low();
+            led_channel.send(false).await;
 
             if let Some(seed) = seed {
                 roll_channel.send(seed).await;
