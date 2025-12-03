@@ -25,7 +25,7 @@ type WifiPioSpi = PioSpi<'static, Pio, 0, Dma>;
 
 type LedChannel = Channel<NoopRawMutex, bool, 4>;
 
-pub async fn spawn_tasks(
+pub async fn init(
     spawner: &Spawner,
     power: Output<'static>,
     spi: WifiPioSpi,

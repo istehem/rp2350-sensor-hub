@@ -26,7 +26,7 @@ mod game {
 }
 
 mod network {
-    pub mod tasks;
+    pub mod controller;
 }
 
 #[cfg(feature = "temperature")]
@@ -99,5 +99,5 @@ async fn main(spawner: Spawner) {
         p.PIN_29,
         p.DMA_CH0,
     );
-    network::tasks::spawn_tasks(&spawner, power, spi, led_channel).await;
+    network::controller::init(&spawner, power, spi, led_channel).await;
 }
