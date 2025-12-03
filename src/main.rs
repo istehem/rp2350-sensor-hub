@@ -99,5 +99,5 @@ async fn main(spawner: Spawner) {
         p.PIN_29,
         p.DMA_CH0,
     );
-    network::tasks::spawn_tasks(&spawner, power, spi).await;
+    network::tasks::spawn_tasks(&spawner, power, spi, led_channel).await;
 }

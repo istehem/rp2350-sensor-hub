@@ -1,8 +1,7 @@
 use cyw43_pio::PioSpi;
-use defmt::info;
 use embassy_executor::Spawner;
 use embassy_rp::gpio::Output;
-use embassy_time::{Duration, Timer};
+use embassy_sync::{blocking_mutex::raw::NoopRawMutex, channel::Channel};
 use static_cell::StaticCell;
 
 // Program metadata for `picotool info`.
@@ -24,7 +23,14 @@ type Pio = embassy_rp::peripherals::PIO1;
 type Dma = embassy_rp::peripherals::DMA_CH0;
 type WifiPioSpi = PioSpi<'static, Pio, 0, Dma>;
 
-pub async fn spawn_tasks(spawner: &Spawner, power: Output<'static>, spi: WifiPioSpi) {
+type LedChannel = Channel<NoopRawMutex, bool, 4>;
+
+pub async fn spawn_tasks(
+    spawner: &Spawner,
+    power: Output<'static>,
+    spi: WifiPioSpi,
+    led_channel: &'static LedChannel,
+) {
     let firmware = include_bytes!("../../cyw43-firmware/43439A0.bin");
     // Country Locale Matrix
     let clm = include_bytes!("../../cyw43-firmware/43439A0_clm.bin");
@@ -40,19 +46,13 @@ pub async fn spawn_tasks(spawner: &Spawner, power: Output<'static>, spi: WifiPio
         .await;
 
     // The driver assumes exclusive access to control so it can't be spawned into another task.
-    wifi_blink(control).await;
+    wifi_blink(control, led_channel).await;
 }
 
-async fn wifi_blink(mut control: cyw43::Control<'static>) {
-    let delay = Duration::from_millis(2000);
+async fn wifi_blink(mut control: cyw43::Control<'static>, led_channel: &'static LedChannel) {
     loop {
-        info!("led on!");
-        control.gpio_set(0, true).await;
-        Timer::after(delay).await;
-
-        info!("led off!");
-        control.gpio_set(0, false).await;
-        Timer::after(delay).await;
+        let led_state = led_channel.receive().await;
+        control.gpio_set(0, led_state).await;
     }
 }
 
