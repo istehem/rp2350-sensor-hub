@@ -12,7 +12,7 @@ use embassy_rp::{
     peripherals::{I2C1, PIO1},
     pio::{InterruptHandler, Pio},
 };
-use embassy_sync::{blocking_mutex::raw::NoopRawMutex, channel::Channel};
+use embassy_sync::channel::Channel;
 use embedded_alloc::LlffHeap;
 use static_cell::StaticCell;
 use {defmt_rtt as _, panic_probe as _};
@@ -27,7 +27,9 @@ mod game {
 
 mod network {
     pub mod controller;
+    pub use controller::LedChannel;
 }
+pub use network::LedChannel;
 
 #[cfg(feature = "temperature")]
 mod temperature_and_humidity {
@@ -39,7 +41,6 @@ mod temperature_and_humidity {
 #[cfg(feature = "temperature")]
 pub use temperature_and_humidity::{Flex, PIO0};
 
-type LedChannel = Channel<NoopRawMutex, bool, 4>;
 static LED_CHANNEL: StaticCell<LedChannel> = StaticCell::new();
 
 const I2C_FREQUENCY: u32 = 400_000;
