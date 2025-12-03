@@ -104,6 +104,8 @@ async fn break_beam_roller_task(
     let mut seed: Option<u64> = None;
     let mut beam_broken_at: Option<Instant> = None;
 
+    led_channel.send(true).await;
+
     loop {
         sensor.wait_for_any_edge().await;
         if sensor.is_high() {
