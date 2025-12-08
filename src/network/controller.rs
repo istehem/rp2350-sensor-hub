@@ -1,5 +1,7 @@
 use cyw43_pio::PioSpi;
 use embassy_executor::Spawner;
+use embassy_net::{Config, StackResources};
+use embassy_rp::clocks::RoscRng;
 use embassy_rp::gpio::Output;
 use embassy_sync::{blocking_mutex::raw::NoopRawMutex, channel::Channel};
 use static_cell::StaticCell;
@@ -36,7 +38,7 @@ pub async fn run(
     let clm = include_bytes!("../../cyw43-firmware/43439A0_clm.bin");
 
     let state = STATE.init(cyw43::State::new());
-    let (_net_device, mut control, runner) = cyw43::new(state, power, spi, firmware).await;
+    let (net_device, mut control, runner) = cyw43::new(state, power, spi, firmware).await;
 
     spawner.spawn(cyw43_task(runner)).unwrap();
 
@@ -44,6 +46,19 @@ pub async fn run(
     control
         .set_power_management(cyw43::PowerManagementMode::PowerSave)
         .await;
+
+    let config = Config::dhcpv4(Default::default());
+    let mut rng = RoscRng;
+    let seed = rng.next_u64();
+
+    // Init network stack
+    static RESOURCES: StaticCell<StackResources<5>> = StaticCell::new();
+    let (_stack, _runner) = embassy_net::new(
+        net_device,
+        config,
+        RESOURCES.init(StackResources::new()),
+        seed,
+    );
 
     // The driver assumes exclusive access to control so it can't be spawned into another task.
     set_led_state(control, led_channel).await;
