@@ -46,10 +46,10 @@ pub async fn run(
         .await;
 
     // The driver assumes exclusive access to control so it can't be spawned into another task.
-    wifi_blink(control, led_channel).await;
+    set_led_state(control, led_channel).await;
 }
 
-async fn wifi_blink(mut control: cyw43::Control<'static>, led_channel: &'static LedChannel) {
+async fn set_led_state(mut control: cyw43::Control<'static>, led_channel: &'static LedChannel) {
     loop {
         let led_state = led_channel.receive().await;
         control.gpio_set(0, led_state).await;
