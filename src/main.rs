@@ -100,5 +100,5 @@ async fn main(spawner: Spawner) {
         p.PIN_29,
         p.DMA_CH0,
     );
-    network::controller::init(&spawner, power, spi, led_channel).await;
+    network::controller::run(&spawner, power, spi, led_channel).await;
 }
