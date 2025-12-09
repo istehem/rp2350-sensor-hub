@@ -1,6 +1,6 @@
 use cyw43::JoinOptions;
 use cyw43_pio::PioSpi;
-use defmt::info;
+use defmt::warn;
 use embassy_executor::Spawner;
 use embassy_net::{Config, StackResources};
 use embassy_rp::clocks::RoscRng;
@@ -71,7 +71,7 @@ pub async fn run(
         .join(WIFI_NETWORK, JoinOptions::new(WIFI_PASSWORD.as_bytes()))
         .await
     {
-        info!("join failed with status={}", err.status);
+        warn!("join failed with status={}", err.status);
     }
 
     // The driver assumes exclusive access to control so it can't be spawned into another task.

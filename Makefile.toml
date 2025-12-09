@@ -59,6 +59,12 @@ command = "cargo"
 args = ["build", "--all"]
 workspace = false
 
+[tasks.run]
+env_files = ["./hub.env"]
+command = "cargo"
+args = ["run", "--release"]
+workspace = false
+
 [tasks.build-temperature]
 env_files = ["./hub.env"]
 command = "cargo"
