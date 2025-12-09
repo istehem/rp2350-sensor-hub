@@ -1,10 +1,15 @@
+use cyw43::JoinOptions;
 use cyw43_pio::PioSpi;
+use defmt::info;
 use embassy_executor::Spawner;
 use embassy_net::{Config, StackResources};
 use embassy_rp::clocks::RoscRng;
 use embassy_rp::gpio::Output;
 use embassy_sync::{blocking_mutex::raw::NoopRawMutex, channel::Channel};
 use static_cell::StaticCell;
+
+const WIFI_NETWORK: &str = env!("WIFI_NETWORK");
+const WIFI_PASSWORD: &str = env!("WIFI_PASSWORD");
 
 // Program metadata for `picotool info`.
 // This isn't needed, but it's recommended to have these minimal entries.
@@ -53,12 +58,21 @@ pub async fn run(
 
     // Init network stack
     static RESOURCES: StaticCell<StackResources<5>> = StaticCell::new();
-    let (_stack, _runner) = embassy_net::new(
+    let (_stack, runner) = embassy_net::new(
         net_device,
         config,
         RESOURCES.init(StackResources::new()),
         seed,
     );
+
+    spawner.spawn(net_task(runner)).unwrap();
+
+    while let Err(err) = control
+        .join(WIFI_NETWORK, JoinOptions::new(WIFI_PASSWORD.as_bytes()))
+        .await
+    {
+        info!("join failed with status={}", err.status);
+    }
 
     // The driver assumes exclusive access to control so it can't be spawned into another task.
     set_led_state(control, led_channel).await;
@@ -73,5 +87,10 @@ async fn set_led_state(mut control: cyw43::Control<'static>, led_channel: &'stat
 
 #[embassy_executor::task]
 async fn cyw43_task(runner: cyw43::Runner<'static, Output<'static>, WifiPioSpi>) -> ! {
+    runner.run().await
+}
+
+#[embassy_executor::task]
+async fn net_task(mut runner: embassy_net::Runner<'static, cyw43::NetDriver<'static>>) -> ! {
     runner.run().await
 }
