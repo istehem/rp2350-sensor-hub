@@ -4,6 +4,8 @@ on: [push, pull_request]
 
 env:
   CARGO_TERM_COLOR: always
+  WIFI_NETWORK: "DUMMY_NETWORK"
+  WIFI_PASSWORD: "DUMMY_PASSWORD"
 
 jobs:
   building:

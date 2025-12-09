@@ -1,7 +1,3 @@
-[env]
-WIFI_NETWORK = "DUMMY_NETWORK"
-WIFI_PASSWORD = "DUMMY_PASSWORD"
-
 [tasks.outdated]
 workspace = false
 command = "cargo"
@@ -53,36 +49,42 @@ args = [
 ]
 
 [tasks.fmt]
-workspace = false
 command = "cargo"
 args = ["fmt"]
+workspace = false
 
 [tasks.build-all]
-workspace = false
+env_files = ["./hub.env"]
 command = "cargo"
 args = ["build", "--all"]
+workspace = false
 
 [tasks.build-temperature]
-workspace = false
+env_files = ["./hub.env"]
 command = "cargo"
 args = ["build", "--all", "--features", "temperature"]
+workspace = false
 
 [tasks.run-temperature]
-workspace = false
+env_files = ["./hub.env"]
 command = "cargo"
 args = ["run", "--release", "--features", "temperature"]
+workspace = false
 
 [tasks.clippy-all]
-workspace = false
+env_files = ["./hub.env"]
 command = "cargo"
 args = ["clippy", "--all"]
+workspace = false
 
 [tasks.clippy-temperature]
-workspace = false
+env_files = ["./hub.env"]
 command = "cargo"
 args = ["clippy", "--all", "--features", "temperature"]
+workspace = false
 
 [tasks.clippy]
+env_files = ["./hub.env"]
 dependencies = ["clippy-all", "clippy-temperature"]
 workspace = false
 
