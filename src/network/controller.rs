@@ -1,6 +1,6 @@
 use cyw43::JoinOptions;
 use cyw43_pio::PioSpi;
-use defmt::warn;
+use defmt::{info, warn};
 use embassy_executor::Spawner;
 use embassy_net::{Config, StackResources};
 use embassy_rp::clocks::RoscRng;
@@ -58,7 +58,7 @@ pub async fn run(
 
     // Init network stack
     static RESOURCES: StaticCell<StackResources<5>> = StaticCell::new();
-    let (_stack, runner) = embassy_net::new(
+    let (stack, runner) = embassy_net::new(
         net_device,
         config,
         RESOURCES.init(StackResources::new()),
@@ -73,6 +73,14 @@ pub async fn run(
     {
         warn!("join failed with status={}", err.status);
     }
+
+    info!("waiting for link...");
+    stack.wait_link_up().await;
+
+    info!("waiting for DHCP...");
+    stack.wait_config_up().await;
+
+    info!("Stack is up!");
 
     // The driver assumes exclusive access to control so it can't be spawned into another task.
     set_led_state(control, led_channel).await;
