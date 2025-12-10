@@ -9,6 +9,7 @@ use embassy_rp::clocks::RoscRng;
 use embassy_rp::gpio::Output;
 use embassy_sync::{blocking_mutex::raw::NoopRawMutex, channel::Channel};
 use reqwless::client::HttpClient;
+use reqwless::headers::ContentType;
 use reqwless::request::{Method, RequestBuilder};
 use static_cell::StaticCell;
 
@@ -103,7 +104,7 @@ async fn http_post(
     url: &str,
 ) -> Result<(), reqwless::Error> {
     let mut request = http_client.request(Method::POST, url).await?;
-    let headers = [("Content-Type", "text/plain")];
+    let headers = [("Content-Type", ContentType::TextPlain.as_str())];
     request = request.headers(&headers);
 
     let mut rx_buffer = [0; 4096];
