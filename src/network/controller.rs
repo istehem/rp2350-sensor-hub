@@ -9,7 +9,7 @@ use embassy_rp::clocks::RoscRng;
 use embassy_rp::gpio::Output;
 use embassy_sync::{blocking_mutex::raw::NoopRawMutex, channel::Channel};
 use reqwless::client::HttpClient;
-use reqwless::request::Method;
+use reqwless::request::{Method, RequestBuilder};
 use static_cell::StaticCell;
 
 const WIFI_NETWORK: &str = env!("WIFI_NETWORK");
@@ -103,11 +103,13 @@ async fn http_post(
     url: &str,
 ) -> Result<(), reqwless::Error> {
     let mut request = http_client.request(Method::POST, url).await?;
-    let mut rx_buffer = [0; 4096];
-    request.send(&mut rx_buffer).await?;
-    //let response = request.send(&mut rx_buffer).await?;
-    //let body_bytes = response.body().read_to_end().await?;
+    let headers = [("Content-Type", "text/plain")];
+    request = request.headers(&headers);
 
+    let mut rx_buffer = [0; 4096];
+    let rx_body = "Hello World!";
+    rx_buffer[..rx_body.len()].copy_from_slice(rx_body.as_bytes());
+    request.send(&mut rx_buffer).await?;
     Ok(())
 }
 
