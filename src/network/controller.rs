@@ -15,6 +15,7 @@ use static_cell::StaticCell;
 
 const WIFI_NETWORK: &str = env!("WIFI_NETWORK");
 const WIFI_PASSWORD: &str = env!("WIFI_PASSWORD");
+const TEMPERATURE_ENDPOINT: &str = env!("TEMPERATURE_ENDPOINT");
 
 // Program metadata for `picotool info`.
 // This isn't needed, but it's recommended to have these minimal entries.
@@ -93,7 +94,9 @@ pub async fn run(
 
     let mut http_client = HttpClient::new(&tcp_client, &dns_client);
 
-    http_post(&mut http_client, "example.com").await.unwrap();
+    http_post(&mut http_client, TEMPERATURE_ENDPOINT)
+        .await
+        .unwrap();
 
     // The driver assumes exclusive access to control so it can't be spawned into another task.
     set_led_state(control, led_channel).await;
