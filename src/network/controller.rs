@@ -2,10 +2,14 @@ use cyw43::JoinOptions;
 use cyw43_pio::PioSpi;
 use defmt::{info, warn};
 use embassy_executor::Spawner;
+use embassy_net::dns::DnsSocket;
+use embassy_net::tcp::client::{TcpClient, TcpClientState};
 use embassy_net::{Config, StackResources};
 use embassy_rp::clocks::RoscRng;
 use embassy_rp::gpio::Output;
 use embassy_sync::{blocking_mutex::raw::NoopRawMutex, channel::Channel};
+use reqwless::client::HttpClient;
+use reqwless::request::Method;
 use static_cell::StaticCell;
 
 const WIFI_NETWORK: &str = env!("WIFI_NETWORK");
@@ -82,8 +86,29 @@ pub async fn run(
 
     info!("Stack is up!");
 
+    let client_state = TcpClientState::<1, 4096, 4096>::new();
+    let tcp_client = TcpClient::new(stack, &client_state);
+    let dns_client = DnsSocket::new(stack);
+
+    let mut http_client = HttpClient::new(&tcp_client, &dns_client);
+
+    http_post(&mut http_client, "example.com").await.unwrap();
+
     // The driver assumes exclusive access to control so it can't be spawned into another task.
     set_led_state(control, led_channel).await;
+}
+
+async fn http_post(
+    http_client: &mut HttpClient<'_, TcpClient<'_, 1, 4096, 4096>, DnsSocket<'_>>,
+    url: &str,
+) -> Result<(), reqwless::Error> {
+    let mut request = http_client.request(Method::POST, url).await?;
+    let mut rx_buffer = [0; 4096];
+    request.send(&mut rx_buffer).await?;
+    //let response = request.send(&mut rx_buffer).await?;
+    //let body_bytes = response.body().read_to_end().await?;
+
+    Ok(())
 }
 
 async fn set_led_state(mut control: cyw43::Control<'static>, led_channel: &'static LedChannel) {

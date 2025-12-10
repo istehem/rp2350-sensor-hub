@@ -25,7 +25,7 @@ embassy-executor = { version = "0.9.1", features = [
   "defmt",
 ] }
 embassy-futures = "0.1.2"
-embassy-net = { version = "0.7.1", features = ["dhcpv4", "proto-ipv4", "tcp"] }
+embassy-net = { version = "0.7.1", features = ["dhcpv4", "dns", "proto-ipv4", "tcp"] }
 embassy-rp = { version = "0.9.0", features = [
   "defmt",
   "binary-info",
@@ -45,6 +45,7 @@ embedded-graphics-framebuf = "0.5.0"
 panic-probe = { version = "1", features = ["print-defmt"] }
 portable-atomic = { version = "1.11.1", features = ["critical-section"] }
 rand = { workspace = true }
+reqwless = "0.13.0"
 ssd1306 = { version = "0.10.0", features = ["async"] }
 static_cell = "2.1.1"
 u8g2-fonts = { workspace = true }
