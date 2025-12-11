@@ -8,6 +8,7 @@ use embassy_rp::{
 use embassy_time::Timer;
 
 use crate::temperature_and_humidity::error::FormattableDHTSensorError;
+use crate::{DHTResponse, TempHumidityChannel};
 
 type Pio = PIO0;
 type DHTStateMachine = StateMachine<'static, Pio, 0>;
@@ -17,9 +18,15 @@ pub async fn spawn_tasks(
     sensor_pin: Pin<'static, Pio>,
     common: Common<'static, Pio>,
     state_machine: DHTStateMachine,
+    temp_humidity_channel: &'static TempHumidityChannel,
 ) {
     spawner
-        .spawn(read_sensor_task(sensor_pin, common, state_machine))
+        .spawn(read_sensor_task(
+            sensor_pin,
+            common,
+            state_machine,
+            temp_humidity_channel,
+        ))
         .unwrap();
 }
 
@@ -28,6 +35,7 @@ async fn read_sensor_task(
     sensor_pin: Pin<'static, Pio>,
     common: Common<'static, Pio>,
     state_machine: DHTStateMachine,
+    temp_humidity_channel: &'static TempHumidityChannel,
 ) {
     let mut dht_sensor = DHTSensor::new(sensor_pin, common, state_machine);
 
@@ -39,6 +47,12 @@ async fn read_sensor_task(
                     "Temperature: {}, Humidity: {}",
                     measurement.temperature, measurement.humidity
                 );
+                temp_humidity_channel
+                    .send(DHTResponse {
+                        temperature: measurement.temperature,
+                        humidity: measurement.humidity,
+                    })
+                    .await;
             }
             Err(err) => {
                 info!(

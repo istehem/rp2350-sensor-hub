@@ -13,6 +13,8 @@ use reqwless::headers::ContentType;
 use reqwless::request::{Method, RequestBuilder};
 use static_cell::StaticCell;
 
+use crate::TempHumidityChannel;
+
 const WIFI_NETWORK: &str = env!("WIFI_NETWORK");
 const WIFI_PASSWORD: &str = env!("WIFI_PASSWORD");
 const TEMPERATURE_ENDPOINT: &str = env!("TEMPERATURE_ENDPOINT");
@@ -43,6 +45,7 @@ pub async fn run(
     power: Output<'static>,
     spi: WifiPioSpi,
     led_channel: &'static LedChannel,
+    temp_humidity_channel: &'static TempHumidityChannel,
 ) {
     let firmware = include_bytes!("../../cyw43-firmware/43439A0.bin");
     // Country Locale Matrix
@@ -100,6 +103,7 @@ pub async fn run(
 
     // The driver assumes exclusive access to control so it can't be spawned into another task.
     set_led_state(control, led_channel).await;
+    post_temperature(temp_humidity_channel).await;
 }
 
 async fn http_post(
@@ -117,11 +121,17 @@ async fn http_post(
     Ok(())
 }
 
+async fn post_temperature(temp_humidity_channel: &'static TempHumidityChannel) {
+    let measurement = temp_humidity_channel.receive().await;
+    info!(
+        "Temperature: {}, Humidity: {}",
+        measurement.temperature, measurement.humidity
+    );
+}
+
 async fn set_led_state(mut control: cyw43::Control<'static>, led_channel: &'static LedChannel) {
-    loop {
-        let led_state = led_channel.receive().await;
-        control.gpio_set(0, led_state).await;
-    }
+    let led_state = led_channel.receive().await;
+    control.gpio_set(0, led_state).await;
 }
 
 #[embassy_executor::task]

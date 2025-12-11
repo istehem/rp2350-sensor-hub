@@ -12,6 +12,7 @@ use embassy_rp::{
     peripherals::{I2C1, PIO1},
     pio::{InterruptHandler, Pio},
 };
+use embassy_sync::blocking_mutex::raw::NoopRawMutex;
 use embassy_sync::channel::Channel;
 use embedded_alloc::LlffHeap;
 use static_cell::StaticCell;
@@ -29,19 +30,27 @@ mod network {
     pub mod controller;
     pub use controller::LedChannel;
 }
-pub use network::LedChannel;
+use network::LedChannel;
 
 #[cfg(feature = "temperature")]
 mod temperature_and_humidity {
     pub mod error;
     pub mod tasks;
-    pub use embassy_rp::{gpio::Flex, peripherals::PIO0};
+    pub use embassy_rp::peripherals::PIO0;
 }
 
+#[derive(Clone)]
+struct DHTResponse {
+    pub humidity: f32,
+    pub temperature: f32,
+}
+type TempHumidityChannel = Channel<NoopRawMutex, DHTResponse, 4>;
+
 #[cfg(feature = "temperature")]
-pub use temperature_and_humidity::{Flex, PIO0};
+use temperature_and_humidity::PIO0;
 
 static LED_CHANNEL: StaticCell<LedChannel> = StaticCell::new();
+static TEMP_HUMIDITY_CHANNEL: StaticCell<TempHumidityChannel> = StaticCell::new();
 
 const I2C_FREQUENCY: u32 = 400_000;
 
@@ -71,6 +80,7 @@ async fn main(spawner: Spawner) {
 
     game::tasks::spawn_tasks(&spawner, sensor, led_channel, i2c).await;
 
+    let temp_humidity_channel = TEMP_HUMIDITY_CHANNEL.init(Channel::new());
     #[cfg(feature = "temperature")]
     {
         let pio = p.PIO0;
@@ -80,7 +90,14 @@ async fn main(spawner: Spawner) {
         let mut pin = common.make_pio_pin(p.PIN_17);
         pin.set_pull(Pull::Up);
 
-        temperature_and_humidity::tasks::spawn_tasks(&spawner, pin, common, sm0).await;
+        temperature_and_humidity::tasks::spawn_tasks(
+            &spawner,
+            pin,
+            common,
+            sm0,
+            temp_humidity_channel,
+        )
+        .await;
     }
 
     let power = Output::new(p.PIN_23, Level::Low);
@@ -100,5 +117,5 @@ async fn main(spawner: Spawner) {
         p.PIN_29,
         p.DMA_CH0,
     );
-    network::controller::run(&spawner, power, spi, led_channel).await;
+    network::controller::run(&spawner, power, spi, led_channel, temp_humidity_channel).await;
 }
