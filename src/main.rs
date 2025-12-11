@@ -40,11 +40,11 @@ mod temperature_and_humidity {
 }
 
 #[derive(Clone)]
-struct DHTResponse {
+struct Measurement {
     pub humidity: f32,
     pub temperature: f32,
 }
-type TempHumidityChannel = Channel<NoopRawMutex, DHTResponse, 4>;
+type TempHumidityChannel = Channel<NoopRawMutex, Measurement, 4>;
 
 #[cfg(feature = "temperature")]
 use temperature_and_humidity::PIO0;

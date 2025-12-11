@@ -8,7 +8,7 @@ use embassy_rp::{
 use embassy_time::Timer;
 
 use crate::temperature_and_humidity::error::FormattableDHTSensorError;
-use crate::{DHTResponse, TempHumidityChannel};
+use crate::{Measurement, TempHumidityChannel};
 
 type Pio = PIO0;
 type DHTStateMachine = StateMachine<'static, Pio, 0>;
@@ -48,7 +48,7 @@ async fn read_sensor_task(
                     measurement.temperature, measurement.humidity
                 );
                 temp_humidity_channel
-                    .send(DHTResponse {
+                    .send(Measurement {
                         temperature: measurement.temperature,
                         humidity: measurement.humidity,
                     })

@@ -1,3 +1,4 @@
+use alloc::string::ToString;
 use cyw43::JoinOptions;
 use cyw43_pio::PioSpi;
 use defmt::{info, warn};
@@ -98,25 +99,33 @@ pub async fn run(
 
     let mut http_client = HttpClient::new(&tcp_client, &dns_client);
 
-    http_post(&mut http_client, TEMPERATURE_ENDPOINT)
-        .await
-        .unwrap();
-
     loop {
         select(
             set_led_state(&mut control, led_channel),
-            post_temperature(temp_humidity_channel),
+            post_temperature(&mut http_client, temp_humidity_channel),
         )
         .await;
     }
 }
 
-async fn post_temperature(temp_humidity_channel: &'static TempHumidityChannel) {
+async fn post_temperature(
+    http_client: &mut HttpClient<'_, TcpClient<'_, 1, 4096, 4096>, DnsSocket<'_>>,
+    temp_humidity_channel: &'static TempHumidityChannel,
+) {
     let measurement = temp_humidity_channel.receive().await;
-    info!(
-        "Temperature: {}, Humidity: {}",
-        measurement.temperature, measurement.humidity
-    );
+    let body_values = [
+        "Temperature:",
+        &measurement.temperature.to_string(),
+        "Humidity:",
+        &measurement.humidity.to_string(),
+    ];
+    let body: &str = &body_values.join(" ");
+    info!("Going to post: {}", body);
+
+    match http_post(http_client, TEMPERATURE_ENDPOINT, body).await {
+        Ok(_) => info!("Posted temperature successfully!"),
+        Err(_) => warn!("Temperature could not be posted."),
+    }
 }
 
 async fn set_led_state(control: &mut cyw43::Control<'static>, led_channel: &'static LedChannel) {
@@ -127,14 +136,14 @@ async fn set_led_state(control: &mut cyw43::Control<'static>, led_channel: &'sta
 async fn http_post(
     http_client: &mut HttpClient<'_, TcpClient<'_, 1, 4096, 4096>, DnsSocket<'_>>,
     url: &str,
+    body: &str,
 ) -> Result<(), reqwless::Error> {
     let mut request = http_client.request(Method::POST, url).await?;
     let headers = [("Content-Type", ContentType::TextPlain.as_str())];
     request = request.headers(&headers);
 
     let mut rx_buffer = [0; 4096];
-    let rx_body = "Hello World!";
-    rx_buffer[..rx_body.len()].copy_from_slice(rx_body.as_bytes());
+    rx_buffer[..body.len()].copy_from_slice(body.as_bytes());
     request.send(&mut rx_buffer).await?;
     Ok(())
 }
