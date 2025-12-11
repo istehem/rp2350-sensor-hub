@@ -2,6 +2,7 @@ use cyw43::JoinOptions;
 use cyw43_pio::PioSpi;
 use defmt::{info, warn};
 use embassy_executor::Spawner;
+use embassy_futures::select::select;
 use embassy_net::dns::DnsSocket;
 use embassy_net::tcp::client::{TcpClient, TcpClientState};
 use embassy_net::{Config, StackResources};
@@ -101,9 +102,26 @@ pub async fn run(
         .await
         .unwrap();
 
-    // The driver assumes exclusive access to control so it can't be spawned into another task.
-    set_led_state(control, led_channel).await;
-    post_temperature(temp_humidity_channel).await;
+    loop {
+        select(
+            set_led_state(&mut control, led_channel),
+            post_temperature(temp_humidity_channel),
+        )
+        .await;
+    }
+}
+
+async fn post_temperature(temp_humidity_channel: &'static TempHumidityChannel) {
+    let measurement = temp_humidity_channel.receive().await;
+    info!(
+        "Temperature: {}, Humidity: {}",
+        measurement.temperature, measurement.humidity
+    );
+}
+
+async fn set_led_state(control: &mut cyw43::Control<'static>, led_channel: &'static LedChannel) {
+    let led_state = led_channel.receive().await;
+    control.gpio_set(0, led_state).await;
 }
 
 async fn http_post(
@@ -119,19 +137,6 @@ async fn http_post(
     rx_buffer[..rx_body.len()].copy_from_slice(rx_body.as_bytes());
     request.send(&mut rx_buffer).await?;
     Ok(())
-}
-
-async fn post_temperature(temp_humidity_channel: &'static TempHumidityChannel) {
-    let measurement = temp_humidity_channel.receive().await;
-    info!(
-        "Temperature: {}, Humidity: {}",
-        measurement.temperature, measurement.humidity
-    );
-}
-
-async fn set_led_state(mut control: cyw43::Control<'static>, led_channel: &'static LedChannel) {
-    let led_state = led_channel.receive().await;
-    control.gpio_set(0, led_state).await;
 }
 
 #[embassy_executor::task]
