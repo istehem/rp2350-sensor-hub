@@ -21,6 +21,7 @@ use embedded_graphics_framebuf::FrameBuf;
 use game_logic::two_four_eighteen::Game;
 use pico_display::messages;
 
+use crate::LedChannel;
 use crate::game::cache::FrameCache;
 use crate::game::entities::{Display, GameState};
 use crate::game::player;
@@ -45,8 +46,6 @@ static DISPLAY_STATE_CHANNEL: StaticCell<DisplayStateChannel> = StaticCell::new(
 
 type GameStateChannel = Channel<NoopRawMutex, GameState, 4>;
 static GAME_STATE_CHANNEL: StaticCell<GameStateChannel> = StaticCell::new();
-
-type LedChannel = Channel<NoopRawMutex, bool, 4>;
 
 pub async fn spawn_tasks(
     spawner: &Spawner,

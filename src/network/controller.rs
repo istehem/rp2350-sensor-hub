@@ -9,12 +9,12 @@ use embassy_net::tcp::client::{TcpClient, TcpClientState};
 use embassy_net::{Config, StackResources};
 use embassy_rp::clocks::RoscRng;
 use embassy_rp::gpio::Output;
-use embassy_sync::{blocking_mutex::raw::NoopRawMutex, channel::Channel};
 use reqwless::client::HttpClient;
 use reqwless::headers::ContentType;
 use reqwless::request::{Method, RequestBuilder};
 use static_cell::StaticCell;
 
+use crate::LedChannel;
 use crate::TempHumidityChannel;
 
 const WIFI_NETWORK: &str = env!("WIFI_NETWORK");
@@ -39,8 +39,6 @@ static STATE: StaticCell<cyw43::State> = StaticCell::new();
 type Pio = embassy_rp::peripherals::PIO1;
 type Dma = embassy_rp::peripherals::DMA_CH0;
 type WifiPioSpi = PioSpi<'static, Pio, 0, Dma>;
-
-pub type LedChannel = Channel<NoopRawMutex, bool, 4>;
 
 pub async fn run(
     spawner: &Spawner,
