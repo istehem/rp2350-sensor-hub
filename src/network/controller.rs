@@ -92,6 +92,8 @@ pub async fn run(
     stack.wait_config_up().await;
 
     info!("Stack is up!");
+    // Activate the led to signal that the stack is up.
+    control.gpio_set(0, true).await;
 
     let client_state = TcpClientState::<1, 4096, 4096>::new();
     let tcp_client = TcpClient::new(stack, &client_state);
@@ -116,6 +118,7 @@ async fn post_temperature(
     let body_values = [
         "Temperature:",
         &measurement.temperature.to_string(),
+        ",",
         "Humidity:",
         &measurement.humidity.to_string(),
     ];
