@@ -19,20 +19,21 @@ use static_cell::StaticCell;
 use {defmt_rtt as _, panic_probe as _};
 
 mod game {
-    pub mod cache;
-    pub mod entities;
-    pub mod error;
-    pub mod player;
+    mod cache;
+    mod entities;
+    mod error;
+    mod player;
     pub mod tasks;
 }
 
 mod network {
     pub mod controller;
+    mod error;
 }
 
 #[cfg(feature = "temperature")]
 mod temperature_and_humidity {
-    pub mod error;
+    mod error;
     pub mod tasks;
     pub use embassy_rp::peripherals::PIO0;
 }
