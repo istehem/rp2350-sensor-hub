@@ -16,6 +16,7 @@ use static_cell::StaticCell;
 
 use crate::LedChannel;
 use crate::TempHumidityChannel;
+use crate::network::error::ReqwlessError;
 
 const WIFI_NETWORK: &str = env!("WIFI_NETWORK");
 const WIFI_PASSWORD: &str = env!("WIFI_PASSWORD");
@@ -125,7 +126,7 @@ async fn post_temperature(
 
     match http_post(http_client, TEMPERATURE_ENDPOINT, body).await {
         Ok(_) => info!("Posted temperature successfully!"),
-        Err(_) => warn!("Temperature could not be posted."),
+        Err(err) => warn!("Posting temperature failed with: {}", err),
     }
 }
 
@@ -138,7 +139,7 @@ async fn http_post(
     http_client: &mut HttpClient<'_, TcpClient<'_, 1, 4096, 4096>, DnsSocket<'_>>,
     url: &str,
     body: &str,
-) -> Result<(), reqwless::Error> {
+) -> Result<(), ReqwlessError> {
     let mut request = http_client.request(Method::POST, url).await?;
     let headers = [("Content-Type", ContentType::TextPlain.as_str())];
     request = request.headers(&headers);

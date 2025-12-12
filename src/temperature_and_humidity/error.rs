@@ -22,6 +22,6 @@ impl defmt::Format for FormattableDHTSensorError {
 
 impl From<DHTSensorError> for FormattableDHTSensorError {
     fn from(err: DHTSensorError) -> Self {
-        FormattableDHTSensorError::DHTSensorError(err)
+        Self::DHTSensorError(err)
     }
 }
