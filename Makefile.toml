@@ -1,5 +1,5 @@
 [env]
-TEMPERATURE_ENDPOINT = "192.168.132.141:8080/temperature"
+TEMPERATURE_ENDPOINT = "http://192.168.132.141:8080/temperature"
 
 [tasks.outdated]
 workspace = false
