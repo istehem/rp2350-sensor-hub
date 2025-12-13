@@ -1,7 +1,7 @@
 use alloc::string::ToString;
 use cyw43::JoinOptions;
 use cyw43_pio::PioSpi;
-use defmt::{info, warn};
+use defmt::{error, info, warn};
 use embassy_executor::Spawner;
 use embassy_futures::select::select;
 use embassy_net::dns::DnsSocket;
@@ -126,7 +126,7 @@ async fn post_temperature(
 
     match http_post(http_client, TEMPERATURE_ENDPOINT, body).await {
         Ok(_) => info!("Posted temperature successfully!"),
-        Err(err) => warn!("Posting temperature failed with: {}", err),
+        Err(err) => error!("Posting temperature failed with: {}", err),
     }
 }
 
