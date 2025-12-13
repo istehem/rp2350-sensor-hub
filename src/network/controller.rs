@@ -18,6 +18,8 @@ use crate::LedChannel;
 use crate::TempHumidityChannel;
 use crate::network::error::ReqwlessError;
 
+type TcpHttpClient<'a> = HttpClient<'a, TcpClient<'a, 1, 4096, 4096>, DnsSocket<'a>>;
+
 const WIFI_NETWORK: &str = env!("WIFI_NETWORK");
 const WIFI_PASSWORD: &str = env!("WIFI_PASSWORD");
 const TEMPERATURE_ENDPOINT: &str = env!("TEMPERATURE_ENDPOINT");
@@ -110,7 +112,7 @@ pub async fn run(
 }
 
 async fn post_measurement(
-    http_client: &mut HttpClient<'_, TcpClient<'_, 1, 4096, 4096>, DnsSocket<'_>>,
+    http_client: &mut TcpHttpClient<'_>,
     temp_humidity_channel: &'static TempHumidityChannel,
 ) {
     let measurement = temp_humidity_channel.receive().await;
@@ -136,7 +138,7 @@ async fn set_led_state(control: &mut cyw43::Control<'static>, led_channel: &'sta
 }
 
 async fn http_post(
-    http_client: &mut HttpClient<'_, TcpClient<'_, 1, 4096, 4096>, DnsSocket<'_>>,
+    http_client: &mut TcpHttpClient<'_>,
     url: &str,
     body: &str,
 ) -> Result<(), ReqwlessError> {
