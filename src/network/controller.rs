@@ -103,25 +103,25 @@ pub async fn run(
     loop {
         select(
             set_led_state(&mut control, led_channel),
-            post_temperature(&mut http_client, temp_humidity_channel),
+            post_measurement(&mut http_client, temp_humidity_channel),
         )
         .await;
     }
 }
 
-async fn post_temperature(
+async fn post_measurement(
     http_client: &mut HttpClient<'_, TcpClient<'_, 1, 4096, 4096>, DnsSocket<'_>>,
     temp_humidity_channel: &'static TempHumidityChannel,
 ) {
     let measurement = temp_humidity_channel.receive().await;
     let body_values = [
-        "Temperature:",
+        r#"{"temperature":"#,
         &measurement.temperature.to_string(),
-        ",",
-        "Humidity:",
+        r#","humidity":"#,
         &measurement.humidity.to_string(),
+        "}",
     ];
-    let body: &str = &body_values.join(" ");
+    let body: &str = &body_values.join("");
     info!("Going to post: {}", body);
 
     match http_post(http_client, TEMPERATURE_ENDPOINT, body).await {
@@ -141,7 +141,7 @@ async fn http_post(
     body: &str,
 ) -> Result<(), ReqwlessError> {
     let mut request = http_client.request(Method::POST, url).await?;
-    let headers = [("Content-Type", ContentType::TextPlain.as_str())];
+    let headers = [("Content-Type", ContentType::ApplicationJson.as_str())];
     request = request.headers(&headers);
 
     let mut rx_buffer = [0; 4096];

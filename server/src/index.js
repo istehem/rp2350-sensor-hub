@@ -26,7 +26,11 @@ app.get("/api/measurements/latest", (req, res) => {
 });
 
 app.post("/api/measurements", (req, res) => {
-  lastMeasurement = { temperature: req.body.data, date: new Date() };
+  lastMeasurement = {
+    temperature: req.body.temperature,
+    humidity: req.body.humidity,
+    date: new Date(),
+  };
   let data = { msg: "Measurement received.", measurement: lastMeasurement };
   logger.info(data);
   res.json(data);
