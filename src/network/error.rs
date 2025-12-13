@@ -7,10 +7,16 @@ impl defmt::Format for ReqwlessError {
     fn format(&self, fmt: defmt::Formatter<'_>) {
         match self {
             Self::Error(reqwless::Error::Dns) => defmt::write!(fmt, "{}", "Dns"),
-            Self::Error(reqwless::Error::Network(_)) => defmt::write!(fmt, "{}", "Network"),
+            Self::Error(reqwless::Error::Network(err_kind)) => {
+                defmt::write!(fmt, "Network({:?})", defmt::Debug2Format(err_kind))
+            }
             Self::Error(reqwless::Error::Codec) => defmt::write!(fmt, "{}", "Codec"),
-            Self::Error(reqwless::Error::InvalidUrl(_)) => defmt::write!(fmt, "{}", "InvalidUrl"),
-            Self::Error(reqwless::Error::Tls(_)) => defmt::write!(fmt, "{}", "Tls"),
+            Self::Error(reqwless::Error::InvalidUrl(err_kind)) => {
+                defmt::write!(fmt, "InvalidUrl({:?})", defmt::Debug2Format(err_kind))
+            }
+            Self::Error(reqwless::Error::Tls(err_kind)) => {
+                defmt::write!(fmt, "Tls({:?})", defmt::Debug2Format(err_kind))
+            }
             Self::Error(reqwless::Error::BufferTooSmall) => {
                 defmt::write!(fmt, "{}", "BufferTooSmall")
             }
