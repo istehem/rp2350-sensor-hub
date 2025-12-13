@@ -140,13 +140,14 @@ async fn http_post(
     url: &str,
     body: &str,
 ) -> Result<(), ReqwlessError> {
-    let mut request = http_client.request(Method::POST, url).await?;
-    let headers = [("Content-Type", ContentType::ApplicationJson.as_str())];
-    request = request.headers(&headers);
-
     let mut rx_buffer = [0; 4096];
-    rx_buffer[..body.len()].copy_from_slice(body.as_bytes());
-    request.send(&mut rx_buffer).await?;
+    http_client
+        .request(Method::POST, url)
+        .await?
+        .content_type(ContentType::ApplicationJson)
+        .body(body.as_bytes())
+        .send(&mut rx_buffer)
+        .await?;
     Ok(())
 }
 
