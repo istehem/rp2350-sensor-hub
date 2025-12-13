@@ -1,4 +1,4 @@
-use defmt::info;
+use defmt::{info, warn};
 use embassy_dht_rp2350_sensor::DHTSensor;
 use embassy_executor::Spawner;
 use embassy_rp::{
@@ -55,12 +55,12 @@ async fn read_sensor_task(
                     .await;
             }
             Err(err) => {
-                info!(
+                warn!(
                     "Error reading from DHT sensor: {}",
                     FormattableDHTSensorError::from(err)
                 );
             }
         }
-        Timer::after_millis(3000).await;
+        Timer::after_millis(10000).await;
     }
 }

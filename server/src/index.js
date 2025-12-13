@@ -7,6 +7,11 @@ app = express();
 app.use("/api/", (req, res, next) => {
   if (req.method === "POST" || req.method === "PUT") {
     if (!req.is("application/json")) {
+      logger.debug({
+        msg: "A request with an invalid media type received.",
+        headers: req.headers,
+        body: req.body || "<There is no body.>",
+      });
       return res
         .status(415)
         .json({ msg: "Unsupported Media Type. Must be application/json." });
