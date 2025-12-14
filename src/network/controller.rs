@@ -119,29 +119,36 @@ async fn post_measurement(
     temp_humidity_channel: &'static TempHumidityChannel,
 ) {
     let measurement = temp_humidity_channel.receive().await;
-    let body: &str = &serde_json_core::to_string::<_, TCP_RX_SIZE>(&measurement).unwrap();
-    debug!("Going to post: {}", body);
+    match &serde_json_core::to_string::<_, TCP_RX_SIZE>(&measurement) {
+        Ok(body) => {
+            debug!("Going to post: {}", body.as_str());
 
-    match http_post(http_client, MEASUREMENTS_ENDPOINT, body).await {
-        Ok(status_code) => {
-            if status_code.is_successful() {
-                debug!(
-                    "Posting measurement succeeded with http exit code: {}",
-                    status_code.0
-                )
-            } else if status_code.is_client_error() || status_code.is_server_error() {
-                error!(
-                    "Posting measurement failed with http exit code: {}",
-                    status_code.0
-                )
-            } else {
-                warn!(
-                    "Posting measurement exited with a non successful http exit code: {}",
-                    status_code.0
-                )
+            match http_post(http_client, MEASUREMENTS_ENDPOINT, body).await {
+                Ok(status_code) => {
+                    if status_code.is_successful() {
+                        debug!(
+                            "Posting measurement succeeded with http exit code: {}",
+                            status_code.0
+                        )
+                    } else if status_code.is_client_error() || status_code.is_server_error() {
+                        error!(
+                            "Posting measurement failed with http exit code: {}",
+                            status_code.0
+                        )
+                    } else {
+                        warn!(
+                            "Posting measurement exited with a non successful http exit code: {}",
+                            status_code.0
+                        )
+                    }
+                }
+                Err(err) => error!("Posting measurement failed with: {}", err),
             }
         }
-        Err(err) => error!("Posting measurement failed with: {}", err),
+        Err(err) => error!(
+            "Measurement serialization failed with: {:?}",
+            defmt::Debug2Format(err)
+        ),
     }
 }
 
