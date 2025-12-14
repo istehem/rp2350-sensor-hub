@@ -41,4 +41,14 @@ app.post("/api/measurements", (req, res) => {
   res.json(data);
 });
 
-app.listen(5000, () => logger.info(`⚡️Server is running at port: 5000`));
+const server = app.listen(5000, () =>
+  logger.info(`⚡️Server is running at port: 5000`),
+);
+
+process.on("SIGTERM", () => {
+  logger.info("SIGTERM received, shutting down gracefully.");
+  server.close(() => {
+    logger.info("Server closed.");
+    process.exit(0);
+  });
+});
