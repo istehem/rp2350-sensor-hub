@@ -133,16 +133,19 @@ async fn post_measurement(
     match http_post(http_client, MEASUREMENTS_ENDPOINT, body).await {
         Ok(status_code) => {
             if status_code.is_successful() {
-                debug!("Posting measurement succeeded.",);
+                debug!(
+                    "Posting measurement succeeded with http exit code: {}",
+                    status_code.0
+                )
             } else if status_code.is_client_error() || status_code.is_server_error() {
                 error!(
-                    "Posting measurement failed with http exit code: {:?}",
-                    defmt::Debug2Format(&status_code)
+                    "Posting measurement failed with http exit code: {}",
+                    status_code.0
                 )
             } else {
                 warn!(
-                    "Posting measurement exited with a non successful http exit code: {:?}",
-                    defmt::Debug2Format(&status_code)
+                    "Posting measurement exited with a non successful http exit code: {}",
+                    status_code.0
                 )
             }
         }
