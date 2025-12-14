@@ -12,6 +12,7 @@ use embassy_rp::gpio::Output;
 use reqwless::client::HttpClient;
 use reqwless::headers::ContentType;
 use reqwless::request::{Method, RequestBuilder};
+use reqwless::response::StatusCode;
 use static_cell::StaticCell;
 
 use crate::LedChannel;
@@ -127,7 +128,10 @@ async fn post_measurement(
     debug!("Going to post: {}", body);
 
     match http_post(http_client, TEMPERATURE_ENDPOINT, body).await {
-        Ok(_) => debug!("Posted temperature successfully!"),
+        Ok(status_code) => debug!(
+            "Posting temperature exited with HTTP status {:?}.",
+            defmt::Debug2Format(&status_code)
+        ),
         Err(err) => error!("Posting temperature failed with: {}", err),
     }
 }
@@ -141,16 +145,16 @@ async fn http_post(
     http_client: &mut TcpHttpClient<'_>,
     url: &str,
     body: &str,
-) -> Result<(), ReqwlessError> {
+) -> Result<StatusCode, ReqwlessError> {
     let mut rx_buffer = [0; 4096];
-    http_client
+    Ok(http_client
         .request(Method::POST, url)
         .await?
         .content_type(ContentType::ApplicationJson)
         .body(body.as_bytes())
         .send(&mut rx_buffer)
-        .await?;
-    Ok(())
+        .await?
+        .status)
 }
 
 #[embassy_executor::task]
