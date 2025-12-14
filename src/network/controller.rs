@@ -23,7 +23,7 @@ type TcpHttpClient<'a> = HttpClient<'a, TcpClient<'a, 1, 4096, 4096>, DnsSocket<
 
 const WIFI_NETWORK: &str = env!("WIFI_NETWORK");
 const WIFI_PASSWORD: &str = env!("WIFI_PASSWORD");
-const TEMPERATURE_ENDPOINT: &str = env!("TEMPERATURE_ENDPOINT");
+const MEASUREMENTS_ENDPOINT: &str = env!("MEASUREMENTS_ENDPOINT");
 
 // Program metadata for `picotool info`.
 // This isn't needed, but it's recommended to have these minimal entries.
@@ -127,12 +127,12 @@ async fn post_measurement(
     let body: &str = &body_values.join("");
     debug!("Going to post: {}", body);
 
-    match http_post(http_client, TEMPERATURE_ENDPOINT, body).await {
+    match http_post(http_client, MEASUREMENTS_ENDPOINT, body).await {
         Ok(status_code) => debug!(
-            "Posting temperature exited with HTTP status {:?}.",
+            "Posting measurement exited with HTTP status {:?}.",
             defmt::Debug2Format(&status_code)
         ),
-        Err(err) => error!("Posting temperature failed with: {}", err),
+        Err(err) => error!("Posting measurement failed with: {}", err),
     }
 }
 
