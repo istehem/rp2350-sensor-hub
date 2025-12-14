@@ -1,9 +1,9 @@
-[tasks.build-server]
+[tasks.build]
 workspace = false
 command = "cargo"
 args = ["build", "--target=x86_64-unknown-linux-gnu"]
 
-[tasks.clippy-all]
+[tasks.clippy]
 command = "cargo"
 args = ["clippy", "--target=x86_64-unknown-linux-gnu", "--all"]
 workspace = false
