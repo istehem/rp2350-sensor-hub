@@ -15,6 +15,7 @@ use embassy_rp::{
 use embassy_sync::blocking_mutex::raw::NoopRawMutex;
 use embassy_sync::channel::Channel;
 use embedded_alloc::LlffHeap;
+use serde::Serialize;
 use static_cell::StaticCell;
 use {defmt_rtt as _, panic_probe as _};
 
@@ -38,7 +39,7 @@ mod temperature_and_humidity {
     pub use embassy_rp::peripherals::PIO0;
 }
 
-#[derive(Clone)]
+#[derive(Clone, Serialize)]
 struct Measurement {
     pub humidity: f32,
     pub temperature: f32,

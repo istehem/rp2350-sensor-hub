@@ -1,4 +1,3 @@
-use alloc::string::ToString;
 use cyw43::JoinOptions;
 use cyw43_pio::PioSpi;
 use defmt::{debug, error, info, warn};
@@ -120,14 +119,7 @@ async fn post_measurement(
     temp_humidity_channel: &'static TempHumidityChannel,
 ) {
     let measurement = temp_humidity_channel.receive().await;
-    let body_values = [
-        r#"{"temperature":"#,
-        &measurement.temperature.to_string(),
-        r#","humidity":"#,
-        &measurement.humidity.to_string(),
-        "}",
-    ];
-    let body: &str = &body_values.join("");
+    let body: &str = &serde_json_core::to_string::<_, TCP_RX_SIZE>(&measurement).unwrap();
     debug!("Going to post: {}", body);
 
     match http_post(http_client, MEASUREMENTS_ENDPOINT, body).await {
