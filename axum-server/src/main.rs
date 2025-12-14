@@ -34,7 +34,7 @@ async fn main() {
 
     let app = Router::new()
         .route("/api/measurements/latest", get(latest_measurement))
-        .route("/api/measurements/", post(create_measurement))
+        .route("/api/measurements", post(create_measurement))
         .with_state(state);
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:5001").await.unwrap();
