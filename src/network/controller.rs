@@ -19,7 +19,10 @@ use crate::LedChannel;
 use crate::TempHumidityChannel;
 use crate::network::error::ReqwlessError;
 
-type TcpHttpClient<'a> = HttpClient<'a, TcpClient<'a, 1, 4096, 4096>, DnsSocket<'a>>;
+const TCP_TX_SIZE: usize = 4096;
+const TCP_RX_SIZE: usize = TCP_TX_SIZE;
+
+type TcpHttpClient<'a> = HttpClient<'a, TcpClient<'a, 1, TCP_TX_SIZE, TCP_RX_SIZE>, DnsSocket<'a>>;
 
 const WIFI_NETWORK: &str = env!("WIFI_NETWORK");
 const WIFI_PASSWORD: &str = env!("WIFI_PASSWORD");
@@ -97,7 +100,7 @@ pub async fn run(
     // Activate the led to signal that the stack is up.
     control.gpio_set(0, true).await;
 
-    let client_state = TcpClientState::<1, 4096, 4096>::new();
+    let client_state = TcpClientState::<1, TCP_TX_SIZE, TCP_RX_SIZE>::new();
     let tcp_client = TcpClient::new(stack, &client_state);
     let dns_client = DnsSocket::new(stack);
 
@@ -146,7 +149,7 @@ async fn http_post(
     url: &str,
     body: &str,
 ) -> Result<StatusCode, ReqwlessError> {
-    let mut rx_buffer = [0; 4096];
+    let mut rx_buffer = [0; TCP_RX_SIZE];
     Ok(http_client
         .request(Method::POST, url)
         .await?
