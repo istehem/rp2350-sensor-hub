@@ -6,7 +6,7 @@ edition = "2024"
 name = "rp2350-sensor-hub"
 version = "0.1.0"
 license = "MIT OR Apache-2.0"
-exclude = ["nickel-server/"]
+exclude = ["axum-server/"]
 
 [dependencies]
 cortex-m = "0.7"
