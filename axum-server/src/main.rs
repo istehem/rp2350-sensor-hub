@@ -86,7 +86,7 @@ async fn latest_measurement(
 async fn create_measurement(
     State(state): State<AppState>,
     Json(payload): Json<CreateMeasurement>,
-) -> Result<(StatusCode, Json<Measurement>), StatusCode> {
+) -> Result<(StatusCode, Json<Measurement>), MeasurementError> {
     let measurement = Measurement {
         id: 1337,
         temperature: payload.temperature,
@@ -95,7 +95,7 @@ async fn create_measurement(
     let mut latest_measurement = state
         .latest_measurement
         .lock()
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+        .map_err(|_| MeasurementError::Unreadable)?;
     *latest_measurement = Some(measurement);
 
     Ok((StatusCode::CREATED, Json(measurement)))
