@@ -37,6 +37,7 @@ jobs:
       - run: cargo build --all
       - run: cargo build --all --release
       - run: cargo build --all --release --features temperature
+      - run: cargo build --manifest-path ./axum-server/Cargo.toml --target=x86_64-unknown-linux-gnu
   linting:
     name: Linting
     runs-on: ubuntu-latest
