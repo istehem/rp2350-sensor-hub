@@ -5,6 +5,7 @@ use axum::{
     response::{IntoResponse, Response, Result},
     routing::{get, post},
 };
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use std::sync::{Arc, Mutex};
 use tokio::signal::unix::{SignalKind, signal};
@@ -17,7 +18,7 @@ struct CreateMeasurement {
 
 #[derive(Clone, Copy, Serialize)]
 struct Measurement {
-    id: u64,
+    date: DateTime<Utc>,
     temperature: f64,
     humidity: f64,
 }
@@ -88,7 +89,7 @@ async fn create_measurement(
     Json(payload): Json<CreateMeasurement>,
 ) -> Result<(StatusCode, Json<Measurement>), MeasurementError> {
     let measurement = Measurement {
-        id: 1337,
+        date: Utc::now(),
         temperature: payload.temperature,
         humidity: payload.humidity,
     };
