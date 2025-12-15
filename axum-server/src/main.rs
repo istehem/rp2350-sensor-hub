@@ -2,7 +2,7 @@ use axum::{
     Json, Router,
     extract::State,
     http::StatusCode,
-    response::Result,
+    response::{IntoResponse, Response, Result},
     routing::{get, post},
 };
 use serde::{Deserialize, Serialize};
@@ -24,6 +24,25 @@ struct Measurement {
 #[derive(Clone)]
 struct AppState {
     latest_measurement: Arc<Mutex<Option<Measurement>>>,
+}
+
+#[derive(Debug)]
+enum MeasurementError {
+    NotFound,
+    Unreadable,
+}
+
+impl IntoResponse for MeasurementError {
+    fn into_response(self) -> Response {
+        let (status, message) = match self {
+            Self::NotFound => (StatusCode::NOT_FOUND, "No measurement available yet."),
+            Self::Unreadable => (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "Couldn't acquire the measurement lock.",
+            ),
+        };
+        (status, axum::Json(serde_json::json!({ "msg": message }))).into_response()
+    }
 }
 
 #[tokio::main]
@@ -53,12 +72,15 @@ async fn shutdown_signal() {
 
 async fn latest_measurement(
     State(state): State<AppState>,
-) -> Result<Json<Measurement>, StatusCode> {
+) -> Result<Json<Measurement>, MeasurementError> {
     let latest_measurement = state
         .latest_measurement
         .lock()
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
-    latest_measurement.map(Json).ok_or(StatusCode::NOT_FOUND)
+        .map_err(|_| MeasurementError::Unreadable)?;
+
+    latest_measurement
+        .map(Json)
+        .ok_or(MeasurementError::NotFound)
 }
 
 async fn create_measurement(
