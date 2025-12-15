@@ -1,7 +1,0 @@
-services:
-  server:
-    build: .
-    ports:
-      - "5001:5001"
-    restart: unless-stopped
-    command: node ./src/index.js
