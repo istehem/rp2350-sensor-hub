@@ -9,6 +9,7 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use std::sync::{Arc, Mutex};
 use tokio::signal::unix::{SignalKind, signal};
+use tracing::{debug, info};
 
 #[derive(Deserialize)]
 struct CreateMeasurement {
@@ -16,7 +17,7 @@ struct CreateMeasurement {
     humidity: f64,
 }
 
-#[derive(Clone, Copy, Serialize)]
+#[derive(Clone, Copy, Debug, Serialize)]
 struct Measurement {
     date: DateTime<Utc>,
     temperature: f64,
@@ -48,6 +49,10 @@ impl IntoResponse for MeasurementError {
 
 #[tokio::main]
 async fn main() {
+    tracing_subscriber::fmt()
+        .with_max_level(tracing::Level::DEBUG)
+        .init();
+
     let state = AppState {
         latest_measurement: Arc::new(Mutex::new(None)),
     };
@@ -57,8 +62,9 @@ async fn main() {
         .route("/api/measurements", post(create_measurement))
         .with_state(state);
 
-    let listener = tokio::net::TcpListener::bind("0.0.0.0:5001").await.unwrap();
+    let listener = tokio::net::TcpListener::bind("0.0.0.0:5000").await.unwrap();
 
+    info!("⚡️Server will listen to port: 5000");
     axum::serve(listener, app)
         .with_graceful_shutdown(shutdown_signal())
         .await
@@ -68,7 +74,7 @@ async fn main() {
 async fn shutdown_signal() {
     let mut sigterm = signal(SignalKind::terminate()).expect("failed to install signal handler");
     sigterm.recv().await;
-    println!("SIGTERM received, shutting down...");
+    info!("SIGTERM received, shutting down...");
 }
 
 async fn latest_measurement(
@@ -98,6 +104,7 @@ async fn create_measurement(
         .lock()
         .map_err(|_| MeasurementError::Unreadable)?;
     *latest_measurement = Some(measurement);
+    debug!("new measurement {:?}", measurement);
 
     Ok((StatusCode::CREATED, Json(measurement)))
 }

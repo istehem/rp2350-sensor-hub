@@ -7,4 +7,4 @@ COPY src src
 
 RUN cargo install --path .
 
-EXPOSE 5001
+EXPOSE 5000
