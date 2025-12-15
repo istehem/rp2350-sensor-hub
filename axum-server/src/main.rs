@@ -10,6 +10,7 @@ use serde::{Deserialize, Serialize};
 use std::sync::{Arc, Mutex};
 use tokio::signal::unix::{SignalKind, signal};
 use tracing::{debug, info};
+use tracing_subscriber::EnvFilter;
 
 #[derive(Deserialize)]
 struct CreateMeasurement {
@@ -50,7 +51,7 @@ impl IntoResponse for MeasurementError {
 #[tokio::main]
 async fn main() {
     tracing_subscriber::fmt()
-        .with_max_level(tracing::Level::DEBUG)
+        .with_env_filter(EnvFilter::from_default_env())
         .init();
 
     let state = AppState {
@@ -104,7 +105,7 @@ async fn create_measurement(
         .lock()
         .map_err(|_| MeasurementError::Unreadable)?;
     *latest_measurement = Some(measurement);
-    debug!("new measurement {:?}", measurement);
+    debug!("new measurement: {:?}", measurement);
 
     Ok((StatusCode::CREATED, Json(measurement)))
 }
