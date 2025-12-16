@@ -16,6 +16,7 @@ jobs:
       matrix:
         # All generated code should be running on stable now
         rust: [nightly, stable]
+        os: [ubuntu-latest, macOS-latest, windows-latest]
         include:
           # Nightly is only for reference and allowed to fail
           - rust: nightly
