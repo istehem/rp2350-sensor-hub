@@ -20,10 +20,18 @@ jobs:
           # Nightly is only for reference and allowed to fail
           - rust: nightly
             experimental: true
-        os:
-          # Check compilation works on common OSes
-          # (i.e. no path issues)
-          - ubuntu-latest
+          - rust: stable
+            os: ubuntu-latest
+            env:
+              CARGO_SERVER_BUILD_TARGET: x86_64-unknown-linux-gnu
+          - rust: stable
+            os: macOS-latest
+            env:
+              CARGO_SERVER_BUILD_TARGET: aarch64-apple-darwin
+          - rust: stable
+            os: windows-latest
+            env:
+              CARGO_SERVER_BUILD_TARGET: x86_64-pc-windows-msvc
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v3
@@ -35,7 +43,7 @@ jobs:
       - run: cargo build --all
       - run: cargo build --all --release
       - run: cargo build --all --release --features temperature
-      - run: cargo build --manifest-path ./axum-server/Cargo.toml --target=x86_64-unknown-linux-gnu
+      - run: cargo build --manifest-path ./axum-server/Cargo.toml --target=$CARGO_SERVER_BUILD_TARGET
   linting:
     name: Linting
     runs-on: ubuntu-latest
