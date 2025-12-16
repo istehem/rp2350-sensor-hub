@@ -9,8 +9,8 @@ env:
   MEASUREMENTS_ENDPOINT: "http://dummy.dummy"
 
 jobs:
-  building:
-    name: Building
+  building-rp2350:
+    name: 'Building Board Code'
     continue-on-error: ${{ matrix.experimental || false }}
     strategy:
       matrix:
@@ -73,3 +73,4 @@ jobs:
           components: rustfmt
           target: thumbv8m.main-none-eabihf
       - run: cargo fmt -- --check
+      - run: cargo fmt --manifest-path ./axum-server/Cargo.toml -- --check
