@@ -90,6 +90,28 @@ args = [
   "--target=x86_64-unknown-linux-gnu",
 ]
 
+[tasks.build-server-image]
+workspace = false
+command = "podman"
+args = [
+  "compose",
+  "-f",
+  "${CARGO_MAKE_WORKING_DIRECTORY}/axum-server/docker-compose.yaml",
+  "build",
+]
+
+[tasks.run-server]
+workspace = false
+command = "podman"
+args = [
+  "compose",
+  "-f",
+  "${CARGO_MAKE_WORKING_DIRECTORY}/axum-server/docker-compose.yaml",
+  "up",
+  "--force-recreate",
+  "-d",
+]
+
 [tasks.clippy-server]
 workspace = false
 command = "cargo"
