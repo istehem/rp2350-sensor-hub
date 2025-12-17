@@ -9,7 +9,7 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use std::sync::{Arc, Mutex};
 use tokio::signal::unix::{SignalKind, signal};
-use tracing::{debug, info};
+use tracing::{debug, error, info, warn};
 use tracing_subscriber::EnvFilter;
 
 #[derive(Deserialize)]
@@ -38,13 +38,22 @@ enum MeasurementError {
 impl IntoResponse for MeasurementError {
     fn into_response(self) -> Response {
         let (status, message) = match self {
-            Self::NotFound => (StatusCode::NOT_FOUND, "No measurement available yet."),
-            Self::Unreadable => (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                "Couldn't acquire the measurement lock.",
-            ),
+            Self::NotFound => {
+                let message = "No measurement available yet.";
+                warn!("{}", message);
+                (StatusCode::NOT_FOUND, message)
+            }
+            Self::Unreadable => {
+                let message = "Couldn't acquire the measurement lock.";
+                error!("{}", message);
+                (StatusCode::INTERNAL_SERVER_ERROR, message)
+            }
         };
-        (status, axum::Json(serde_json::json!({ "msg": message }))).into_response()
+        (
+            status,
+            axum::Json(serde_json::json!({ "message": message })),
+        )
+            .into_response()
     }
 }
 

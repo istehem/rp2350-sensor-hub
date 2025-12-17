@@ -56,6 +56,11 @@ command = "cargo"
 args = ["fmt"]
 workspace = false
 
+[tasks.fmt-server]
+command = "cargo"
+args = ["fmt", "--manifest-path", "./axum-server/Cargo.toml"]
+workspace = false
+
 [tasks.build-all]
 env_files = ["./hub.env"]
 command = "cargo"
@@ -143,6 +148,7 @@ workspace = false
 [tasks.ci-check]
 dependencies = [
   "fmt",
+  "fmt-server",
   "build-all",
   "build-temperature",
   "build-server",
