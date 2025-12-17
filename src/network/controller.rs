@@ -124,24 +124,7 @@ async fn post_measurement(
             debug!("Going to post: {}", body.as_str());
 
             match http_post(http_client, MEASUREMENTS_ENDPOINT, body).await {
-                Ok(status_code) => {
-                    if status_code.is_successful() {
-                        debug!(
-                            "Posting measurement succeeded with http exit code: {}",
-                            status_code.0
-                        )
-                    } else if status_code.is_client_error() || status_code.is_server_error() {
-                        error!(
-                            "Posting measurement failed with http exit code: {}",
-                            status_code.0
-                        )
-                    } else {
-                        warn!(
-                            "Posting measurement exited with a non successful http exit code: {}",
-                            status_code.0
-                        )
-                    }
-                }
+                Ok(status_code) => handle_status_code(status_code),
                 Err(err) => error!("Posting measurement failed with: {}", err),
             }
         }
@@ -149,6 +132,25 @@ async fn post_measurement(
             "Measurement serialization failed with: {:?}",
             defmt::Debug2Format(err)
         ),
+    }
+}
+
+fn handle_status_code(status_code: StatusCode) {
+    if status_code.is_successful() {
+        debug!(
+            "Posting measurement succeeded with http exit code: {}",
+            status_code.0
+        )
+    } else if status_code.is_client_error() || status_code.is_server_error() {
+        error!(
+            "Posting measurement failed with http exit code: {}",
+            status_code.0
+        )
+    } else {
+        warn!(
+            "Posting measurement exited with a non successful http exit code: {}",
+            status_code.0
+        )
     }
 }
 
