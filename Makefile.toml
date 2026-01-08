@@ -1,5 +1,5 @@
 [env]
-MEASUREMENTS_ENDPOINT = "http://192.168.132.141:5000/api/measurements"
+MEASUREMENTS_ENDPOINT = "http://192.168.132.120:5000/api/measurements"
 
 [tasks.outdated]
 workspace = false

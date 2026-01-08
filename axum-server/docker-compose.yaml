@@ -3,7 +3,7 @@ services:
     build: .
     ports:
       - "5000:5000"
-    restart: unless-stopped
+    restart: always
     environment:
       - RUST_LOG=debug
     command: axum-server
