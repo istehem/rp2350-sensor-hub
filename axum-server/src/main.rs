@@ -63,6 +63,29 @@ impl IntoResponse for MeasurementError {
     }
 }
 
+#[derive(Debug)]
+enum StaticContentError {
+    NotFound,
+    InvalidEncoding,
+}
+
+impl IntoResponse for StaticContentError {
+    fn into_response(self) -> Response {
+        let (status, message) = match self {
+            Self::NotFound => {
+                let message = "File Not Found";
+                debug!("{}", message);
+                (StatusCode::NOT_FOUND, message)
+            }
+            Self::InvalidEncoding => {
+                let message = "UTF-8 Encoding Error";
+                error!("{}", message);
+                (StatusCode::INTERNAL_SERVER_ERROR, message)
+            }
+        };
+        (status, message).into_response()
+    }
+}
 #[tokio::main]
 async fn main() {
     tracing_subscriber::fmt()
@@ -128,15 +151,20 @@ async fn create_measurement(
 }
 
 /*
-async fn serve_static(Path(path): Path<String>) -> impl IntoResponse {
-    let path = path.trim_start_matches('/');
-    let file = STATIC_DIR.get_file(path).ok_or(StatusCode::NOT_FOUND).unwrap();
+   async fn serve_static(Path(path): Path<String>) -> impl IntoResponse {
+   let path = path.trim_start_matches('/');
+   let file = STATIC_DIR.get_file(path).ok_or(StatusCode::NOT_FOUND).unwrap();
     let mime = mime_guess::from_path(path).first_or_octet_stream();
     ([(header::CONTENT_TYPE, &mime)], file.contents())
 }
 */
 
-async fn serve_index() -> Html<&'static str> {
-    let file = STATIC_DIR.get_file("index.html").unwrap();
-    Html(file.contents_utf8().unwrap())
+async fn serve_index() -> Result<Html<&'static str>, StaticContentError> {
+    let file = STATIC_DIR
+        .get_file("index.html")
+        .ok_or(StaticContentError::NotFound)?;
+    Ok(Html(
+        file.contents_utf8()
+            .ok_or(StaticContentError::InvalidEncoding)?,
+    ))
 }
