@@ -1,16 +1,22 @@
 use axum::{
-    Json, Router,
+    Json,
+    Router,
+    //extract::{Path, State},
     extract::State,
+    //http::{header, StatusCode},
     http::StatusCode,
-    response::{IntoResponse, Response, Result},
+    response::{Html, IntoResponse, Response, Result},
     routing::{get, post},
 };
 use chrono::{DateTime, Utc};
+use include_dir::{Dir, include_dir};
 use serde::{Deserialize, Serialize};
 use std::sync::{Arc, Mutex};
 use tokio::signal::unix::{SignalKind, signal};
 use tracing::{debug, error, info, warn};
 use tracing_subscriber::EnvFilter;
+
+static STATIC_DIR: Dir<'_> = include_dir!("$CARGO_MANIFEST_DIR/static-content");
 
 #[derive(Deserialize)]
 struct CreateMeasurement {
@@ -68,6 +74,8 @@ async fn main() {
     };
 
     let app = Router::new()
+        .route("/", get(serve_index))
+        //.route("/static/*path", get(serve_static))
         .route("/api/measurements/latest", get(latest_measurement))
         .route("/api/measurements", post(create_measurement))
         .with_state(state);
@@ -117,4 +125,18 @@ async fn create_measurement(
     debug!("new measurement: {:?}", measurement);
 
     Ok((StatusCode::CREATED, Json(measurement)))
+}
+
+/*
+async fn serve_static(Path(path): Path<String>) -> impl IntoResponse {
+    let path = path.trim_start_matches('/');
+    let file = STATIC_DIR.get_file(path).ok_or(StatusCode::NOT_FOUND).unwrap();
+    let mime = mime_guess::from_path(path).first_or_octet_stream();
+    ([(header::CONTENT_TYPE, &mime)], file.contents())
+}
+*/
+
+async fn serve_index() -> Html<&'static str> {
+    let file = STATIC_DIR.get_file("index.html").unwrap();
+    Html(file.contents_utf8().unwrap())
 }

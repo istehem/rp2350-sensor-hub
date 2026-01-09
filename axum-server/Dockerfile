@@ -4,6 +4,7 @@ WORKDIR /server
 
 COPY Cargo.toml Cargo.lock .
 COPY src src
+COPY static-content static-content
 
 RUN cargo install --path .
 
