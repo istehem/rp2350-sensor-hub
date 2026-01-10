@@ -98,6 +98,12 @@ args = ["--prefix", "axum-server/measurements-frontend/", "run", "build"]
 [tasks.stage-frontend]
 workspace = false
 dependencies = ["install-frontend-deps", "build-frontend"]
+command = "cp"
+args = [
+  "-R",
+  "axum-server/measurements-frontend/dist/.",
+  "axum-server/static-content/",
+]
 
 [tasks.build-server]
 workspace = false
@@ -111,6 +117,7 @@ args = [
 
 [tasks.build-server-image]
 workspace = false
+dependencies = ["stage-frontend"]
 command = "podman"
 args = [
   "compose",
