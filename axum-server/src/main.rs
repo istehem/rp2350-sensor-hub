@@ -1,7 +1,7 @@
 use axum::{
     Json, Router,
     extract::{Path, State},
-    http::{StatusCode, header},
+    http::{Method, StatusCode, header},
     response::{Html, IntoResponse, Response, Result},
     routing::{get, post},
 };
@@ -10,6 +10,7 @@ use include_dir::{Dir, include_dir};
 use serde::{Deserialize, Serialize};
 use std::sync::{Arc, Mutex};
 use tokio::signal::unix::{SignalKind, signal};
+use tower_http::cors::{Any, CorsLayer};
 use tracing::{debug, error, info, warn};
 use tracing_subscriber::EnvFilter;
 
@@ -93,12 +94,17 @@ async fn main() {
         latest_measurement: Arc::new(Mutex::new(None)),
     };
 
+    let cors = CorsLayer::new()
+        .allow_origin(Any)
+        .allow_methods([Method::GET]);
+
     let app = Router::new()
         .route("/", get(index))
         .route("/static-content/{*param}", get(static_content))
         .route("/api/measurements/latest", get(latest_measurement))
         .route("/api/measurements", post(create_measurement))
-        .with_state(state);
+        .with_state(state)
+        .layer(cors);
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:5000").await.unwrap();
 
