@@ -1,10 +1,7 @@
 use axum::{
-    Json,
-    Router,
-    //extract::{Path, State},
-    extract::State,
-    //http::{header, StatusCode},
-    http::StatusCode,
+    Json, Router,
+    extract::{Path, State},
+    http::{StatusCode, header},
     response::{Html, IntoResponse, Response, Result},
     routing::{get, post},
 };
@@ -16,7 +13,7 @@ use tokio::signal::unix::{SignalKind, signal};
 use tracing::{debug, error, info, warn};
 use tracing_subscriber::EnvFilter;
 
-static STATIC_DIR: Dir<'_> = include_dir!("$CARGO_MANIFEST_DIR/static-content");
+static STATIC_CONTENT_DIR: Dir<'_> = include_dir!("$CARGO_MANIFEST_DIR/static-content");
 
 #[derive(Deserialize)]
 struct CreateMeasurement {
@@ -97,8 +94,8 @@ async fn main() {
     };
 
     let app = Router::new()
-        .route("/", get(serve_index))
-        //.route("/static/*path", get(serve_static))
+        .route("/", get(index))
+        .route("/static-content/{*param}", get(static_content))
         .route("/api/measurements/latest", get(latest_measurement))
         .route("/api/measurements", post(create_measurement))
         .with_state(state);
@@ -150,17 +147,20 @@ async fn create_measurement(
     Ok((StatusCode::CREATED, Json(measurement)))
 }
 
-/*
-   async fn serve_static(Path(path): Path<String>) -> impl IntoResponse {
-   let path = path.trim_start_matches('/');
-   let file = STATIC_DIR.get_file(path).ok_or(StatusCode::NOT_FOUND).unwrap();
+async fn static_content(Path(path): Path<String>) -> Result<impl IntoResponse, StaticContentError> {
+    let path = path.trim_start_matches('/');
+    let file = STATIC_CONTENT_DIR
+        .get_file(path)
+        .ok_or(StaticContentError::NotFound)?;
     let mime = mime_guess::from_path(path).first_or_octet_stream();
-    ([(header::CONTENT_TYPE, &mime)], file.contents())
+    Ok((
+        [(header::CONTENT_TYPE, mime.as_ref().to_string())],
+        file.contents(),
+    ))
 }
-*/
 
-async fn serve_index() -> Result<Html<&'static str>, StaticContentError> {
-    let file = STATIC_DIR
+async fn index() -> Result<Html<&'static str>, StaticContentError> {
+    let file = STATIC_CONTENT_DIR
         .get_file("index.html")
         .ok_or(StaticContentError::NotFound)?;
     Ok(Html(
