@@ -7,11 +7,12 @@ interface Measurement {
   date: string
 }
 
+const apiHost = import.meta.env.VITE_MEASUREMENTS_API_HOST || ''
 const measurement = ref<Measurement | null>(null)
 
 onMounted(async () => {
   try {
-    const res = await fetch('/api/measurements/latest')
+    const res = await fetch(`${apiHost}/api/measurements/latest`)
     measurement.value = await res.json()
   } catch (err) {
     console.error('Fetch failed:', err)
