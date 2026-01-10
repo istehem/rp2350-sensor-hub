@@ -7,21 +7,39 @@ interface Measurement {
   date: string
 }
 
+interface ApiError {
+  message: string
+}
+
 const apiHost = import.meta.env.VITE_MEASUREMENTS_API_HOST || ''
 const measurement = ref<Measurement | null>(null)
+const apiError = ref<ApiError | null>(null)
+
+function getErrorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message
+  return String(error)
+}
 
 onMounted(async () => {
   try {
-    const res = await fetch(`${apiHost}/api/measurements/latest`)
-    measurement.value = await res.json()
-  } catch (err) {
-    console.error('Fetch failed:', err)
+    const response = await fetch(`${apiHost}/api/measurements/latest`)
+    if (response.ok) {
+      measurement.value = await response.json()
+    } else {
+      apiError.value = await response.json()
+    }
+  } catch (error) {
+    apiError.value = { message: getErrorMessage(error) }
+    console.error('Fetch failed:', error)
   }
 })
 </script>
 
 <template>
-  <div v-if="measurement">
+  <div v-if="apiError">
+    <h1>{{ apiError.message }}</h1>
+  </div>
+  <div v-else-if="measurement">
     <div>
       <h1>Date: {{ new Date(measurement.date).toLocaleString() }}</h1>
     </div>
