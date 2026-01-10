@@ -85,6 +85,20 @@ command = "cargo"
 args = ["run", "--release", "--features", "temperature"]
 workspace = false
 
+[tasks.install-frontend-deps]
+workspace = false
+command = "npm"
+args = ["--prefix", "axum-server/measurements-frontend/", "install"]
+
+[tasks.build-frontend]
+workspace = false
+command = "npm"
+args = ["--prefix", "axum-server/measurements-frontend/", "run", "build"]
+
+[tasks.stage-frontend]
+workspace = false
+dependencies = ["install-frontend-deps", "build-frontend"]
+
 [tasks.build-server]
 workspace = false
 command = "cargo"
