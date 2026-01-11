@@ -54,9 +54,26 @@ onUnmounted(() => {
         <h6>{{ apiError.message }}</h6>
       </div>
       <div v-else-if="measurement">
-        <h6>Measured at: {{ new Date(measurement.date).toLocaleString() }}</h6>
-        <h6>Temperature: {{ measurement.temperature.toFixed(1) }}°C</h6>
-        <h6>Humidity: {{ measurement.humidity.toFixed(1) }}%</h6>
+        <div class="grid left-align">
+          <div class="s6 m6 l6">
+            <h6>Measured at:</h6>
+          </div>
+          <div class="s6 m6 l6">
+            <h6>{{ new Date(measurement.date).toLocaleString() }}</h6>
+          </div>
+          <div class="s6 m6 l6">
+            <h6>Temperature:</h6>
+          </div>
+          <div class="s6 m6 l6">
+            <h6>{{ measurement.temperature.toFixed(1) }}°C</h6>
+          </div>
+          <div class="s6 m6 l6">
+            <h6>Humidity:</h6>
+          </div>
+          <div class="s6 m6 l6">
+            <h6>{{ measurement.humidity.toFixed(1) }}%</h6>
+          </div>
+        </div>
       </div>
       <div v-else>
         <progress class="circle small indeterminate" value="50" max="100"></progress>
