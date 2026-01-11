@@ -49,7 +49,7 @@ onMounted(async () => {
       </div>
     </article>
 
-    <div v-else>Loading...</div>
+    <article v-else><p>Loading...</p></article>
   </main>
   <footer class="transparent"></footer>
 </template>
