@@ -39,7 +39,7 @@ onMounted(async () => {
   <header class="transparent"></header>
   <main class="responsive">
     <article class="center-align" v-if="apiError">
-      <h4>{{ apiError.message }}</h4>
+      <h6>{{ apiError.message }}</h6>
     </article>
     <article class v-else-if="measurement">
       <div class="center-align">
