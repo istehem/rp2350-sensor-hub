@@ -36,19 +36,22 @@ onMounted(async () => {
 </script>
 
 <template>
-  <main class="responsive round">
-    <div class="fill center-align" v-if="apiError">
-      <h1>{{ apiError.message }}</h1>
-    </div>
-    <div class="fill center-align" v-else-if="measurement">
-      <div class="container center-align">
-        <h2>Measured at: {{ new Date(measurement.date).toLocaleString() }}</h2>
-        <h2>Temperature: {{ measurement.temperature }}°C</h2>
-        <h2>Humidity: {{ measurement.humidity }}%</h2>
+  <header class="transparent"></header>
+  <main class="responsive">
+    <article class="center-align" v-if="apiError">
+      <h4>{{ apiError.message }}</h4>
+    </article>
+    <article class v-else-if="measurement">
+      <div class="center-align">
+        <h6>Measured at: {{ new Date(measurement.date).toLocaleString() }}</h6>
+        <h6>Temperature: {{ measurement.temperature }}°C</h6>
+        <h6>Humidity: {{ measurement.humidity }}%</h6>
       </div>
-    </div>
+    </article>
+
     <div v-else>Loading...</div>
   </main>
+  <footer class="transparent"></footer>
 </template>
 
 <style scoped></style>
