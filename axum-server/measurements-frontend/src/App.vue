@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 
 interface Measurement {
   temperature: number
@@ -12,8 +12,10 @@ interface ApiError {
 }
 
 const apiHost = import.meta.env.VITE_MEASUREMENTS_API_HOST || ''
+
 const measurement = ref<Measurement | null>(null)
 const apiError = ref<ApiError | null>(null)
+const intervalId = ref(null)
 
 function getErrorMessage(error: unknown): string {
   if (error instanceof Error) return error.message
@@ -21,17 +23,26 @@ function getErrorMessage(error: unknown): string {
 }
 
 onMounted(async () => {
-  try {
-    const response = await fetch(`${apiHost}/api/measurements/latest`)
-    if (response.ok) {
-      measurement.value = await response.json()
-    } else {
-      apiError.value = await response.json()
+  const fetchMeasurement = async () => {
+    try {
+      const response = await fetch(`${apiHost}/api/measurements/latest`)
+      if (response.ok) {
+        measurement.value = await response.json()
+        apiError.value = null
+      } else {
+        apiError.value = await response.json()
+      }
+    } catch (error) {
+      apiError.value = { message: getErrorMessage(error) }
+      console.error('Fetch failed:', error)
     }
-  } catch (error) {
-    apiError.value = { message: getErrorMessage(error) }
-    console.error('Fetch failed:', error)
   }
+  fetchMeasurement()
+  intervalId.value = setInterval(fetchMeasurement, 10000)
+})
+
+onUnmounted(() => {
+  if (intervalId.value) clearInterval(intervalId.value)
 })
 </script>
 
