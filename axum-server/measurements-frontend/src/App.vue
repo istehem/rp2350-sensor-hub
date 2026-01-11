@@ -49,17 +49,23 @@ onUnmounted(() => {
 <template>
   <header class="transparent"></header>
   <main class="responsive">
-    <article class="small center-align">
+    <article class="center-align">
       <div class="center-align" v-if="apiError">
         <h6>{{ apiError.message }}</h6>
       </div>
       <div class="shrink-center" v-else-if="measurement">
         <div class="grid left-align shrink-center">
           <div class="s6 m6 l6">
-            <h6>Measured at:</h6>
+            <h6>Date:</h6>
           </div>
           <div class="s6 m6 l6">
-            <h6>{{ new Date(measurement.date).toLocaleString() }}</h6>
+            <h6>{{ new Date(measurement.date).toLocaleDateString() }}</h6>
+          </div>
+          <div class="s6 m6 l6">
+            <h6>Time:</h6>
+          </div>
+          <div class="s6 m6 l6">
+            <h6>{{ new Date(measurement.date).toLocaleTimeString() }}</h6>
           </div>
           <div class="s6 m6 l6">
             <h6>Temperature:</h6>
