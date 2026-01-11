@@ -15,7 +15,7 @@ const apiHost = import.meta.env.VITE_MEASUREMENTS_API_HOST || ''
 
 const measurement = ref<Measurement | null>(null)
 const apiError = ref<ApiError | null>(null)
-const intervalId = ref(null)
+var intervalId: number | null = null
 
 function getErrorMessage(error: unknown): string {
   if (error instanceof Error) return error.message
@@ -38,11 +38,11 @@ onMounted(async () => {
     }
   }
   fetchMeasurement()
-  intervalId.value = setInterval(fetchMeasurement, 10000)
+  intervalId = setInterval(fetchMeasurement, 10000)
 })
 
 onUnmounted(() => {
-  if (intervalId.value) clearInterval(intervalId.value)
+  if (intervalId) clearInterval(intervalId)
 })
 </script>
 
@@ -55,8 +55,8 @@ onUnmounted(() => {
       </div>
       <div v-else-if="measurement">
         <h6>Measured at: {{ new Date(measurement.date).toLocaleString() }}</h6>
-        <h6>Temperature: {{ measurement.temperature }}°C</h6>
-        <h6>Humidity: {{ measurement.humidity }}%</h6>
+        <h6>Temperature: {{ measurement.temperature.toFixed(1) }}°C</h6>
+        <h6>Humidity: {{ measurement.humidity.toFixed(1) }}%</h6>
       </div>
       <div v-else>
         <progress class="circle small indeterminate" value="50" max="100"></progress>
