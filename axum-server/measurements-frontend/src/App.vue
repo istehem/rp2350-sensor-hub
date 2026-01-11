@@ -53,8 +53,8 @@ onUnmounted(() => {
       <div class="center-align" v-if="apiError">
         <h6>{{ apiError.message }}</h6>
       </div>
-      <div v-else-if="measurement">
-        <div class="grid left-align">
+      <div style="display: flex; justify-content: center" v-else-if="measurement">
+        <div class="grid left-align" style="width: fit-content">
           <div class="s6 m6 l6">
             <h6>Measured at:</h6>
           </div>
