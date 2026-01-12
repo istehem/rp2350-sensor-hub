@@ -76,11 +76,11 @@ onUnmounted(() => {
     </nav>
   </header>
   <main class="responsive">
-    <article class="center-align">
-      <div class="center-align" v-if="apiError">
-        <h6>{{ apiError.message }}</h6>
-      </div>
-      <div class="shrink-center" v-else-if="measurement">
+    <article class="center-align error-container" v-if="apiError">
+      <h6>{{ apiError.message }}</h6>
+    </article>
+    <article v-else-if="measurement">
+      <div class="shrink-center">
         <div class="grid left-align shrink-center">
           <div class="s6 m6 l6">
             <h6>Date:</h6>
@@ -108,9 +108,9 @@ onUnmounted(() => {
           </div>
         </div>
       </div>
-      <div v-else>
-        <progress class="circle small indeterminate" value="50" max="100"></progress>
-      </div>
+    </article>
+    <article class="center-align" v-else>
+      <progress class="circle small indeterminate" value="50" max="100"></progress>
     </article>
   </main>
   <footer class="transparent"></footer>
