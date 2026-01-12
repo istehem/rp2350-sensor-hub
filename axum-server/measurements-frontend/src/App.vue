@@ -80,32 +80,30 @@ onUnmounted(() => {
       <h6>{{ apiError.message }}</h6>
     </article>
     <article v-else-if="measurement">
-      <div class="shrink-center">
-        <div class="grid left-align shrink-center">
-          <div class="s6 m6 l6">
-            <h6>Date:</h6>
-          </div>
-          <div class="s6 m6 l6">
-            <h6>{{ new Date(measurement.date).toLocaleDateString() }}</h6>
-          </div>
-          <div class="s6 m6 l6">
-            <h6>Time:</h6>
-          </div>
-          <div class="s6 m6 l6">
-            <h6>{{ new Date(measurement.date).toLocaleTimeString() }}</h6>
-          </div>
-          <div class="s6 m6 l6">
-            <h6>Temperature:</h6>
-          </div>
-          <div class="s6 m6 l6">
-            <h6>{{ measurement.temperature.toFixed(1) }}°C</h6>
-          </div>
-          <div class="s6 m6 l6">
-            <h6>Humidity:</h6>
-          </div>
-          <div class="s6 m6 l6">
-            <h6>{{ measurement.humidity.toFixed(1) }}%</h6>
-          </div>
+      <div class="grid left-align shrink-center">
+        <div class="s6 m6 l6">
+          <h6>Date:</h6>
+        </div>
+        <div class="s6 m6 l6">
+          <h6>{{ new Date(measurement.date).toLocaleDateString() }}</h6>
+        </div>
+        <div class="s6 m6 l6">
+          <h6>Time:</h6>
+        </div>
+        <div class="s6 m6 l6">
+          <h6>{{ new Date(measurement.date).toLocaleTimeString() }}</h6>
+        </div>
+        <div class="s6 m6 l6">
+          <h6>Temperature:</h6>
+        </div>
+        <div class="s6 m6 l6">
+          <h6>{{ measurement.temperature.toFixed(1) }}°C</h6>
+        </div>
+        <div class="s6 m6 l6">
+          <h6>Humidity:</h6>
+        </div>
+        <div class="s6 m6 l6">
+          <h6>{{ measurement.humidity.toFixed(1) }}%</h6>
         </div>
       </div>
     </article>
