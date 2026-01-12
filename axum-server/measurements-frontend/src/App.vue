@@ -15,6 +15,7 @@ const apiHost = import.meta.env.VITE_MEASUREMENTS_API_HOST || ''
 
 const measurement = ref<Measurement | null>(null)
 const apiError = ref<ApiError | null>(null)
+const switchModeIcon = ref<string>('dark_mode')
 var intervalId: number | null = null
 
 function getErrorMessage(error: unknown): string {
@@ -22,7 +23,28 @@ function getErrorMessage(error: unknown): string {
   return String(error)
 }
 
+async function setSwitchModeIcon() {
+  const mode = await ui('mode')
+  if (mode === 'light') {
+    switchModeIcon.value = 'dark_mode'
+  } else {
+    switchModeIcon.value = 'light_mode'
+  }
+}
+
+async function flipMode() {
+  const mode = await ui('mode')
+  if (mode === 'light') {
+    ui('mode', 'dark')
+    switchModeIcon.value = 'light_mode'
+  } else {
+    ui('mode', 'light')
+    switchModeIcon.value = 'dark_mode'
+  }
+}
+
 onMounted(async () => {
+  setSwitchModeIcon()
   const fetchMeasurement = async () => {
     try {
       const response = await fetch(`${apiHost}/api/measurements/latest`)
@@ -47,7 +69,13 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <header class="transparent"></header>
+  <header class="transparent">
+    <nav>
+      <button @click="flipMode" class="circle transparent">
+        <i>{{ switchModeIcon }}</i>
+      </button>
+    </nav>
+  </header>
   <main class="responsive">
     <article class="center-align">
       <div class="center-align" v-if="apiError">
