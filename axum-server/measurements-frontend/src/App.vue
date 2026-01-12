@@ -23,7 +23,7 @@ function getErrorMessage(error: unknown): string {
   return String(error)
 }
 
-async function setSwitchModeIcon() {
+async function toggleSwitchModeIcon() {
   const mode = await ui('mode')
   if (mode === 'light') {
     switchModeIcon.value = 'dark_mode'
@@ -36,15 +36,14 @@ async function flipMode() {
   const mode = await ui('mode')
   if (mode === 'light') {
     ui('mode', 'dark')
-    switchModeIcon.value = 'light_mode'
   } else {
     ui('mode', 'light')
-    switchModeIcon.value = 'dark_mode'
   }
+  await toggleSwitchModeIcon()
 }
 
 onMounted(async () => {
-  setSwitchModeIcon()
+  toggleSwitchModeIcon()
   const fetchMeasurement = async () => {
     try {
       const response = await fetch(`${apiHost}/api/measurements/latest`)
