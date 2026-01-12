@@ -4,7 +4,7 @@ import { ref, onMounted, onUnmounted } from 'vue'
 interface Measurement {
   temperature: number
   humidity: number
-  date: string
+  date: Date
 }
 
 interface ApiError {
@@ -48,7 +48,11 @@ onMounted(async () => {
     try {
       const response = await fetch(`${apiHost}/api/measurements/latest`)
       if (response.ok) {
-        measurement.value = await response.json()
+        const data = await response.json()
+        measurement.value = {
+          ...data,
+          date: new Date(data.date),
+        }
         apiError.value = null
       } else {
         apiError.value = await response.json()
@@ -85,13 +89,13 @@ onUnmounted(() => {
           <h6>Date:</h6>
         </div>
         <div class="s6 m6 l6">
-          <h6>{{ new Date(measurement.date).toLocaleDateString() }}</h6>
+          <h6>{{ measurement.date.toLocaleDateString() }}</h6>
         </div>
         <div class="s6 m6 l6">
           <h6>Time:</h6>
         </div>
         <div class="s6 m6 l6">
-          <h6>{{ new Date(measurement.date).toLocaleTimeString() }}</h6>
+          <h6>{{ measurement.date.toLocaleTimeString() }}</h6>
         </div>
         <div class="s6 m6 l6">
           <h6>Temperature:</h6>
