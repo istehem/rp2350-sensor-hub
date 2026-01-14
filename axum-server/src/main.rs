@@ -5,6 +5,10 @@ use axum::{
     response::{Html, IntoResponse, Response, Result},
     routing::{get, post},
 };
+use axum_extra::{
+    TypedHeader,
+    headers::{Authorization, authorization::Basic},
+};
 use chrono::{DateTime, Utc};
 use include_dir::{Dir, include_dir};
 use serde::{Deserialize, Serialize};
@@ -15,6 +19,9 @@ use tracing::{debug, error, info, warn};
 use tracing_subscriber::EnvFilter;
 
 static STATIC_CONTENT_DIR: Dir<'_> = include_dir!("$CARGO_MANIFEST_DIR/static-content");
+
+const USER: &str = env!("REST_USER");
+const PASSWORD: &str = env!("REST_USER_PASSWORD");
 
 #[derive(Deserialize)]
 struct CreateMeasurement {
@@ -37,6 +44,7 @@ struct AppState {
 enum MeasurementError {
     NotFound,
     Unreadable,
+    Unauthorized,
 }
 
 impl IntoResponse for MeasurementError {
@@ -51,6 +59,11 @@ impl IntoResponse for MeasurementError {
                 let message = "Couldn't acquire the measurement lock.";
                 error!("{}", message);
                 (StatusCode::INTERNAL_SERVER_ERROR, message)
+            }
+            Self::Unauthorized => {
+                let message = "Request was unauthorized.";
+                error!("{}", message);
+                (StatusCode::UNAUTHORIZED, message)
             }
         };
         (
@@ -134,10 +147,31 @@ async fn latest_measurement(
         .ok_or(MeasurementError::NotFound)
 }
 
+fn validate_authorization(
+    auth: Option<TypedHeader<Authorization<Basic>>>,
+) -> Result<(), MeasurementError> {
+    let credentials = match auth {
+        Some(TypedHeader(Authorization(basic))) => basic,
+        None => {
+            return Err(MeasurementError::Unauthorized);
+        }
+    };
+
+    let username = credentials.username();
+    let password = credentials.password();
+    if username != USER || password != PASSWORD {
+        return Err(MeasurementError::Unauthorized);
+    }
+    Ok(())
+}
+
 async fn create_measurement(
+    auth: Option<TypedHeader<Authorization<Basic>>>,
     State(state): State<AppState>,
     Json(payload): Json<CreateMeasurement>,
 ) -> Result<(StatusCode, Json<Measurement>), MeasurementError> {
+    validate_authorization(auth)?;
+
     let measurement = Measurement {
         date: Utc::now(),
         temperature: payload.temperature,

@@ -1,5 +1,8 @@
 FROM rust:1.92-slim
 
+ARG REST_USER
+ARG REST_USER_PASSWORD
+
 WORKDIR /server
 
 COPY Cargo.toml Cargo.lock .

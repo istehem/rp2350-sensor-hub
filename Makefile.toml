@@ -2,7 +2,6 @@
 MEASUREMENTS_ENDPOINT = "http://192.168.132.120:5000/api/measurements"
 
 [tasks.outdated]
-workspace = false
 command = "cargo"
 args = [
   # run `cargo upgrade --dry-run` to check versions defined in [workspace.dependencies]
@@ -10,9 +9,9 @@ args = [
   "-w",
   "--root-deps-only",
 ]
+workspace = false
 
 [tasks.test]
-workspace = false
 command = "cargo"
 args = [
   "test",
@@ -22,9 +21,9 @@ args = [
   "--",
   "--nocapture",
 ]
+workspace = false
 
 [tasks.test-player]
-workspace = false
 command = "cargo"
 args = [
   "test",
@@ -36,9 +35,9 @@ args = [
   "--",
   "--nocapture",
 ]
+workspace = false
 
 [tasks.test-game]
-workspace = false
 command = "cargo"
 args = [
   "test",
@@ -50,6 +49,7 @@ args = [
   "--",
   "--nocapture",
 ]
+workspace = false
 
 [tasks.fmt]
 command = "cargo"
@@ -86,22 +86,21 @@ args = ["run", "--release", "--features", "temperature"]
 workspace = false
 
 [tasks.install-frontend-deps]
-workspace = false
 command = "npm"
 args = ["--prefix", "axum-server/measurements-frontend/", "install"]
+workspace = false
 
 [tasks.fmt-frontend]
-workspace = false
 command = "npm"
 args = ["--prefix", "axum-server/measurements-frontend/", "run", "format"]
+workspace = false
 
 [tasks.build-frontend]
-workspace = false
 command = "npm"
 args = ["--prefix", "axum-server/measurements-frontend/", "run", "build"]
+workspace = false
 
 [tasks.stage-frontend]
-workspace = false
 dependencies = ["install-frontend-deps", "build-frontend"]
 command = "cp"
 args = [
@@ -109,9 +108,10 @@ args = [
   "axum-server/measurements-frontend/dist/.",
   "axum-server/static-content/",
 ]
+workspace = false
 
 [tasks.build-server]
-workspace = false
+env_files = ["./hub.env"]
 command = "cargo"
 args = [
   "build",
@@ -119,9 +119,10 @@ args = [
   "./axum-server/Cargo.toml",
   "--target=x86_64-unknown-linux-gnu",
 ]
+workspace = false
 
 [tasks.build-server-image]
-workspace = false
+env_files = ["./hub.env"]
 dependencies = ["stage-frontend"]
 command = "podman"
 args = [
@@ -130,9 +131,9 @@ args = [
   "${CARGO_MAKE_WORKING_DIRECTORY}/axum-server/docker-compose.yaml",
   "build",
 ]
+workspace = false
 
 [tasks.run-server]
-workspace = false
 command = "podman"
 args = [
   "compose",
@@ -142,9 +143,10 @@ args = [
   "--force-recreate",
   "-d",
 ]
+workspace = false
 
 [tasks.clippy-server]
-workspace = false
+env_files = ["./hub.env"]
 command = "cargo"
 args = [
   "clippy",
@@ -153,6 +155,7 @@ args = [
   "--target=x86_64-unknown-linux-gnu",
   "--all",
 ]
+workspace = false
 
 [tasks.clippy-all]
 env_files = ["./hub.env"]

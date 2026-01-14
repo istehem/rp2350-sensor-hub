@@ -1,6 +1,10 @@
 services:
   server:
-    build: .
+    build:
+      context: .
+      args:
+        - REST_USER=${REST_USER}
+        - REST_USER_PASSWORD=${REST_USER_PASSWORD}
     ports:
       - "5000:5000"
     restart: always
