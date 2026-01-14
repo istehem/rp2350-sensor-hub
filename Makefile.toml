@@ -90,6 +90,11 @@ workspace = false
 command = "npm"
 args = ["--prefix", "axum-server/measurements-frontend/", "install"]
 
+[tasks.fmt-frontend]
+workspace = false
+command = "npm"
+args = ["--prefix", "axum-server/measurements-frontend/", "run", "format"]
+
 [tasks.build-frontend]
 workspace = false
 command = "npm"
@@ -176,5 +181,6 @@ dependencies = [
   "clippy-all",
   "clippy-temperature",
   "clippy-server",
+  "fmt-frontend",
 ]
 workspace = false
