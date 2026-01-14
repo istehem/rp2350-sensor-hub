@@ -25,6 +25,8 @@ type TcpHttpClient<'a> = HttpClient<'a, TcpClient<'a, 1, TCP_TX_SIZE, TCP_RX_SIZ
 
 const WIFI_NETWORK: &str = env!("WIFI_NETWORK");
 const WIFI_PASSWORD: &str = env!("WIFI_PASSWORD");
+const REST_USER: &str = env!("REST_USER");
+const REST_USER_PASSWORD: &str = env!("REST_USER_PASSWORD");
 const MEASUREMENTS_ENDPOINT: &str = env!("MEASUREMENTS_ENDPOINT");
 
 // Program metadata for `picotool info`.
@@ -123,7 +125,15 @@ async fn post_measurement(
         Ok(body) => {
             debug!("Going to post: {}", body.as_str());
 
-            match http_post(http_client, MEASUREMENTS_ENDPOINT, body).await {
+            match http_post(
+                http_client,
+                MEASUREMENTS_ENDPOINT,
+                REST_USER,
+                REST_USER_PASSWORD,
+                body,
+            )
+            .await
+            {
                 Ok(status_code) => handle_status_code(status_code),
                 Err(err) => error!("Posting measurement failed with: {}", err),
             }
@@ -162,6 +172,8 @@ async fn set_led_state(control: &mut cyw43::Control<'static>, led_channel: &'sta
 async fn http_post(
     http_client: &mut TcpHttpClient<'_>,
     url: &str,
+    user: &str,
+    password: &str,
     body: &str,
 ) -> Result<StatusCode, ReqwlessError> {
     let mut rx_buffer = [0; TCP_RX_SIZE];
@@ -169,6 +181,7 @@ async fn http_post(
         .request(Method::POST, url)
         .await?
         .content_type(ContentType::ApplicationJson)
+        .basic_auth(user, password)
         .body(body.as_bytes())
         .send(&mut rx_buffer)
         .await?
