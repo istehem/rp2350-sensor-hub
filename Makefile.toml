@@ -185,5 +185,6 @@ dependencies = [
   "clippy-temperature",
   "clippy-server",
   "fmt-frontend",
+  "build-frontend",
 ]
 workspace = false

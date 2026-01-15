@@ -62,7 +62,7 @@ impl IntoResponse for MeasurementError {
             }
             Self::Unauthorized => {
                 let message = "Request was unauthorized.";
-                error!("{}", message);
+                warn!("{}", message);
                 (StatusCode::UNAUTHORIZED, message)
             }
         };

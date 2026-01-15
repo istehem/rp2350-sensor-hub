@@ -25,9 +25,10 @@ type TcpHttpClient<'a> = HttpClient<'a, TcpClient<'a, 1, TCP_TX_SIZE, TCP_RX_SIZ
 
 const WIFI_NETWORK: &str = env!("WIFI_NETWORK");
 const WIFI_PASSWORD: &str = env!("WIFI_PASSWORD");
+
+const MEASUREMENTS_ENDPOINT: &str = env!("MEASUREMENTS_ENDPOINT");
 const REST_USER: &str = env!("REST_USER");
 const REST_USER_PASSWORD: &str = env!("REST_USER_PASSWORD");
-const MEASUREMENTS_ENDPOINT: &str = env!("MEASUREMENTS_ENDPOINT");
 
 // Program metadata for `picotool info`.
 // This isn't needed, but it's recommended to have these minimal entries.
