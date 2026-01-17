@@ -127,36 +127,39 @@ onUnmounted(() => {
     <article class="center-align error-container" v-if="apiError">
       <h6>{{ apiError.message }}</h6>
     </article>
-    <article v-else-if="measurement">
-      <div class="grid shrink-center">
-        <div class="s6 m6 l6">
-          <h6>Date:</h6>
+    <div v-else-if="measurement">
+      <article>
+        <div class="grid shrink-center">
+          <div class="s6 m6 l6">
+            <h6>Date:</h6>
+          </div>
+          <div class="s6 m6 l6">
+            <h6>{{ measurement.date.toLocaleDateString() }}</h6>
+          </div>
+          <div class="s6 m6 l6">
+            <h6>Time:</h6>
+          </div>
+          <div class="s6 m6 l6">
+            <h6>{{ measurement.date.toLocaleTimeString() }}</h6>
+          </div>
+          <div class="s6 m6 l6">
+            <h6>Temperature:</h6>
+          </div>
+          <div class="s6 m6 l6">
+            <h6>{{ measurement.temperature.toFixed(1) }}°C</h6>
+          </div>
+          <div class="s6 m6 l6">
+            <h6>Humidity:</h6>
+          </div>
+          <div class="s6 m6 l6">
+            <h6>{{ measurement.humidity.toFixed(1) }}%</h6>
+          </div>
         </div>
-        <div class="s6 m6 l6">
-          <h6>{{ measurement.date.toLocaleDateString() }}</h6>
-        </div>
-        <div class="s6 m6 l6">
-          <h6>Time:</h6>
-        </div>
-        <div class="s6 m6 l6">
-          <h6>{{ measurement.date.toLocaleTimeString() }}</h6>
-        </div>
-        <div class="s6 m6 l6">
-          <h6>Temperature:</h6>
-        </div>
-        <div class="s6 m6 l6">
-          <h6>{{ measurement.temperature.toFixed(1) }}°C</h6>
-        </div>
-        <div class="s6 m6 l6">
-          <h6>Humidity:</h6>
-        </div>
-        <div class="s6 m6 l6">
-          <h6>{{ measurement.humidity.toFixed(1) }}%</h6>
-        </div>
-      </div>
-      <div class="space"></div>
-      <Line id="my-chart-id" :options="chartOptions" :data="chartData" />
-    </article>
+      </article>
+      <article>
+        <Line id="my-chart-id" :options="chartOptions" :data="chartData" />
+      </article>
+    </div>
     <article class="center-align" v-else>
       <progress class="circle small indeterminate" value="50" max="100"></progress>
     </article>
