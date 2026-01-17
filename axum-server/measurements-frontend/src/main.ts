@@ -7,10 +7,13 @@ import {
   Title,
   Tooltip,
   Legend,
-  BarElement,
-  CategoryScale,
+  PointElement,
+  LineElement,
+  TimeScale,
   LinearScale,
 } from 'chart.js'
 
-ChartJS.register(Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale)
+import 'chartjs-adapter-date-fns'
+
+ChartJS.register(Title, Tooltip, Legend, LineElement, PointElement, LinearScale, TimeScale)
 createApp(App).mount('#app')

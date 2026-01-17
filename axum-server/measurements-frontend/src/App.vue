@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
-import { Bar } from 'vue-chartjs'
+import type { ChartData, ChartOptions } from 'chart.js'
+import { Line } from 'vue-chartjs'
 
 interface Measurement {
   temperature: number
@@ -12,28 +13,44 @@ interface ApiError {
   message: string
 }
 
-const chartData = ref({
-  labels: ['January', 'February', 'March'],
+const chartData = ref<ChartData<'line'>>({
   datasets: [
     {
-      label: 'Sales',
-      data: [40, 20, 12],
-      backgroundColor: '#4299e1'
-    }
-  ]
+      label: 'Temperature (°C)',
+      data: [
+        { x: new Date('2023-01-01T06:00:00').getTime(), y: 12 },
+        { x: new Date('2023-01-01T12:00:00').getTime(), y: 18 },
+        { x: new Date('2023-01-01T18:00:00').getTime(), y: 16 },
+      ],
+      borderColor: '#42a5f5',
+      backgroundColor: 'rgba(66, 165, 245, 0.1)',
+    },
+  ],
 })
 
-const chartOptions = ref({
+const chartOptions = ref<ChartOptions<'line'>>({
   responsive: true,
-  plugins: {
-    legend: {
-      position: 'top' as const
+  scales: {
+    x: {
+      type: 'time' as const,
+      time: {
+        unit: 'hour' as const,
+        tooltipFormat: 'MMM d, HH:mm',
+      },
+      title: {
+        display: true,
+        text: 'Time',
+      },
     },
-    title: {
-      display: true,
-      text: 'Monthly Sales'
-    }
-  }
+    y: {
+      title: {
+        display: true,
+        text: 'Temperature (°C)',
+      },
+      min: 0,
+      max: 30,
+    },
+  },
 })
 
 const apiHost = import.meta.env.VITE_MEASUREMENTS_API_HOST || ''
@@ -69,7 +86,6 @@ async function flipMode() {
 
 onMounted(async () => {
   toggleSwitchModeIcon()
-
 
   const fetchMeasurement = async () => {
     try {
@@ -138,7 +154,8 @@ onUnmounted(() => {
           <h6>{{ measurement.humidity.toFixed(1) }}%</h6>
         </div>
       </div>
-      <Bar id="my-chart-id" :options="chartOptions" :data="chartData" />
+      <div class="space"></div>
+      <Line id="my-chart-id" :options="chartOptions" :data="chartData" />
     </article>
     <article class="center-align" v-else>
       <progress class="circle small indeterminate" value="50" max="100"></progress>
