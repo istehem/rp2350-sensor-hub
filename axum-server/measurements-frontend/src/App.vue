@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
+import { Bar } from 'vue-chartjs'
 
 interface Measurement {
   temperature: number
@@ -10,6 +11,30 @@ interface Measurement {
 interface ApiError {
   message: string
 }
+
+const chartData = ref({
+  labels: ['January', 'February', 'March'],
+  datasets: [
+    {
+      label: 'Sales',
+      data: [40, 20, 12],
+      backgroundColor: '#4299e1'
+    }
+  ]
+})
+
+const chartOptions = ref({
+  responsive: true,
+  plugins: {
+    legend: {
+      position: 'top' as const
+    },
+    title: {
+      display: true,
+      text: 'Monthly Sales'
+    }
+  }
+})
 
 const apiHost = import.meta.env.VITE_MEASUREMENTS_API_HOST || ''
 
@@ -44,6 +69,8 @@ async function flipMode() {
 
 onMounted(async () => {
   toggleSwitchModeIcon()
+
+
   const fetchMeasurement = async () => {
     try {
       const response = await fetch(`${apiHost}/api/measurements/latest`)
@@ -111,6 +138,7 @@ onUnmounted(() => {
           <h6>{{ measurement.humidity.toFixed(1) }}%</h6>
         </div>
       </div>
+      <Bar id="my-chart-id" :options="chartOptions" :data="chartData" />
     </article>
     <article class="center-align" v-else>
       <progress class="circle small indeterminate" value="50" max="100"></progress>
