@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
-import type { ChartData, ChartOptions } from 'chart.js'
-import { Line } from 'vue-chartjs'
+
+import TemperatureChart from './charts/TemperatureChart.vue'
 
 interface Measurement {
   temperature: number
@@ -12,46 +12,6 @@ interface Measurement {
 interface ApiError {
   message: string
 }
-
-const chartData = ref<ChartData<'line'>>({
-  datasets: [
-    {
-      label: 'Temperature (°C)',
-      data: [
-        { x: new Date('2023-01-01T06:00:00').getTime(), y: 12 },
-        { x: new Date('2023-01-01T12:00:00').getTime(), y: 18 },
-        { x: new Date('2023-01-01T18:00:00').getTime(), y: 16 },
-      ],
-      borderColor: '#42a5f5',
-      backgroundColor: 'rgba(66, 165, 245, 0.1)',
-    },
-  ],
-})
-
-const chartOptions = ref<ChartOptions<'line'>>({
-  responsive: true,
-  scales: {
-    x: {
-      type: 'time' as const,
-      time: {
-        unit: 'hour' as const,
-        tooltipFormat: 'MMM d, HH:mm',
-      },
-      title: {
-        display: true,
-        text: 'Time',
-      },
-    },
-    y: {
-      title: {
-        display: true,
-        text: 'Temperature (°C)',
-      },
-      min: 0,
-      max: 30,
-    },
-  },
-})
 
 const apiHost = import.meta.env.VITE_MEASUREMENTS_API_HOST || ''
 
@@ -157,7 +117,7 @@ onUnmounted(() => {
         </div>
       </article>
       <article>
-        <Line id="my-chart-id" :options="chartOptions" :data="chartData" />
+        <TemperatureChart />
       </article>
     </div>
     <article class="center-align" v-else>
