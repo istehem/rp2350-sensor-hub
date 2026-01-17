@@ -11,6 +11,7 @@ use axum_extra::{
 };
 use chrono::{DateTime, Utc};
 use include_dir::{Dir, include_dir};
+use ringbuffer::{AllocRingBuffer, RingBuffer};
 use serde::{Deserialize, Serialize};
 use std::sync::{Arc, Mutex};
 use tokio::signal::unix::{SignalKind, signal};
@@ -37,7 +38,7 @@ struct Measurement {
 }
 #[derive(Clone)]
 struct AppState {
-    latest_measurement: Arc<Mutex<Option<Measurement>>>,
+    measurements: Arc<Mutex<AllocRingBuffer<Measurement>>>,
 }
 
 #[derive(Debug)]
@@ -104,7 +105,7 @@ async fn main() {
         .init();
 
     let state = AppState {
-        latest_measurement: Arc::new(Mutex::new(None)),
+        measurements: Arc::new(Mutex::new(AllocRingBuffer::new(1000))),
     };
 
     let cors = CorsLayer::new()
@@ -115,6 +116,7 @@ async fn main() {
         .route("/", get(index))
         .route("/static-content/{*param}", get(static_content))
         .route("/api/measurements/latest", get(latest_measurement))
+        .route("/api/measurements", get(all_measurements))
         .route("/api/measurements", post(create_measurement))
         .with_state(state)
         .layer(cors);
@@ -137,14 +139,25 @@ async fn shutdown_signal() {
 async fn latest_measurement(
     State(state): State<AppState>,
 ) -> Result<Json<Measurement>, MeasurementError> {
-    let latest_measurement = state
-        .latest_measurement
+    let measurements = state
+        .measurements
         .lock()
         .map_err(|_| MeasurementError::Unreadable)?;
 
-    latest_measurement
-        .map(Json)
-        .ok_or(MeasurementError::NotFound)
+    match measurements.back() {
+        Some(measurements) => Ok(Json(*measurements)),
+        None => Err(MeasurementError::NotFound),
+    }
+}
+
+async fn all_measurements(
+    State(state): State<AppState>,
+) -> Result<Json<Vec<Measurement>>, MeasurementError> {
+    let measurements = state
+        .measurements
+        .lock()
+        .map_err(|_| MeasurementError::Unreadable)?;
+    Ok(Json(measurements.iter().copied().collect()))
 }
 
 fn validate_authorization(
@@ -177,11 +190,11 @@ async fn create_measurement(
         temperature: payload.temperature,
         humidity: payload.humidity,
     };
-    let mut latest_measurement = state
-        .latest_measurement
+    let mut measurements = state
+        .measurements
         .lock()
         .map_err(|_| MeasurementError::Unreadable)?;
-    *latest_measurement = Some(measurement);
+    measurements.enqueue(measurement);
     debug!("new measurement: {:?}", measurement);
 
     Ok((StatusCode::CREATED, Json(measurement)))

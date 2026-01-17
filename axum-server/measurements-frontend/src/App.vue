@@ -85,7 +85,7 @@ onUnmounted(() => {
       <h6>{{ apiError.message }}</h6>
     </article>
     <article v-else-if="measurement">
-      <div class="grid left-align shrink-center">
+      <div class="grid shrink-center">
         <div class="s6 m6 l6">
           <h6>Date:</h6>
         </div>
