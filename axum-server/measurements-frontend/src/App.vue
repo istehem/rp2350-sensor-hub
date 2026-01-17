@@ -77,7 +77,7 @@ onUnmounted(() => {
       <button @click="flipMode" class="circle transparent primary-text">
         <i>{{ switchModeIcon }}</i>
       </button>
-      <h6 class="max center-align">Measurements</h6>
+      <h6 class="max">Measurements</h6>
     </nav>
   </header>
   <main class="responsive">
