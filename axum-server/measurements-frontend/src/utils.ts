@@ -7,6 +7,7 @@ export function getErrorMessage(error: unknown): string {
 
 export function toMeasurement(data: any): Measurement {
   return {
+    _kind: 'Measurement',
     ...data,
     date: new Date(data.date),
   }

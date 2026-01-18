@@ -7,8 +7,11 @@ import TemperatureChart from './charts/TemperatureChart.vue'
 import HumidityChart from './charts/HumidityChart.vue'
 import ErrorPanel from './ErrorPanel.vue'
 import { getErrorMessage, toMeasurement } from './utils.ts'
+import { fetchMeasurements } from './measurementsApi.ts'
 
-const measurement = ref<Measurement | null>(null)
+const latestMeasurement = ref<Measurement | null>(null)
+const measurements = ref<Measurement[] | null>(null)
+const measurementsApiError = ref<ApiError | null>(null)
 const apiError = ref<ApiError | null>(null)
 const switchModeIcon = ref<string>('dark_mode')
 var intervalId: number | null = null
@@ -34,19 +37,25 @@ async function flipMode() {
 
 onMounted(async () => {
   toggleSwitchModeIcon()
+  const measurementsResponse = await fetchMeasurements()
+  if (measurementsResponse._kind === 'ApiError') {
+    measurementsApiError.value = measurementsResponse
+  } else {
+    measurements.value = measurementsResponse.measurements
+  }
 
   const fetchMeasurement = async () => {
     try {
       const response = await fetch(`${config.apiHost}/api/measurements/latest`)
       if (response.ok) {
         const data = await response.json()
-        measurement.value = toMeasurement(data)
+        latestMeasurement.value = toMeasurement(data)
         apiError.value = null
       } else {
         apiError.value = await response.json()
       }
     } catch (error) {
-      apiError.value = { message: getErrorMessage(error) }
+      apiError.value = { _kind: 'ApiError', message: getErrorMessage(error) }
       console.error('Fetch failed:', error)
     }
   }
@@ -70,32 +79,32 @@ onUnmounted(() => {
   </header>
   <main class="responsive">
     <ErrorPanel :error="apiError" v-if="apiError" />
-    <div v-else-if="measurement">
+    <div v-else-if="latestMeasurement">
       <article>
         <div class="grid shrink-center">
           <div class="s6 m6 l6">
             <h6>Date:</h6>
           </div>
           <div class="s6 m6 l6">
-            <h6>{{ measurement.date.toLocaleDateString() }}</h6>
+            <h6>{{ latestMeasurement.date.toLocaleDateString() }}</h6>
           </div>
           <div class="s6 m6 l6">
             <h6>Time:</h6>
           </div>
           <div class="s6 m6 l6">
-            <h6>{{ measurement.date.toLocaleTimeString() }}</h6>
+            <h6>{{ latestMeasurement.date.toLocaleTimeString() }}</h6>
           </div>
           <div class="s6 m6 l6">
             <h6>Temperature:</h6>
           </div>
           <div class="s6 m6 l6">
-            <h6>{{ measurement.temperature.toFixed(1) }}°C</h6>
+            <h6>{{ latestMeasurement.temperature.toFixed(1) }}°C</h6>
           </div>
           <div class="s6 m6 l6">
             <h6>Humidity:</h6>
           </div>
           <div class="s6 m6 l6">
-            <h6>{{ measurement.humidity.toFixed(1) }}%</h6>
+            <h6>{{ latestMeasurement.humidity.toFixed(1) }}%</h6>
           </div>
         </div>
       </article>
@@ -103,7 +112,7 @@ onUnmounted(() => {
         <TemperatureChart />
       </article>
       <article>
-        <HumidityChart />
+        <HumidityChart :measurements="measurements" :apiError="measurementsApiError" />
       </article>
     </div>
     <article class="center-align" v-else>

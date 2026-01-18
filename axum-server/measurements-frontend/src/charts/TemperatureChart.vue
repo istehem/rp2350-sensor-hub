@@ -67,7 +67,7 @@ onMounted(async () => {
         apiError.value = await response.json()
       }
     } catch (error) {
-      apiError.value = { message: getErrorMessage(error) }
+      apiError.value = { _kind: 'ApiError', message: getErrorMessage(error) }
       console.error('Fetch failed:', error)
     }
   }
