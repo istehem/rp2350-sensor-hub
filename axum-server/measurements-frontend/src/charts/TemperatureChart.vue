@@ -33,6 +33,7 @@ function toChartData(measurements: Measurement[]): ChartData<'line'> {
 
 const chartOptions: ChartOptions<'line'> = {
   responsive: true,
+  maintainAspectRatio: false,
   scales: {
     x: timeAxis,
     y: {
