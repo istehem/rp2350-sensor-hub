@@ -6,7 +6,6 @@ import type { ApiError, Measurement } from '../assets.ts'
 
 import ErrorPanel from '../ErrorPanel.vue'
 import config from '../config.ts'
-import { downsampleMeasurements } from '../utils.ts'
 import { tension, timeAxis } from './chartOptions.ts'
 
 const properties = defineProps<{
@@ -16,7 +15,7 @@ const properties = defineProps<{
 }>()
 
 function toChartData(measurements: Measurement[]): ChartData<'line'> {
-  const data = downsampleMeasurements(measurements, 50).map((measurement) => ({
+  const data = measurements.map((measurement) => ({
     x: measurement.date.getTime(),
     y: measurement.humidity,
   }))

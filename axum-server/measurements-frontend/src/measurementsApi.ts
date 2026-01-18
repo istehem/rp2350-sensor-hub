@@ -4,7 +4,9 @@ import { getErrorMessage, toMeasurement } from './utils.ts'
 
 export async function fetchMeasurements(): Promise<Measurements | ApiError> {
   try {
-    const response = await fetch(`${config.apiHost}/api/measurements`)
+    const response = await fetch(
+      `${config.apiHost}/api/measurements?downsample=${config.downsample}`,
+    )
     if (response.ok) {
       const data = await response.json()
       return { _kind: 'Measurements', measurements: data.map(toMeasurement) }
