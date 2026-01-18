@@ -68,7 +68,7 @@ onUnmounted(() => {
     </nav>
   </header>
   <main class="responsive">
-    <ErrorPanel :message="apiError.message" v-if="apiError" />
+    <ErrorPanel :error="apiError" v-if="apiError" />
     <div v-else-if="measurement">
       <article>
         <div class="grid shrink-center">

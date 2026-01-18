@@ -76,6 +76,6 @@ onMounted(async () => {
 </script>
 
 <template>
-  <ErrorPanel :message="apiError.message" v-if="apiError" />
+  <ErrorPanel :error="apiError" v-if="apiError" />
   <Line :options="chartOptions" :data="chartData" v-else />
 </template>
