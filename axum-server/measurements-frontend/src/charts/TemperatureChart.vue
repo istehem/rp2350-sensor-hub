@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 import { Line } from 'vue-chartjs'
 import type { ChartData, ChartOptions } from 'chart.js'
 import type { ApiError, Measurement } from '../assets.ts'
@@ -32,7 +32,7 @@ function toChartData(measurements: Measurement[]): ChartData<'line'> {
   }
 }
 
-const chartOptions = ref<ChartOptions<'line'>>({
+const chartOptions: ChartOptions<'line'> = {
   responsive: true,
   scales: {
     x: timeAxis,
@@ -45,7 +45,7 @@ const chartOptions = ref<ChartOptions<'line'>>({
       max: 25,
     },
   },
-})
+}
 
 const chartData = computed<ChartData<'line'>>(() => {
   return toChartData(properties.measurements || [])
