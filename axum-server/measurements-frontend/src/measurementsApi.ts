@@ -1,6 +1,18 @@
 import type { ApiError, Measurement, Measurements } from './assets.ts'
 import config from './config.ts'
-import { getErrorMessage, toMeasurement } from './utils.ts'
+
+function getErrorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message
+  return String(error)
+}
+
+function toMeasurement(data: any): Measurement {
+  return {
+    _kind: 'Measurement',
+    ...data,
+    date: new Date(data.date),
+  }
+}
 
 export async function fetchMeasurements(): Promise<Measurements | ApiError> {
   try {

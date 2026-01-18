@@ -5,7 +5,6 @@ import type { ChartData, ChartOptions } from 'chart.js'
 import type { ApiError, Measurement } from '../assets.ts'
 
 import ErrorPanel from '../ErrorPanel.vue'
-import config from '../config.ts'
 import { tension, timeAxis } from './chartOptions.ts'
 
 const properties = defineProps<{
