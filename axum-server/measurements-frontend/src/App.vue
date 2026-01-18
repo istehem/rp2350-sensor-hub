@@ -55,10 +55,10 @@ onMounted(async () => {
     }
   }
 
-  updateLatestMeasurement()
+  await updateLatestMeasurement()
   latestMeasurementIntervalId = setInterval(updateLatestMeasurement, 10000)
 
-  updateMeasurements()
+  await updateMeasurements()
   measurementsIntervalId = setInterval(updateMeasurements, 60000)
 })
 

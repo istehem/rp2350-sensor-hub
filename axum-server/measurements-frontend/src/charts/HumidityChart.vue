@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, watch } from 'vue'
 import { Line } from 'vue-chartjs'
 import type { ChartData, ChartOptions } from 'chart.js'
 import type { ApiError, Measurement } from '../assets.ts'
@@ -59,10 +59,21 @@ const chartOptions = ref<ChartOptions<'line'>>({
   },
 })
 
-onMounted(async () => {
-  chartData.value = toChartData(properties.measurements || [])
-  apiError.value = properties.apiError
-})
+watch(
+  () => properties.measurements,
+  async (newMeasurements) => {
+    chartData.value = toChartData(properties.measurements || [])
+  },
+  { deep: true },
+)
+
+watch(
+  () => properties.apiError,
+  async (newMeasurements) => {
+    apiError.value = properties.apiError
+  },
+  { deep: true },
+)
 </script>
 
 <template>
