@@ -3,6 +3,8 @@ import { ref, onMounted } from 'vue'
 import { Line } from 'vue-chartjs'
 import type { ChartData, ChartOptions } from 'chart.js'
 import type { ApiError, Measurement } from '../assets.ts'
+
+import ErrorPanel from '../ErrorPanel.vue'
 import config from '../config.ts'
 import { getErrorMessage, toMeasurement } from '../utils.ts'
 
@@ -74,8 +76,6 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="center-align error-container" v-if="apiError">
-    <h6>{{ apiError.message }}</h6>
-  </div>
+  <ErrorPanel :message="apiError.message" v-if="apiError" />
   <Line :options="chartOptions" :data="chartData" v-else />
 </template>

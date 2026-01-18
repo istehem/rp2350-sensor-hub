@@ -4,6 +4,7 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import config from './config.ts'
 import type { ApiError, Measurement } from './assets.ts'
 import TemperatureChart from './charts/TemperatureChart.vue'
+import ErrorPanel from './ErrorPanel.vue'
 import { getErrorMessage, toMeasurement } from './utils.ts'
 
 const measurement = ref<Measurement | null>(null)
@@ -67,9 +68,7 @@ onUnmounted(() => {
     </nav>
   </header>
   <main class="responsive">
-    <article class="center-align error-container" v-if="apiError">
-      <h6>{{ apiError.message }}</h6>
-    </article>
+    <ErrorPanel :message="apiError.message" v-if="apiError" />
     <div v-else-if="measurement">
       <article>
         <div class="grid shrink-center">
