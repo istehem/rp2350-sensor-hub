@@ -7,6 +7,7 @@ use axum::{
 };
 use axum_extra::{
     TypedHeader,
+    extract::OptionalQuery,
     headers::{Authorization, authorization::Basic},
 };
 use chrono::{DateTime, Utc};
@@ -46,6 +47,11 @@ enum MeasurementError {
     NotFound,
     Unreadable,
     Unauthorized,
+}
+
+#[derive(Deserialize)]
+struct Params {
+    downsample: Option<usize>,
 }
 
 impl IntoResponse for MeasurementError {
@@ -116,7 +122,7 @@ async fn main() {
         .route("/", get(index))
         .route("/static-content/{*param}", get(static_content))
         .route("/api/measurements/latest", get(latest_measurement))
-        .route("/api/measurements", get(all_measurements))
+        .route("/api/measurements", get(query_measurements))
         .route("/api/measurements", post(create_measurement))
         .with_state(state)
         .layer(cors);
@@ -150,14 +156,43 @@ async fn latest_measurement(
     }
 }
 
-async fn all_measurements(
+// decimation with interval offset
+fn downsample_measurements(
+    measurements: Vec<Measurement>,
+    wanted_count: usize,
+) -> Vec<Measurement> {
+    if measurements.is_empty() || wanted_count == 0 || wanted_count >= measurements.len() {
+        return measurements;
+    }
+    let mut picked = Vec::with_capacity(wanted_count);
+    let interval = measurements.len() as f64 / wanted_count as f64;
+
+    for i in 0..wanted_count {
+        let even_index = ((i as f64 * interval + interval / 2.0).floor()) as usize;
+        let index = even_index.min(measurements.len() - 1);
+        picked.push(measurements[index]);
+    }
+
+    picked
+}
+
+async fn query_measurements(
     State(state): State<AppState>,
+    OptionalQuery(params): OptionalQuery<Params>,
 ) -> Result<Json<Vec<Measurement>>, MeasurementError> {
-    let measurements = state
+    let measurements_guard = state
         .measurements
         .lock()
         .map_err(|_| MeasurementError::Unreadable)?;
-    Ok(Json(measurements.iter().copied().collect()))
+    let mut measurements = measurements_guard.iter().copied().collect();
+    if let Some(Params {
+        downsample: Some(wanted_count),
+    }) = params
+    {
+        measurements = downsample_measurements(measurements, wanted_count);
+    }
+
+    Ok(Json(measurements))
 }
 
 fn validate_authorization(
