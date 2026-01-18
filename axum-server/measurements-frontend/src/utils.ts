@@ -12,3 +12,20 @@ export function toMeasurement(data: any): Measurement {
     date: new Date(data.date),
   }
 }
+
+export function downsampleMeasurements(
+  measurements: Measurement[],
+  wantedCount: number,
+): Measurement[] {
+  if (wantedCount >= measurements.length) {
+    return measurements
+  }
+  const picked: Measurement[] = []
+  const interval = measurements.length / wantedCount
+
+  for (let i = 0; i < wantedCount; i++) {
+    const evenIndex = Math.floor(i * interval + interval / 2)
+    picked.push(measurements[evenIndex]!)
+  }
+  return picked
+}
