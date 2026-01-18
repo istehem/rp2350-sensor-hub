@@ -4,6 +4,7 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import config from './config.ts'
 import type { ApiError, Measurement } from './assets.ts'
 import TemperatureChart from './charts/TemperatureChart.vue'
+import HumidityChart from './charts/HumidityChart.vue'
 import ErrorPanel from './ErrorPanel.vue'
 import { getErrorMessage, toMeasurement } from './utils.ts'
 
@@ -100,6 +101,9 @@ onUnmounted(() => {
       </article>
       <article>
         <TemperatureChart />
+      </article>
+      <article>
+        <HumidityChart />
       </article>
     </div>
     <article class="center-align" v-else>
