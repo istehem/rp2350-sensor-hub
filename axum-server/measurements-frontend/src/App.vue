@@ -4,16 +4,12 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import config from './config.ts'
 import type { ApiError, Measurement } from './assets.ts'
 import TemperatureChart from './charts/TemperatureChart.vue'
+import { getErrorMessage, toMeasurement } from './utils.ts'
 
 const measurement = ref<Measurement | null>(null)
 const apiError = ref<ApiError | null>(null)
 const switchModeIcon = ref<string>('dark_mode')
 var intervalId: number | null = null
-
-function getErrorMessage(error: unknown): string {
-  if (error instanceof Error) return error.message
-  return String(error)
-}
 
 async function toggleSwitchModeIcon() {
   const mode = await ui('mode')
@@ -42,10 +38,7 @@ onMounted(async () => {
       const response = await fetch(`${config.apiHost}/api/measurements/latest`)
       if (response.ok) {
         const data = await response.json()
-        measurement.value = {
-          ...data,
-          date: new Date(data.date),
-        }
+        measurement.value = toMeasurement(data)
         apiError.value = null
       } else {
         apiError.value = await response.json()

@@ -4,6 +4,7 @@ import { Line } from 'vue-chartjs'
 import type { ChartData, ChartOptions } from 'chart.js'
 import type { ApiError, Measurement } from '../assets.ts'
 import config from '../config.ts'
+import { getErrorMessage, toMeasurement } from '../utils.ts'
 
 function toChartData(measurements: Measurement[]): ChartData<'line'> {
   const data = measurements.map((measurement) => ({
@@ -51,26 +52,14 @@ const chartOptions = ref<ChartOptions<'line'>>({
   },
 })
 
-function toMeasurement(data: any): Measurement {
-  return {
-    ...data,
-    date: new Date(data.date),
-  }
-}
-
-function getErrorMessage(error: unknown): string {
-  if (error instanceof Error) return error.message
-  return String(error)
-}
-
 onMounted(async () => {
   const fetchMeasurements = async () => {
     try {
       const response = await fetch(`${config.apiHost}/api/measurements`)
       if (response.ok) {
         const data = await response.json()
-        const charData = toChartData(data.map(toMeasurement))
-        chartData.value = charData
+        const measurementsAsChartData = toChartData(data.map(toMeasurement))
+        chartData.value = measurementsAsChartData
         apiError.value = null
       } else {
         apiError.value = await response.json()
