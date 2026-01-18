@@ -7,6 +7,7 @@ import type { ApiError, Measurement } from '../assets.ts'
 import ErrorPanel from '../ErrorPanel.vue'
 import config from '../config.ts'
 import { downsampleMeasurements } from '../utils.ts'
+import { tension, timeAxis } from './chartOptions.ts'
 
 const properties = defineProps<{
   measurements: Measurement[] | null
@@ -26,7 +27,7 @@ function toChartData(measurements: Measurement[]): ChartData<'line'> {
         data: data,
         borderColor: properties.color,
         backgroundColor: properties.color,
-        tension: 0.4,
+        tension: tension,
       },
     ],
   }
@@ -38,17 +39,7 @@ const chartData = ref<ChartData<'line'>>(toChartData([]))
 const chartOptions = ref<ChartOptions<'line'>>({
   responsive: true,
   scales: {
-    x: {
-      type: 'time' as const,
-      time: {
-        unit: 'hour' as const,
-        tooltipFormat: 'MMM d, HH:mm',
-      },
-      title: {
-        display: true,
-        text: 'Time',
-      },
-    },
+    x: timeAxis,
     y: {
       title: {
         display: true,

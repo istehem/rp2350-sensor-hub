@@ -105,7 +105,7 @@ async fn main() {
         .init();
 
     let state = AppState {
-        measurements: Arc::new(Mutex::new(AllocRingBuffer::new(1000))),
+        measurements: Arc::new(Mutex::new(AllocRingBuffer::new(5000))),
     };
 
     let cors = CorsLayer::new()
