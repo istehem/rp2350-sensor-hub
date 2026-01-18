@@ -12,8 +12,14 @@ const measurements = ref<Measurement[] | null>(null)
 const measurementsApiError = ref<ApiError | null>(null)
 const latestMeasurementApiError = ref<ApiError | null>(null)
 const switchModeIcon = ref<string>('dark_mode')
+const primaryColor = ref<string>('#fb542b')
 var latestMeasurementIntervalId: number | null = null
 var measurementsIntervalId: number | null = null
+
+const getPrimaryColor = (): string => {
+  const rootStyle = getComputedStyle(document.documentElement)
+  return rootStyle.getPropertyValue('--primary').trim()
+}
 
 async function toggleSwitchModeIcon() {
   const mode = await ui('mode')
@@ -22,6 +28,7 @@ async function toggleSwitchModeIcon() {
   } else {
     switchModeIcon.value = 'light_mode'
   }
+  primaryColor.value = getPrimaryColor()
 }
 
 async function flipMode() {
@@ -109,10 +116,18 @@ onUnmounted(() => {
         </div>
       </article>
       <article>
-        <TemperatureChart :measurements="measurements" :apiError="measurementsApiError" />
+        <TemperatureChart
+          :measurements="measurements"
+          :apiError="measurementsApiError"
+          :color="primaryColor"
+        />
       </article>
       <article>
-        <HumidityChart :measurements="measurements" :apiError="measurementsApiError" />
+        <HumidityChart
+          :measurements="measurements"
+          :apiError="measurementsApiError"
+          :color="primaryColor"
+        />
       </article>
     </div>
     <article class="center-align" v-else>

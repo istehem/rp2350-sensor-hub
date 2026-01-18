@@ -11,6 +11,7 @@ import { getErrorMessage, toMeasurement } from '../utils.ts'
 const properties = defineProps<{
   measurements: Measurement[] | null
   apiError: ApiError | null
+  color: string
 }>()
 
 function toChartData(measurements: Measurement[]): ChartData<'line'> {
@@ -23,8 +24,8 @@ function toChartData(measurements: Measurement[]): ChartData<'line'> {
       {
         label: 'Temperature (°C)',
         data: data,
-        borderColor: '#42a5f5',
-        backgroundColor: 'rgba(66, 165, 245, 0.1)',
+        borderColor: properties.color,
+        backgroundColor: properties.color,
         tension: 0.4,
       },
     ],
