@@ -78,7 +78,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <header class="transparent">
+  <header class="fixed">
     <nav>
       <button @click="flipMode" class="circle transparent primary-text">
         <i>{{ switchModeIcon }}</i>
@@ -136,7 +136,6 @@ onUnmounted(() => {
       <progress class="circle small indeterminate" value="50" max="100"></progress>
     </article>
   </main>
-  <footer class="transparent"></footer>
 </template>
 
 <style scoped></style>
