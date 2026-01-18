@@ -8,6 +8,11 @@ import ErrorPanel from '../ErrorPanel.vue'
 import config from '../config.ts'
 import { getErrorMessage, toMeasurement } from '../utils.ts'
 
+const properties = defineProps<{
+  measurements: Measurement[] | null
+  apiError: ApiError | null
+}>()
+
 function toChartData(measurements: Measurement[]): ChartData<'line'> {
   const data = measurements.map((measurement) => ({
     x: measurement.date.getTime(),
@@ -55,23 +60,8 @@ const chartOptions = ref<ChartOptions<'line'>>({
 })
 
 onMounted(async () => {
-  const fetchMeasurements = async () => {
-    try {
-      const response = await fetch(`${config.apiHost}/api/measurements`)
-      if (response.ok) {
-        const data = await response.json()
-        const measurementsAsChartData = toChartData(data.map(toMeasurement))
-        chartData.value = measurementsAsChartData
-        apiError.value = null
-      } else {
-        apiError.value = await response.json()
-      }
-    } catch (error) {
-      apiError.value = { _kind: 'ApiError', message: getErrorMessage(error) }
-      console.error('Fetch failed:', error)
-    }
-  }
-  await fetchMeasurements()
+  chartData.value = toChartData(properties.measurements || [])
+  apiError.value = properties.apiError
 })
 </script>
 

@@ -109,7 +109,7 @@ onUnmounted(() => {
         </div>
       </article>
       <article>
-        <TemperatureChart />
+        <TemperatureChart :measurements="measurements" :apiError="measurementsApiError" />
       </article>
       <article>
         <HumidityChart :measurements="measurements" :apiError="measurementsApiError" />
