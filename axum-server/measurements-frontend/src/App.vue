@@ -1,19 +1,9 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
 
+import config from './config.ts'
+import type { ApiError, Measurement } from './assets.ts'
 import TemperatureChart from './charts/TemperatureChart.vue'
-
-interface Measurement {
-  temperature: number
-  humidity: number
-  date: Date
-}
-
-interface ApiError {
-  message: string
-}
-
-const apiHost = import.meta.env.VITE_MEASUREMENTS_API_HOST || ''
 
 const measurement = ref<Measurement | null>(null)
 const apiError = ref<ApiError | null>(null)
@@ -49,7 +39,7 @@ onMounted(async () => {
 
   const fetchMeasurement = async () => {
     try {
-      const response = await fetch(`${apiHost}/api/measurements/latest`)
+      const response = await fetch(`${config.apiHost}/api/measurements/latest`)
       if (response.ok) {
         const data = await response.json()
         measurement.value = {
