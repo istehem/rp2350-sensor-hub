@@ -32,7 +32,6 @@ function toChartData(measurements: Measurement[]): ChartData<'line'> {
   }
 }
 
-const apiError = ref<ApiError | null>(null)
 const chartData = ref<ChartData<'line'>>(toChartData([]))
 
 const chartOptions = ref<ChartOptions<'line'>>({
@@ -54,14 +53,6 @@ watch(
   () => properties.measurements,
   async (newMeasurements) => {
     chartData.value = toChartData(properties.measurements || [])
-  },
-  { deep: true },
-)
-
-watch(
-  () => properties.apiError,
-  async (newMeasurements) => {
-    apiError.value = properties.apiError
   },
   { deep: true },
 )

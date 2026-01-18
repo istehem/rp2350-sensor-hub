@@ -49,6 +49,7 @@ onMounted(async () => {
     if (measurementsResponse._kind === 'ApiError') {
       measurementsApiError.value = measurementsResponse
     } else {
+      measurementsApiError.value = null
       measurements.value = measurementsResponse.measurements
     }
   }
@@ -58,6 +59,7 @@ onMounted(async () => {
     if (measurementResponse._kind === 'ApiError') {
       latestMeasurementApiError.value = measurementResponse
     } else {
+      latestMeasurementApiError.value = null
       latestMeasurement.value = measurementResponse
     }
   }
