@@ -12,7 +12,7 @@ const measurements = ref<Measurement[] | null>(null)
 const measurementsApiError = ref<ApiError | null>(null)
 const latestMeasurementApiError = ref<ApiError | null>(null)
 const switchModeIcon = ref<string>('dark_mode')
-const primaryColor = ref<string>('#fb542b')
+const primaryColor = ref<string>('#cfbcff')
 var latestMeasurementIntervalId: number | null = null
 var measurementsIntervalId: number | null = null
 
