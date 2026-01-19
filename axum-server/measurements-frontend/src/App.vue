@@ -7,18 +7,32 @@ import HumidityChart from './charts/HumidityChart.vue'
 import ErrorPanel from './ErrorPanel.vue'
 import { fetchLatestMeasurement, fetchMeasurements } from './measurementsApi.ts'
 
+const primaryFallbackColor = '#cfbcff'
 const latestMeasurement = ref<Measurement | null>(null)
 const measurements = ref<Measurement[] | null>(null)
 const measurementsApiError = ref<ApiError | null>(null)
 const latestMeasurementApiError = ref<ApiError | null>(null)
 const switchModeIcon = ref<string>('dark_mode')
-const primaryColor = ref<string>('#cfbcff')
+const primaryColor = ref<string>(primaryFallbackColor)
+
 var latestMeasurementIntervalId: number | null = null
 var measurementsIntervalId: number | null = null
 
-const getPrimaryColor = (): string => {
-  const rootStyle = getComputedStyle(document.documentElement)
-  return rootStyle.getPropertyValue('--primary').trim()
+async function getPrimaryColor(): Promise<string> {
+  try {
+    const theme = await ui('theme')
+    const mode = await ui('mode')
+
+    if (!theme || typeof theme === 'string') {
+      return primaryFallbackColor
+    }
+
+    const themeCss = theme[mode as 'light' | 'dark']
+    const match = themeCss.match(/--primary:\s*([^;]+)/)
+    return match && match[1] ? match[1].trim() : primaryFallbackColor
+  } catch {
+    return primaryFallbackColor
+  }
 }
 
 async function toggleSwitchModeIcon() {
@@ -28,7 +42,7 @@ async function toggleSwitchModeIcon() {
   } else {
     switchModeIcon.value = 'light_mode'
   }
-  primaryColor.value = getPrimaryColor()
+  primaryColor.value = await getPrimaryColor()
 }
 
 async function flipMode() {
