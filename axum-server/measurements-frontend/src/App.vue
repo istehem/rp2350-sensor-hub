@@ -21,15 +21,16 @@ var measurementsIntervalId: number | null = null
 async function getPrimaryColor(): Promise<string> {
   try {
     const theme = await ui('theme')
-    const mode = await ui('mode')
+    const mode = (await ui('mode')) as 'light' | 'dark' | undefined
 
-    if (!theme || typeof theme === 'string') {
-      return primaryFallbackColor
-    }
+    if (!theme || typeof theme === 'string') return primaryFallbackColor
+    const themeCss = theme[(mode || 'light') as 'light' | 'dark']
+    if (!themeCss || typeof themeCss !== 'string') return primaryFallbackColor
 
-    const themeCss = theme[mode as 'light' | 'dark']
-    const match = themeCss.match(/--primary:\s*([^;]+)/)
-    return match && match[1] ? match[1].trim() : primaryFallbackColor
+    const varRe = /--primary\s*:\s*([^;]+);?/
+    const m = themeCss.match(varRe)
+    const raw = m?.[1]?.trim()
+    return raw || primaryFallbackColor
   } catch {
     return primaryFallbackColor
   }
