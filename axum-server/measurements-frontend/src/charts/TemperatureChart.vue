@@ -11,6 +11,8 @@ const properties = defineProps<{
   measurements: Measurement[] | null
   apiError: ApiError | null
   color: string
+  textColor: string
+  gridColor: string
 }>()
 
 function toChartData(measurements: Measurement[]): ChartData<'line'> {
@@ -31,24 +33,34 @@ function toChartData(measurements: Measurement[]): ChartData<'line'> {
   }
 }
 
-const chartOptions: ChartOptions<'line'> = {
-  responsive: true,
-  maintainAspectRatio: false,
-  scales: {
-    x: timeAxis,
-    y: {
-      title: {
-        display: true,
-        text: 'Temperature (°C)',
-      },
-      min: 20,
-      max: 25,
-    },
-  },
-}
-
 const chartData = computed<ChartData<'line'>>(() => {
   return toChartData(properties.measurements || [])
+})
+
+const chartOptions = computed<ChartOptions<'line'>>(() => {
+  return {
+    responsive: true,
+    maintainAspectRatio: false,
+    scales: {
+      x: timeAxis(properties.textColor, properties.gridColor),
+      y: {
+        title: {
+          color: properties.textColor,
+          display: true,
+          text: 'Temperature (°C)',
+        },
+        min: 20,
+        max: 25,
+        ticks: { color: properties.textColor },
+        grid: {
+          color: properties.gridColor,
+        },
+      },
+    },
+    plugins: {
+      legend: { labels: { color: properties.textColor } },
+    },
+  }
 })
 </script>
 

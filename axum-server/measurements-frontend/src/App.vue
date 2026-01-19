@@ -14,6 +14,8 @@ const measurementsApiError = ref<ApiError | null>(null)
 const latestMeasurementApiError = ref<ApiError | null>(null)
 const switchModeIcon = ref<string>('dark_mode')
 const primaryColor = ref<string>(primaryFallbackColor)
+const secondaryColor = ref<string>(primaryFallbackColor)
+const surfaceVariantColor = ref<string>(primaryFallbackColor)
 
 var latestMeasurementIntervalId: number | null = null
 var measurementsIntervalId: number | null = null
@@ -36,6 +38,42 @@ async function getPrimaryColor(): Promise<string> {
   }
 }
 
+async function getSecondaryColor(): Promise<string> {
+  try {
+    const theme = await ui('theme')
+    const mode = (await ui('mode')) as 'light' | 'dark' | undefined
+
+    if (!theme || typeof theme === 'string') return primaryFallbackColor
+    const themeCss = theme[(mode || 'light') as 'light' | 'dark']
+    if (!themeCss || typeof themeCss !== 'string') return primaryFallbackColor
+
+    const varRe = /--secondary\s*:\s*([^;]+);?/
+    const m = themeCss.match(varRe)
+    const raw = m?.[1]?.trim()
+    return raw || primaryFallbackColor
+  } catch {
+    return primaryFallbackColor
+  }
+}
+
+async function getSurfaceVariantColor(): Promise<string> {
+  try {
+    const theme = await ui('theme')
+    const mode = (await ui('mode')) as 'light' | 'dark' | undefined
+
+    if (!theme || typeof theme === 'string') return primaryFallbackColor
+    const themeCss = theme[(mode || 'light') as 'light' | 'dark']
+    if (!themeCss || typeof themeCss !== 'string') return primaryFallbackColor
+
+    const varRe = /--surface-variant\s*:\s*([^;]+);?/
+    const m = themeCss.match(varRe)
+    const raw = m?.[1]?.trim()
+    return raw || primaryFallbackColor
+  } catch {
+    return primaryFallbackColor
+  }
+}
+
 async function toggleSwitchModeIcon() {
   const mode = await ui('mode')
   if (mode === 'light') {
@@ -44,6 +82,8 @@ async function toggleSwitchModeIcon() {
     switchModeIcon.value = 'light_mode'
   }
   primaryColor.value = await getPrimaryColor()
+  secondaryColor.value = await getSecondaryColor()
+  surfaceVariantColor.value = await getSurfaceVariantColor()
 }
 
 async function flipMode() {
@@ -137,6 +177,8 @@ onUnmounted(() => {
           :measurements="measurements"
           :apiError="measurementsApiError"
           :color="primaryColor"
+          :textColor="secondaryColor"
+          :gridColor="surfaceVariantColor"
         />
       </article>
       <article class="medium">
@@ -144,6 +186,8 @@ onUnmounted(() => {
           :measurements="measurements"
           :apiError="measurementsApiError"
           :color="primaryColor"
+          :textColor="secondaryColor"
+          :gridColor="surfaceVariantColor"
         />
       </article>
     </div>
