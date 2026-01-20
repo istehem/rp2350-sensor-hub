@@ -104,6 +104,7 @@ impl IntoResponse for StaticContentError {
         (status, message).into_response()
     }
 }
+
 #[tokio::main]
 async fn main() {
     tracing_subscriber::fmt()
@@ -168,8 +169,8 @@ fn downsample_measurements(
     let interval = measurements.len() as f64 / wanted_count as f64;
 
     for i in 0..wanted_count {
-        let even_index = ((i as f64 * interval + interval / 2.0).floor()) as usize;
-        let index = even_index.min(measurements.len() - 1);
+        let wanted_index = ((i as f64 * interval + interval / 2.0).floor()) as usize;
+        let index = wanted_index.min(measurements.len() - 1);
         picked.push(measurements[index]);
     }
 
