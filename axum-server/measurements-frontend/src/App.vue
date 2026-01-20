@@ -8,6 +8,9 @@ import ErrorPanel from './ErrorPanel.vue'
 import { fetchLatestMeasurement, fetchMeasurements } from './measurementsApi.ts'
 
 const primaryFallbackColor = '#cfbcff'
+const secondaryFallbackColor = '#cbc2db'
+const surfaceVariantFallbackColor = '#49454e'
+
 const latestMeasurement = ref<Measurement | null>(null)
 const measurements = ref<Measurement[] | null>(null)
 const measurementsApiError = ref<ApiError | null>(null)
@@ -20,21 +23,21 @@ const surfaceVariantColor = ref<string>(primaryFallbackColor)
 var latestMeasurementIntervalId: number | null = null
 var measurementsIntervalId: number | null = null
 
-async function getCssColor(color: string): Promise<string> {
+async function getCssColor(color: string, fallbackColor: string): Promise<string> {
   try {
     const theme = await ui('theme')
     const mode = (await ui('mode')) as 'light' | 'dark' | undefined
 
-    if (!theme || typeof theme === 'string') return primaryFallbackColor
+    if (!theme || typeof theme === 'string') return fallbackColor
     const themeCss = theme[(mode || 'light') as 'light' | 'dark']
-    if (!themeCss || typeof themeCss !== 'string') return primaryFallbackColor
+    if (!themeCss || typeof themeCss !== 'string') return fallbackColor
 
     const varRe = new RegExp(`--${color}\\s*:\\s*([^;]+);?`)
     const m = themeCss.match(varRe)
     const raw = m?.[1]?.trim()
-    return raw || primaryFallbackColor
+    return raw || fallbackColor
   } catch {
-    return primaryFallbackColor
+    return fallbackColor
   }
 }
 
@@ -45,9 +48,9 @@ async function toggleSwitchModeIcon() {
   } else {
     switchModeIcon.value = 'light_mode'
   }
-  primaryColor.value = await getCssColor('primary')
-  secondaryColor.value = await getCssColor('secondary')
-  surfaceVariantColor.value = await getCssColor('surface-variant')
+  primaryColor.value = await getCssColor('primary', primaryFallbackColor)
+  secondaryColor.value = await getCssColor('secondary', secondaryFallbackColor)
+  surfaceVariantColor.value = await getCssColor('surface-variant', surfaceVariantFallbackColor)
 }
 
 async function flipMode() {
