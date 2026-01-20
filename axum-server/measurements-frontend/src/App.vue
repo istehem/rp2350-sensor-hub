@@ -143,7 +143,7 @@ onUnmounted(() => {
         <TemperatureChart
           :measurements="measurements"
           :apiError="measurementsApiError"
-          :color="primaryColor"
+          :datasetColor="primaryColor"
           :textColor="secondaryColor"
           :gridColor="surfaceVariantColor"
         />
@@ -152,7 +152,7 @@ onUnmounted(() => {
         <HumidityChart
           :measurements="measurements"
           :apiError="measurementsApiError"
-          :color="primaryColor"
+          :datasetColor="primaryColor"
           :textColor="secondaryColor"
           :gridColor="surfaceVariantColor"
         />

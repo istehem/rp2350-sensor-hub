@@ -2,19 +2,20 @@
 import { computed } from 'vue'
 import { Line } from 'vue-chartjs'
 import type { ChartData, ChartOptions } from 'chart.js'
-import { Chart } from 'chart.js'
 import type { ApiError, Measurement } from '../assets.ts'
 
 import ErrorPanel from '../ErrorPanel.vue'
-import { tension, timeAxis } from './chartOptions.ts'
+import { generateChartOptions, tension } from './chartOptions.ts'
 
 const properties = defineProps<{
   measurements: Measurement[] | null
   apiError: ApiError | null
-  color: string
+  datasetColor: string
   textColor: string
   gridColor: string
 }>()
+
+const title = 'Humidity (%)'
 
 function toChartData(measurements: Measurement[]): ChartData<'line'> {
   const data = measurements.map((measurement) => ({
@@ -24,10 +25,10 @@ function toChartData(measurements: Measurement[]): ChartData<'line'> {
   return {
     datasets: [
       {
-        label: 'Humidity (%)',
+        label: title,
         data: data,
-        borderColor: properties.color,
-        backgroundColor: properties.color,
+        borderColor: properties.datasetColor,
+        backgroundColor: properties.datasetColor,
         tension: tension,
       },
     ],
@@ -38,31 +39,13 @@ const chartData = computed<ChartData<'line'>>(() => {
   return toChartData(properties.measurements || [])
 })
 
-const chartOptions = computed<ChartOptions<'line'>>(() => {
-  return {
-    responsive: true,
-    maintainAspectRatio: false,
-    scales: {
-      x: timeAxis(properties.textColor, properties.gridColor),
-      y: {
-        title: {
-          color: properties.textColor,
-          display: true,
-          text: 'Humidity (%)',
-        },
-        min: 0,
-        max: 100,
-        ticks: { color: properties.textColor },
-        grid: {
-          color: properties.gridColor,
-        },
-      },
-    },
-    plugins: {
-      legend: { labels: { color: properties.textColor } },
-    },
-  }
-})
+const chartOptions = computed<ChartOptions<'line'>>(() =>
+  generateChartOptions(
+    title,
+    { min: 0, max: 100 },
+    { textColor: properties.textColor, gridColor: properties.gridColor },
+  ),
+)
 </script>
 
 <template>
