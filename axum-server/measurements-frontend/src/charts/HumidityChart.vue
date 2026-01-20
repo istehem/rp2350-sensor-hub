@@ -35,9 +35,7 @@ function toChartData(measurements: Measurement[]): ChartData<'line'> {
   }
 }
 
-const chartData = computed<ChartData<'line'>>(() => {
-  return toChartData(properties.measurements || [])
-})
+const chartData = computed<ChartData<'line'>>(() => toChartData(properties.measurements || []))
 
 const chartOptions = computed<ChartOptions<'line'>>(() =>
   generateChartOptions(
