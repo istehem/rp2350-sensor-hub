@@ -37,6 +37,7 @@ struct Measurement {
     temperature: f64,
     humidity: f64,
 }
+
 #[derive(Clone)]
 struct AppState {
     measurements: Arc<Mutex<AllocRingBuffer<Measurement>>>,
