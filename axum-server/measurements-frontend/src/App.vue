@@ -20,8 +20,8 @@ const primaryColor = ref<string>(primaryFallbackColor)
 const secondaryColor = ref<string>(primaryFallbackColor)
 const surfaceVariantColor = ref<string>(primaryFallbackColor)
 
-var latestMeasurementIntervalId: number | null = null
-var measurementsIntervalId: number | null = null
+var latestMeasurementTimeoutId: number | null = null
+var measurementsTimeoutId: number | null = null
 
 async function getCssColor(color: string, fallbackColor: string): Promise<string> {
   try {
@@ -63,39 +63,37 @@ async function flipMode() {
   await toggleSwitchModeIcon()
 }
 
+async function pollLatestMeasurement() {
+  const measurementResponse = await fetchLatestMeasurement()
+  if (measurementResponse._kind === 'ApiError') {
+    latestMeasurementApiError.value = measurementResponse
+  } else {
+    latestMeasurementApiError.value = null
+    latestMeasurement.value = measurementResponse
+  }
+  latestMeasurementTimeoutId = setTimeout(pollLatestMeasurement, 10000)
+}
+
+async function pollMeasurements() {
+  const measurementsResponse = await fetchMeasurements()
+  if (measurementsResponse._kind === 'ApiError') {
+    measurementsApiError.value = measurementsResponse
+  } else {
+    measurementsApiError.value = null
+    measurements.value = measurementsResponse.measurements
+  }
+  measurementsTimeoutId = setTimeout(pollMeasurements, 60000)
+}
+
 onMounted(async () => {
   toggleSwitchModeIcon()
-
-  const updateMeasurements = async () => {
-    const measurementsResponse = await fetchMeasurements()
-    if (measurementsResponse._kind === 'ApiError') {
-      measurementsApiError.value = measurementsResponse
-    } else {
-      measurementsApiError.value = null
-      measurements.value = measurementsResponse.measurements
-    }
-  }
-
-  const updateLatestMeasurement = async () => {
-    const measurementResponse = await fetchLatestMeasurement()
-    if (measurementResponse._kind === 'ApiError') {
-      latestMeasurementApiError.value = measurementResponse
-    } else {
-      latestMeasurementApiError.value = null
-      latestMeasurement.value = measurementResponse
-    }
-  }
-
-  await updateLatestMeasurement()
-  latestMeasurementIntervalId = setInterval(updateLatestMeasurement, 10000)
-
-  await updateMeasurements()
-  measurementsIntervalId = setInterval(updateMeasurements, 60000)
+  pollLatestMeasurement()
+  pollMeasurements()
 })
 
 onUnmounted(() => {
-  if (latestMeasurementIntervalId) clearInterval(latestMeasurementIntervalId)
-  if (measurementsIntervalId) clearInterval(measurementsIntervalId)
+  if (latestMeasurementTimeoutId) clearTimeout(latestMeasurementTimeoutId)
+  if (measurementsTimeoutId) clearTimeout(measurementsTimeoutId)
 })
 </script>
 
