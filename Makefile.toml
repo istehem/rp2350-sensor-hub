@@ -105,8 +105,26 @@ command = "npm"
 args = ["--prefix", "axum-server/measurements-frontend/", "run", "lint"]
 workspace = false
 
+[tasks.cleanup-frontend-build]
+script = '''
+#!@duckscript
+handle = glob_array ./axum-server/static-content/*
+
+for path in ${handle}
+  if not eq ${path} axum-server/static-content/.gitignore
+    echo deleting old resource: ${path}
+    rm -r ${path}
+  end
+end
+'''
+workspace = false
+
 [tasks.stage-frontend]
-dependencies = ["install-frontend-deps", "build-frontend"]
+dependencies = [
+  "install-frontend-deps",
+  "build-frontend",
+  "cleanup-frontend-build",
+]
 command = "cp"
 args = [
   "-R",
