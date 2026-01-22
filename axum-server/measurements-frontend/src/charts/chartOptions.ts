@@ -10,6 +10,7 @@ interface MeasurementAxisMinMax {
   max: number
 }
 
+/* eslint-disable '@typescript-eslint/no-explicit-any' */
 function timeAxis(textColor: string, gridColor: string): any {
   return {
     type: 'time' as const,

@@ -6,6 +6,7 @@ function getErrorMessage(error: unknown): string {
   return String(error)
 }
 
+/* eslint-disable '@typescript-eslint/no-explicit-any' */
 function toMeasurement(data: any): Measurement {
   return {
     _kind: 'Measurement',
