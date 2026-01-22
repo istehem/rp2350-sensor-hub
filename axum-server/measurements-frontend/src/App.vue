@@ -20,8 +20,8 @@ const primaryColor = ref<string>(primaryFallbackColor)
 const secondaryColor = ref<string>(primaryFallbackColor)
 const surfaceVariantColor = ref<string>(primaryFallbackColor)
 
-var latestMeasurementTimeoutId: number | null = null
-var measurementsTimeoutId: number | null = null
+let latestMeasurementTimeoutId: number | null = null
+let measurementsTimeoutId: number | null = null
 
 async function getCssColor(color: string, fallbackColor: string): Promise<string> {
   try {

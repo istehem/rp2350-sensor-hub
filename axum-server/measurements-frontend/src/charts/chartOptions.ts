@@ -1,4 +1,4 @@
-import type { ChartData, ChartOptions } from 'chart.js'
+import type { ChartOptions } from 'chart.js'
 
 interface Colors {
   textColor: string
@@ -32,7 +32,7 @@ function timeAxis(textColor: string, gridColor: string): any {
           const n = Number(value)
           t = Number.isFinite(n) ? n : Date.parse(String(value))
         }
-        var middleTimestampAt = Math.trunc(ticks.length / 2)
+        let middleTimestampAt = Math.trunc(ticks.length / 2)
         middleTimestampAt =
           middleTimestampAt % 2 == 1 ? Math.max(middleTimestampAt - 1, 0) : middleTimestampAt
         if (index == 0 || index === middleTimestampAt || index == ticks.length - 1) {

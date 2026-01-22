@@ -12,7 +12,8 @@
     "preview": "vite preview",
     "build-only": "vite build",
     "type-check": "vue-tsc --build",
-    "format": "prettier --write --experimental-cli --cache-location node_modules/.cache/prettier vite.config.ts src/"
+    "format": "prettier --write --experimental-cli --cache-location node_modules/.cache/prettier vite.config.ts src/",
+    "lint": "eslint ."
   },
   "dependencies": {
     "beercss": "^3.13.3",
@@ -27,9 +28,14 @@
     "@types/node": "^24.10.4",
     "@vitejs/plugin-vue": "^6.0.3",
     "@vue/tsconfig": "^0.8.1",
+    "eslint": "^9.39.2",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-vue": "^10.7.0",
+    "globals": "^17.0.0",
     "npm-run-all2": "^8.0.4",
     "prettier": "3.7.4",
     "typescript": "~5.9.3",
+    "typescript-eslint": "^8.53.1",
     "vite": "^7.3.0",
     "vite-plugin-vue-devtools": "^8.0.5",
     "vue-tsc": "^3.2.2"
