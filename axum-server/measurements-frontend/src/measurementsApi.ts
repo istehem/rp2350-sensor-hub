@@ -14,6 +14,7 @@ function toMeasurement(data: any): Measurement {
     date: new Date(data.date),
   }
 }
+/* eslint-enable @typescript-eslint/no-explicit-any */
 
 export async function fetchMeasurements(): Promise<Measurements | ApiError> {
   try {

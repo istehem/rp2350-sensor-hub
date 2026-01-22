@@ -51,6 +51,7 @@ function timeAxis(textColor: string, gridColor: string): any {
     },
   }
 }
+/* eslint-enable @typescript-eslint/no-explicit-any */
 
 export function generateChartOptions(
   title: string,
