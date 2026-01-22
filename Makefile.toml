@@ -100,6 +100,11 @@ command = "npm"
 args = ["--prefix", "axum-server/measurements-frontend/", "run", "build"]
 workspace = false
 
+[tasks.lint-frontend]
+command = "npm"
+args = ["--prefix", "axum-server/measurements-frontend/", "run", "lint"]
+workspace = false
+
 [tasks.stage-frontend]
 dependencies = ["install-frontend-deps", "build-frontend"]
 command = "cp"
@@ -185,6 +190,7 @@ dependencies = [
   "clippy-temperature",
   "clippy-server",
   "fmt-frontend",
+  "lint-frontend",
   "build-frontend",
 ]
 workspace = false
