@@ -100,14 +100,14 @@ onUnmounted(() => {
 <template>
   <header class="fixed">
     <nav>
-      <button @click="flipMode" class="circle transparent primary-text">
+      <button class="circle transparent primary-text" @click="flipMode">
         <i>{{ switchModeIcon }}</i>
       </button>
       <h6 class="max">Measurements</h6>
     </nav>
   </header>
   <main class="responsive">
-    <ErrorPanel :error="latestMeasurementApiError" v-if="latestMeasurementApiError" />
+    <ErrorPanel v-if="latestMeasurementApiError" :error="latestMeasurementApiError" />
     <div v-else-if="latestMeasurement">
       <article>
         <div class="grid shrink-center">
@@ -140,23 +140,23 @@ onUnmounted(() => {
       <article class="medium">
         <TemperatureChart
           :measurements="measurements"
-          :apiError="measurementsApiError"
-          :datasetColor="primaryColor"
-          :textColor="secondaryColor"
-          :gridColor="surfaceVariantColor"
+          :api-error="measurementsApiError"
+          :dataset-color="primaryColor"
+          :text-color="secondaryColor"
+          :grid-color="surfaceVariantColor"
         />
       </article>
       <article class="medium">
         <HumidityChart
           :measurements="measurements"
-          :apiError="measurementsApiError"
-          :datasetColor="primaryColor"
-          :textColor="secondaryColor"
-          :gridColor="surfaceVariantColor"
+          :api-error="measurementsApiError"
+          :dataset-color="primaryColor"
+          :text-color="secondaryColor"
+          :grid-color="surfaceVariantColor"
         />
       </article>
     </div>
-    <article class="center-align" v-else>
+    <article v-else class="center-align">
       <progress class="circle small indeterminate" value="50" max="100"></progress>
     </article>
   </main>

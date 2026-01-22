@@ -47,6 +47,6 @@ const chartOptions = computed<ChartOptions<'line'>>(() =>
 </script>
 
 <template>
-  <ErrorPanel :error="apiError" v-if="apiError" />
-  <Line :options="chartOptions" :data="chartData" v-else />
+  <ErrorPanel v-if="apiError" :error="apiError" />
+  <Line v-else :options="chartOptions" :data="chartData" />
 </template>
