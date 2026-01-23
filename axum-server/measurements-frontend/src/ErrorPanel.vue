@@ -8,7 +8,7 @@ defineProps<{
 
 <template>
   <article class="center-align error-container">
-    <h6>{{ error.message }}</h6>
+    <h6>{{ error.message || 'Unknown Error' }}</h6>
   </article>
 </template>
 <style scoped></style>
