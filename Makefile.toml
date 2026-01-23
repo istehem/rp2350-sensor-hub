@@ -1,5 +1,5 @@
 [env]
-MEASUREMENTS_ENDPOINT = "http://192.168.132.120:5000/api/measurements"
+MEASUREMENTS_ENDPOINT = "http://192.168.132.170:5000/api/measurements"
 
 [tasks.outdated]
 command = "cargo"
@@ -105,7 +105,7 @@ command = "npm"
 args = ["--prefix", "axum-server/measurements-frontend/", "run", "lint"]
 workspace = false
 
-[tasks.cleanup-frontend-build]
+[tasks.cleanup-old-frontend-build]
 script = '''
 #!@duckscript
 handle = glob_array ./axum-server/static-content/*
@@ -123,7 +123,7 @@ workspace = false
 dependencies = [
   "install-frontend-deps",
   "build-frontend",
-  "cleanup-frontend-build",
+  "cleanup-old-frontend-build",
 ]
 command = "cp"
 args = [
