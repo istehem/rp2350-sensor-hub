@@ -25,8 +25,8 @@ export async function fetchMeasurements(): Promise<Measurements | ApiError> {
       const data = await response.json()
       return { _kind: 'Measurements', measurements: data.map(toMeasurement) }
     } else {
-      const apiError: ApiError = await response.json()
-      return apiError
+      const apiError = await response.json()
+      return { _kind: 'ApiError', ...apiError }
     }
   } catch (error) {
     const apiError: ApiError = { _kind: 'ApiError', message: getErrorMessage(error) }
@@ -42,8 +42,8 @@ export async function fetchLatestMeasurement(): Promise<Measurement | ApiError> 
       const data = await response.json()
       return toMeasurement(data)
     } else {
-      const apiError: ApiError = await response.json()
-      return apiError
+      const apiError = await response.json()
+      return { _kind: 'ApiError', ...apiError }
     }
   } catch (error) {
     const apiError: ApiError = { _kind: 'ApiError', message: getErrorMessage(error) }
