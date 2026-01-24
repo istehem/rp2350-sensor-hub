@@ -76,7 +76,7 @@ build-server:
 
 # build the server podman image
 [group: 'build']
-build-server-image:
+build-server-image: stage-frontend
   podman compose -f ./axum-server/docker-compose.yaml build
 
 # lint the server
@@ -93,6 +93,11 @@ run-pico:
 [group: 'run']
 run-pico-no-temperature:
   cargo run --release
+
+# run the server in podman
+[group: 'run']
+run-server: build-server-image
+  podman compose -f ./axum-server/docker-compose.yaml up --force-recreate -d
 
 # use before git push
 [group: 'check']
