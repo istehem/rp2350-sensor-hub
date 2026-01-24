@@ -33,7 +33,19 @@ test TEST:
 
 # build code for rp2350
 build-all-pico:
+  cargo build --all --features temperature
+
+# build for rp2350; no temperature feature
+build-all-no-temperature-pico:
   cargo build --all
+
+# lint code for rp2350
+clippy-all-pico:
+  cargo clippy --all --features temperature
+
+# lint code for rp2350; no temperature feature
+clippy-all-no-temperature-pico:
+  cargo clippy --all
 
 # build the server
 build-server:
@@ -42,6 +54,10 @@ build-server:
 # build the server podman image
 build-server-image:
   podman compose -f ./axum-server/docker-compose.yaml build
+
+# lint the server
+clippy-server:
+  cargo clippy --manifest-path ./axum-server/Cargo.toml --target=x86_64-unknown-linux-gnu
 
 # deploy and run the code on pico; debug probe required
 run-pico:
@@ -53,11 +69,15 @@ run-pico-no-temperature:
 
 # use before git push
 pre-push: \
+  fmt-pico \
+  build-all-pico \
+  build-all-no-temperature-pico \
+  clippy-all-pico \
+  clippy-all-no-temperature-pico \
   (frontend 'install-deps') \
   (frontend 'format') \
   (frontend 'lint') \
   (frontend 'build') \
-  fmt-pico \
-  build-all-pico \
   fmt-server \
-  build-server
+  build-server\
+  clippy-server
