@@ -19,7 +19,7 @@ frontend COMMAND:
   npm --prefix axum-server/measurements-frontend run {{COMMAND}}
 
 # stage the frontend build
-[group: 'staging']
+[group: 'frontend']
 stage-frontend: (frontend 'install-deps') (frontend 'build') (frontend 'lint')
   #!/usr/bin/env bash
   shopt -s nullglob
