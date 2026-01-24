@@ -56,7 +56,7 @@ build-all-pico:
 
 # build for rp2350; no temperature feature
 [group: 'build']
-build-all-no-temperature-pico:
+build-all-pico-no-temperature:
   cargo build --all
 
 # lint code for rp2350
@@ -66,7 +66,7 @@ clippy-all-pico:
 
 # lint code for rp2350; no temperature feature
 [group: 'lint']
-clippy-all-no-temperature-pico:
+clippy-all-pico-no-temperature:
   cargo clippy --all
 
 # build the server
@@ -99,9 +99,9 @@ run-pico-no-temperature:
 pre-push: \
   fmt-pico \
   build-all-pico \
-  build-all-no-temperature-pico \
+  build-all-pico-no-temperature \
   clippy-all-pico \
-  clippy-all-no-temperature-pico \
+  clippy-all-pico-no-temperature \
   fmt-server \
   build-server \
   clippy-server \
