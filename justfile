@@ -8,6 +8,26 @@ outdated:
   # run `cargo upgrade --dry-run` to check versions defined in [workspace.dependencies]
   cargo outdated -w --root-deps-only
 
+# format code for rp2350
+fmt-pico:
+  cargo fmt
+
+# format code for the server
+fmt-server:
+  cargo fmt --manifest-path ./axum-server/Cargo.toml
+
+# run all tests
+test-all:
+  cargo test --target=x86_64-unknown-linux-gnu -p tests -- --nocapture
+
+# TEST := die|game|player
+test TEST:
+  cargo test --target=x86_64-unknown-linux-gnu -p tests --test test-{{TEST}} -- --nocapture
+
+# build code for rp2350
+build-all-pico:
+  cargo build --all
+
 # build the server
 build-server:
   cargo build --manifest-path ./axum-server/Cargo.toml --target=x86_64-unknown-linux-gnu
@@ -16,13 +36,13 @@ build-server:
 build-server-image:
   podman compose -f ./axum-server/docker-compose.yaml build
 
-# buld code for rp2350
-build-all-pico:
-  cargo build --all
+# deploy and run the code on pico; debug probe required
+run-pico:
+  cargo run --release --features temperature
 
-# TEST := die|game|player
-test TEST:
-  cargo test --target=x86_64-unknown-linux-gnu -p tests --test test-{{TEST}} -- --nocapture
+# the same as run-pico but no temperature feature
+run-pico-no-temperature:
+  cargo run --release
 
 # use before git push
-pre-push: build-all-pico build-server
+pre-push: fmt-pico build-all-pico fmt-server build-server
