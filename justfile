@@ -3,6 +3,9 @@ export MEASUREMENTS_ENDPOINT := "http://192.168.132.170:5000/api/measurements"
 set dotenv-required
 set dotenv-path := "hub.env"
 
+# default
+default: pre-push
+
 # check for outdated dependencies
 outdated:
   # run `cargo upgrade --dry-run` to check versions defined in [workspace.dependencies]
