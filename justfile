@@ -8,6 +8,10 @@ outdated:
   # run `cargo upgrade --dry-run` to check versions defined in [workspace.dependencies]
   cargo outdated -w --root-deps-only
 
+# run 'npm run {{COMMAND}}' on the frontend
+frontend COMMAND:
+  npm --prefix axum-server/measurements-frontend run {{COMMAND}}
+
 # format code for rp2350
 fmt-pico:
   cargo fmt
@@ -45,4 +49,11 @@ run-pico-no-temperature:
   cargo run --release
 
 # use before git push
-pre-push: fmt-pico build-all-pico fmt-server build-server
+pre-push: \
+  (frontend 'format') \
+  (frontend 'lint') \
+  (frontend 'build') \
+  fmt-pico \
+  build-all-pico \
+  fmt-server \
+  build-server
