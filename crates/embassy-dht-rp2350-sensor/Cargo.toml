@@ -42,4 +42,4 @@ embassy-rp = { version = "0.9.0", features = [
 defmt = { version = "1", optional = true }
 defmt-rtt = { version = "1", optional = true }
 panic-probe = { version = "1", features = ["print-defmt"], optional = true }
-fixed = "1.29"
+fixed = "1.30"
