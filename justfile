@@ -74,10 +74,10 @@ pre-push: \
   build-all-no-temperature-pico \
   clippy-all-pico \
   clippy-all-no-temperature-pico \
+  fmt-server \
+  build-server \
+  clippy-server \
   (frontend 'install-deps') \
   (frontend 'format') \
   (frontend 'lint') \
-  (frontend 'build') \
-  fmt-server \
-  build-server\
-  clippy-server
+  (frontend 'build')
