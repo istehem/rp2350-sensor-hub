@@ -50,6 +50,7 @@ run-pico-no-temperature:
 
 # use before git push
 pre-push: \
+  (frontend 'install-deps') \
   (frontend 'format') \
   (frontend 'lint') \
   (frontend 'build') \
