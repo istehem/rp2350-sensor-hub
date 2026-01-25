@@ -58,10 +58,13 @@ export function calculateMeasurementAxisMinMax(
   measurements: Measurement[],
   minMaxThresholds: MeasurementAxisMinMax,
   callback: (measurement: Measurement) => number,
-): [number, number] {
+): MeasurementAxisMinMax {
   const measurementsForType = measurements.map(callback)
   measurementsForType.push(minMaxThresholds.min, minMaxThresholds.max)
-  return [Math.ceil(Math.min(...measurementsForType)), Math.ceil(Math.max(...measurementsForType))]
+  return {
+    min: Math.ceil(Math.min(...measurementsForType)),
+    max: Math.ceil(Math.max(...measurementsForType)),
+  }
 }
 
 export function generateChartOptions(

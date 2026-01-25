@@ -38,12 +38,12 @@ function toChartData(measurements: Measurement[]): ChartData<'line'> {
 const chartData = computed<ChartData<'line'>>(() => toChartData(properties.measurements || []))
 
 const chartOptions = computed<ChartOptions<'line'>>(() => {
-  const [min, max] = calculateMeasurementAxisMinMax(
+  const minMax = calculateMeasurementAxisMinMax(
     properties.measurements || [],
     { min: 20, max: 25 },
     (measurement: Measurement) => measurement.temperature,
   )
-  return generateChartOptions(title, { min: min, max: max }, 0.5, {
+  return generateChartOptions(title, minMax, 0.5, {
     textColor: properties.textColor,
     gridColor: properties.gridColor,
   })
