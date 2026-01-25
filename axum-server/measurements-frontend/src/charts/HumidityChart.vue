@@ -40,7 +40,7 @@ const chartData = computed<ChartData<'line'>>(() => toChartData(properties.measu
 const chartOptions = computed<ChartOptions<'line'>>(() => {
   const minMax = calculateMeasurementAxisMinMax(
     properties.measurements || [],
-    { min: 25, max: 35 },
+    { min: 29, max: 32 },
     (measurement: Measurement) => measurement.humidity,
   )
   return generateChartOptions(title, minMax, 1, {

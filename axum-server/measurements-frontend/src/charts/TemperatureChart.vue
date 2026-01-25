@@ -40,7 +40,7 @@ const chartData = computed<ChartData<'line'>>(() => toChartData(properties.measu
 const chartOptions = computed<ChartOptions<'line'>>(() => {
   const minMax = calculateMeasurementAxisMinMax(
     properties.measurements || [],
-    { min: 20, max: 25 },
+    { min: 22, max: 25 },
     (measurement: Measurement) => measurement.temperature,
   )
   return generateChartOptions(title, minMax, 0.5, {

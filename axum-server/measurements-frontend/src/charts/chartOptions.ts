@@ -56,11 +56,11 @@ function timeAxis(textColor: string, gridColor: string): any {
 
 export function calculateMeasurementAxisMinMax(
   measurements: Measurement[],
-  minMaxThresholds: MeasurementAxisMinMax,
+  defaultMinMax: MeasurementAxisMinMax,
   callback: (measurement: Measurement) => number,
 ): MeasurementAxisMinMax {
   if (measurements.length === 0) {
-    return minMaxThresholds
+    return defaultMinMax
   }
   const measurementsForType = measurements.map(callback)
 
