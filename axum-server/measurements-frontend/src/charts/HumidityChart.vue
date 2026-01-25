@@ -35,15 +35,22 @@ function toChartData(measurements: Measurement[]): ChartData<'line'> {
   }
 }
 
+function calculateMinMax(measurements: Measurement[]): [number, number] {
+  const humidityMeasurements = measurements.map((measurement) => measurement.humidity)
+  humidityMeasurements.push(25, 35)
+  return [Math.min(...humidityMeasurements), Math.max(...humidityMeasurements)]
+}
+
 const chartData = computed<ChartData<'line'>>(() => toChartData(properties.measurements || []))
 
-const chartOptions = computed<ChartOptions<'line'>>(() =>
-  generateChartOptions(
+const chartOptions = computed<ChartOptions<'line'>>(() => {
+  const [min, max] = calculateMinMax(properties.measurements || [])
+  return generateChartOptions(
     title,
-    { min: 0, max: 100 },
+    { min: min, max: max },
     { textColor: properties.textColor, gridColor: properties.gridColor },
-  ),
-)
+  )
+})
 </script>
 
 <template>
