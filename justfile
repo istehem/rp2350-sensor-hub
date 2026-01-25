@@ -22,6 +22,7 @@ frontend COMMAND:
 [group: 'frontend']
 stage-frontend: (frontend 'install-deps') (frontend 'build') (frontend 'lint')
   #!/usr/bin/env bash
+  echo '{{BOLD}}Cleanup old files and copy frontend build to static content.{{NORMAL}}'
   shopt -s nullglob
   files=(./axum-server/static-content/*)
   echo "cleaning up old files: ${files[@]}"
