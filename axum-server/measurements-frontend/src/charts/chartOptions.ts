@@ -63,7 +63,6 @@ export function calculateMeasurementAxisMinMax(
     return defaultMinMax
   }
   const measurementsForType = measurements.map(callback)
-
   const minMeasured = Math.floor(Math.min(...measurementsForType))
   const maxMeasured = Math.ceil(Math.max(...measurementsForType))
 
