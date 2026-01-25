@@ -1,4 +1,5 @@
 import type { ChartOptions } from 'chart.js'
+import type { Measurement } from '../assets.js'
 
 interface Colors {
   textColor: string
@@ -53,9 +54,20 @@ function timeAxis(textColor: string, gridColor: string): any {
 }
 /* eslint-enable @typescript-eslint/no-explicit-any */
 
+export function calculateMeasurementAxisMinMax(
+  measurements: Measurement[],
+  minMaxThresholds: MeasurementAxisMinMax,
+  callback: (measurement: Measurement) => number,
+): [number, number] {
+  const measurementsForType = measurements.map(callback)
+  measurementsForType.push(minMaxThresholds.min, minMaxThresholds.max)
+  return [Math.ceil(Math.min(...measurementsForType)), Math.ceil(Math.max(...measurementsForType))]
+}
+
 export function generateChartOptions(
   title: string,
   yAxisMinMax: MeasurementAxisMinMax,
+  stepSize: number,
   colors: Colors,
 ): ChartOptions<'line'> {
   return {
@@ -71,7 +83,7 @@ export function generateChartOptions(
         },
         min: yAxisMinMax.min,
         max: yAxisMinMax.max,
-        ticks: { color: colors.textColor },
+        ticks: { color: colors.textColor, stepSize: stepSize },
         grid: {
           color: colors.gridColor,
         },

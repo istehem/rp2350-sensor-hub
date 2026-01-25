@@ -5,7 +5,7 @@ import type { ChartData, ChartOptions } from 'chart.js'
 import type { ApiError, Measurement } from '../assets.ts'
 
 import ErrorPanel from '../ErrorPanel.vue'
-import { generateChartOptions, tension } from './chartOptions.ts'
+import { calculateMeasurementAxisMinMax, generateChartOptions, tension } from './chartOptions.ts'
 
 const properties = defineProps<{
   measurements: Measurement[] | null
@@ -37,19 +37,16 @@ function toChartData(measurements: Measurement[]): ChartData<'line'> {
 
 const chartData = computed<ChartData<'line'>>(() => toChartData(properties.measurements || []))
 
-function calculateMinMax(measurements: Measurement[]): [number, number] {
-  const temperatureMeasurements = measurements.map((measurement) => measurement.temperature)
-  temperatureMeasurements.push(20, 25)
-  return [Math.min(...temperatureMeasurements), Math.max(...temperatureMeasurements)]
-}
-
 const chartOptions = computed<ChartOptions<'line'>>(() => {
-  const [min, max] = calculateMinMax(properties.measurements || [])
-  return generateChartOptions(
-    title,
-    { min: min, max: max },
-    { textColor: properties.textColor, gridColor: properties.gridColor },
+  const [min, max] = calculateMeasurementAxisMinMax(
+    properties.measurements || [],
+    { min: 20, max: 25 },
+    (measurement: Measurement) => measurement.temperature,
   )
+  return generateChartOptions(title, { min: min, max: max }, 0.5, {
+    textColor: properties.textColor,
+    gridColor: properties.gridColor,
+  })
 })
 </script>
 
