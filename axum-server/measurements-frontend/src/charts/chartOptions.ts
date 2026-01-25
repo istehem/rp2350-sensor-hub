@@ -59,11 +59,24 @@ export function calculateMeasurementAxisMinMax(
   minMaxThresholds: MeasurementAxisMinMax,
   callback: (measurement: Measurement) => number,
 ): MeasurementAxisMinMax {
+  if (measurements.length === 0) {
+    return minMaxThresholds
+  }
   const measurementsForType = measurements.map(callback)
-  measurementsForType.push(minMaxThresholds.min, minMaxThresholds.max)
+
+  const minMeasured = Math.floor(Math.min(...measurementsForType))
+  const maxMeasured = Math.ceil(Math.max(...measurementsForType))
+
+  if (maxMeasured - minMeasured <= 1) {
+    return {
+      min: minMeasured - 1,
+      max: maxMeasured + 1,
+    }
+  }
+
   return {
-    min: Math.ceil(Math.min(...measurementsForType)),
-    max: Math.ceil(Math.max(...measurementsForType)),
+    min: minMeasured,
+    max: maxMeasured,
   }
 }
 
