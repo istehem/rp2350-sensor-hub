@@ -1,4 +1,5 @@
 export MEASUREMENTS_ENDPOINT := "http://192.168.132.170:5000/api/measurements"
+PROJECT_ROOT := justfile_directory()
 
 set dotenv-required
 set dotenv-path := "hub.env"
@@ -78,7 +79,7 @@ build-server:
 # build the server podman image
 [group: 'build']
 build-server-image: stage-frontend
-  podman compose -f axum-server/docker-compose.yaml build
+  podman compose -f {{PROJECT_ROOT}}/axum-server/docker-compose.yaml build
 
 # lint the server
 [group: 'lint']
@@ -98,7 +99,7 @@ run-pico-no-temperature:
 # run the server in podman
 [group: 'run']
 run-server: build-server-image
-  podman compose -f axum-server/docker-compose.yaml up --force-recreate -d
+  podman compose -f {{PROJECT_ROOT}}/axum-server/docker-compose.yaml up --force-recreate -d
 
 # use before git push
 [group: 'check']
