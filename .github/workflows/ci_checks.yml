@@ -80,3 +80,26 @@ jobs:
           target: thumbv8m.main-none-eabihf
       - run: cargo fmt -- --check
       - run: cargo fmt --manifest-path ./axum-server/Cargo.toml -- --check
+  just:
+    name: 'Runnig Just CI check'
+    runs-on: ubuntu-latest
+    steps:
+      - name: 'Checkout repository'
+        uses: actions/checkout@v5
+
+      - name: 'Set up Node.js'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '25'
+          cache: 'npm'
+
+      - name: 'Set up just'
+        uses: extractions/setup-just@v3
+        with:
+          just-version: '1.5.0'
+
+      - name: 'Install frontend dependencies'
+        run: just frontend install-deps
+
+      - name: 'Lint the frontend'
+        run: just frontend lint
