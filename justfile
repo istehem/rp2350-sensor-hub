@@ -36,10 +36,20 @@ stage-frontend: (frontend 'install-deps') (frontend 'build') (frontend 'lint')
 fmt-pico:
   cargo fmt
 
+# check the formatting of the rp2350 code
+[group: 'format']
+fmt-check-pico:
+  cargo fmt -- --check
+
 # format code for the server
 [group: 'format']
 fmt-server:
   cargo fmt --manifest-path ./axum-server/Cargo.toml
+
+# check the formatting of the server code
+[group: 'format']
+fmt-check-server:
+  cargo fmt --manifest-path ./axum-server/Cargo.toml -- --check
 
 # run all tests
 [group: 'test']
@@ -64,12 +74,12 @@ build-all-pico-no-temperature:
 # lint code for rp2350
 [group: 'lint']
 clippy-all-pico:
-  cargo clippy --all --features temperature
+  cargo clippy --all --features temperature -- --deny=warnings
 
 # lint code for rp2350; no temperature feature
 [group: 'lint']
 clippy-all-pico-no-temperature:
-  cargo clippy --all
+  cargo clippy --all -- --deny=warnings
 
 # build the server
 [group: 'build']
@@ -84,7 +94,7 @@ build-server-image: stage-frontend
 # lint the server
 [group: 'lint']
 clippy-server:
-  cargo clippy --manifest-path ./axum-server/Cargo.toml --target=x86_64-unknown-linux-gnu
+  cargo clippy --manifest-path ./axum-server/Cargo.toml --target=x86_64-unknown-linux-gnu -- --deny=warnings
 
 # deploy and run the code on pico; debug probe required
 [group: 'run']
@@ -105,14 +115,30 @@ run-server: build-server-image
 [group: 'check']
 pre-push: \
   fmt-pico \
-  build-all-pico \
-  build-all-pico-no-temperature \
   clippy-all-pico \
   clippy-all-pico-no-temperature \
+  build-all-pico \
+  build-all-pico-no-temperature \
   fmt-server \
-  build-server \
   clippy-server \
+  build-server \
   (frontend 'install-deps') \
   (frontend 'format') \
+  (frontend 'lint') \
+  (frontend 'build')
+
+# checks performed by continuous integration
+[group: 'check']
+ci-checks: \
+  fmt-check-pico \
+  clippy-all-pico \
+  clippy-all-pico-no-temperature \
+  build-all-pico \
+  build-all-pico-no-temperature \
+  fmt-check-server \
+  clippy-server \
+  build-server \
+  (frontend 'install-deps') \
+  (frontend 'format-check') \
   (frontend 'lint') \
   (frontend 'build')
