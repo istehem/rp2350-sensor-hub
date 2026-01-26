@@ -12,7 +12,7 @@ env:
 
 jobs:
   building-rp2350:
-    name: 'Building Board Code'
+    name: Building board code
     continue-on-error: ${{ matrix.experimental || false }}
     strategy:
       matrix:
@@ -36,7 +36,7 @@ jobs:
       - run: cargo build --all --features temperature
       - run: cargo build --all --release --features temperature
   building-server:
-    name: 'Building Server'
+    name: Building server
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -80,28 +80,17 @@ jobs:
           target: thumbv8m.main-none-eabihf
       - run: cargo fmt -- --check
       - run: cargo fmt --manifest-path ./axum-server/Cargo.toml -- --check
-  just:
-    name: 'Runnig Just CI check'
+  just-ci-check:
+    name: Just CI check
     runs-on: ubuntu-latest
     steps:
-      - name: 'Checkout repository'
-        uses: actions/checkout@v5
-
-      - name: 'Set up Node.js'
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v4
         with:
           node-version: '25'
-
-      - name: 'Set up just'
-        uses: extractions/setup-just@v3
+      - uses: extractions/setup-just@v3
         with:
           just-version: '1.46.0'
-
-      - name: 'Create hub.env file'
-        run: touch hub.env
-
-      - name: 'Install frontend dependencies'
-        run: just frontend install-deps
-
-      - name: 'Lint the frontend'
-        run: just frontend lint
+      - run: touch hub.env
+      - run: just frontend install-deps
+      - run: just frontend lint
