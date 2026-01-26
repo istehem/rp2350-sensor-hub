@@ -97,6 +97,9 @@ jobs:
         with:
           just-version: '1.46.0'
 
+      - name: 'Create hub.env file'
+        run: touch hub.env
+
       - name: 'Install frontend dependencies'
         run: just frontend install-deps
 
