@@ -93,4 +93,6 @@ jobs:
           just-version: '1.46.0'
       - run: touch hub.env
       - run: just frontend install-deps
+      - run: just frontend format-check
       - run: just frontend lint
+      - run: just frontend build
