@@ -18,7 +18,7 @@ jobs:
       matrix:
         # All generated code should be running on stable now
         rust: [nightly, stable]
-        os: [ubuntu-latest, macOS-latest, windows-latest]
+        os: [macOS-latest, windows-latest]
         include:
           # Nightly is only for reference and allowed to fail
           - rust: nightly
@@ -35,56 +35,15 @@ jobs:
       - run: cargo build --all --release
       - run: cargo build --all --features temperature
       - run: cargo build --all --release --features temperature
-  building-server:
-    name: Building server
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        # All generated code should be running on stable now
-        rust: [nightly, stable]
-        include:
-          # Nightly is only for reference and allowed to fail
-          - rust: nightly
-            experimental: true
-    steps:
-      - uses: actions/checkout@v6
-      - uses: dtolnay/rust-toolchain@master
-        with:
-          toolchain: ${{ matrix.rust }}
-      - run: cargo build --all --manifest-path ./axum-server/Cargo.toml --target=x86_64-unknown-linux-gnu
-      - run: cargo build --all --release --manifest-path ./axum-server/Cargo.toml --target=x86_64-unknown-linux-gnu
-  linting:
-    name: Linting
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-        with:
-          submodules: true
-      - uses: dtolnay/rust-toolchain@stable
-        with:
-          components: clippy
-          target: thumbv8m.main-none-eabihf
-      - run: cargo clippy --all -- --deny=warnings
-      - run: cargo clippy --all --features temperature -- --deny=warnings
-      - run: cargo clippy --all --manifest-path ./axum-server/Cargo.toml --target=x86_64-unknown-linux-gnu -- --deny=warnings
-  formatting:
-    name: Formatting
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-        with:
-          submodules: true
-      - uses: dtolnay/rust-toolchain@stable
-        with:
-          components: rustfmt
-          target: thumbv8m.main-none-eabihf
-      - run: cargo fmt -- --check
-      - run: cargo fmt --manifest-path ./axum-server/Cargo.toml -- --check
   just-ci-check:
     name: Just CI check
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+          target: thumbv8m.main-none-eabihf
       - uses: actions/setup-node@v6
         with:
           node-version: '25'
@@ -92,7 +51,4 @@ jobs:
         with:
           just-version: '1.46.0'
       - run: touch hub.env
-      - run: just frontend install-deps
-      - run: just frontend format-check
-      - run: just frontend lint
-      - run: just frontend build
+      - run: just ci-check

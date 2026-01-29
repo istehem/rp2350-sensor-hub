@@ -129,7 +129,7 @@ pre-push: \
 
 # checks performed by continuous integration
 [group: 'check']
-ci-checks: \
+ci-check: \
   fmt-check-pico \
   clippy-all-pico \
   clippy-all-pico-no-temperature \
