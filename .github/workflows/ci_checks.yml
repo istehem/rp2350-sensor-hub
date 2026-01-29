@@ -25,7 +25,7 @@ jobs:
             experimental: true
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ matrix.rust }}
@@ -47,7 +47,7 @@ jobs:
           - rust: nightly
             experimental: true
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ matrix.rust }}
@@ -57,7 +57,7 @@ jobs:
     name: Linting
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v6
         with:
           submodules: true
       - uses: dtolnay/rust-toolchain@stable
@@ -71,7 +71,7 @@ jobs:
     name: Formatting
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v6
         with:
           submodules: true
       - uses: dtolnay/rust-toolchain@stable
@@ -84,8 +84,8 @@ jobs:
     name: Just CI check
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
         with:
           node-version: '25'
       - uses: extractions/setup-just@v3
