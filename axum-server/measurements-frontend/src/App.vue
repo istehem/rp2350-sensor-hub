@@ -4,6 +4,7 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import type { ApiError, Measurement } from './assets.ts'
 import TemperatureChart from './charts/TemperatureChart.vue'
 import HumidityChart from './charts/HumidityChart.vue'
+import HumidityD3Chart from './charts/HumidityD3Chart.vue'
 import ErrorPanel from './ErrorPanel.vue'
 import { fetchLatestMeasurement, fetchMeasurements } from './measurementsApi.ts'
 
@@ -148,6 +149,15 @@ onUnmounted(() => {
       </article>
       <article class="medium">
         <HumidityChart
+          :measurements="measurements"
+          :api-error="measurementsApiError"
+          :dataset-color="primaryColor"
+          :text-color="secondaryColor"
+          :grid-color="surfaceVariantColor"
+        />
+      </article>
+      <article class="medium">
+        <HumidityD3Chart
           :measurements="measurements"
           :api-error="measurementsApiError"
           :dataset-color="primaryColor"
