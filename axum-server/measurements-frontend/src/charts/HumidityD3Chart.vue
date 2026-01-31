@@ -18,8 +18,8 @@ import * as d3 from 'd3'
 const title = 'Humidity (%)'
 
 function createChart(aapl: Measurement[]) {
-  const width = 1184
-  const height = 320
+  const width = 1152
+  const height = 288
   const marginTop = 20
   const marginRight = 30
   const marginBottom = 30
