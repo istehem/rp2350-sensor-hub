@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import 'd3'
-import { watch } from 'vue'
+import { getCurrentInstance, onMounted, watch } from 'vue'
 
 import type { ApiError, Measurement } from '../assets.ts'
 import ErrorPanel from '../ErrorPanel.vue'
@@ -17,13 +17,14 @@ import * as d3 from 'd3'
 
 const title = 'Humidity (%)'
 
+let width = 1152
+let height = 288
+
 function createChart(aapl: Measurement[]) {
-  const width = 1152
-  const height = 288
-  const marginTop = 20
-  const marginRight = 30
-  const marginBottom = 30
-  const marginLeft = 40
+  const marginTop = 0
+  const marginRight = 0
+  const marginBottom = 32
+  const marginLeft = 32
 
   const x = d3
     .scaleUtc()
@@ -72,10 +73,10 @@ function createChart(aapl: Measurement[]) {
     .call((g) =>
       g
         .append('text')
-        .attr('x', -marginLeft)
+        .attr('x', width / 2)
         .attr('y', 10)
         .attr('fill', properties.textColor)
-        .attr('text-anchor', 'start')
+        .attr('text-anchor', 'middle')
         .text(title),
     )
 
@@ -88,6 +89,13 @@ function createChart(aapl: Measurement[]) {
 
   return svg.node()
 }
+
+onMounted(async () => {
+  const instance = getCurrentInstance()
+  const parentElement = instance?.proxy?.$el.parentElement
+  width = parentElement?.clientWidth || width
+  height = parentElement?.clientHeight || height
+})
 
 watch(properties, async () => {
   const container = d3.select('#chart')
