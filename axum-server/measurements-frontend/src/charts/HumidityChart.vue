@@ -8,7 +8,7 @@ import ErrorPanel from '../ErrorPanel.vue'
 import { calculateMeasurementAxisMinMax, generateChartOptions, tension } from './chartOptions.ts'
 
 const properties = defineProps<{
-  measurements: Measurement[] | null
+  measurements: Measurement[]
   apiError: ApiError | null
   datasetColor: string
   textColor: string
@@ -35,11 +35,11 @@ function toChartData(measurements: Measurement[]): ChartData<'line'> {
   }
 }
 
-const chartData = computed<ChartData<'line'>>(() => toChartData(properties.measurements || []))
+const chartData = computed<ChartData<'line'>>(() => toChartData(properties.measurements))
 
 const chartOptions = computed<ChartOptions<'line'>>(() => {
   const minMax = calculateMeasurementAxisMinMax(
-    properties.measurements || [],
+    properties.measurements,
     { min: 29, max: 32 },
     (measurement: Measurement) => measurement.humidity,
   )

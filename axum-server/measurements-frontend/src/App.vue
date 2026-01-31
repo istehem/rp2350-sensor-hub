@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import * as E from 'fp-ts/Either'
 import { pipe } from 'fp-ts/function'
-import { ref, onMounted, onUnmounted } from 'vue'
+import * as O from 'fp-ts/Option'
+import type { Option } from 'fp-ts/Option'
+import { computed, ref, onMounted, onUnmounted } from 'vue'
 
 import type { ApiError, Measurement } from './assets.ts'
 import TemperatureChart from './charts/TemperatureChart.vue'
@@ -13,8 +15,8 @@ const primaryFallbackColor = '#cfbcff'
 const secondaryFallbackColor = '#cbc2db'
 const surfaceVariantFallbackColor = '#49454e'
 
-const latestMeasurement = ref<Measurement | null>(null)
-const measurements = ref<Measurement[] | null>(null)
+const latestMeasurement = ref<Option<Measurement>>(O.none)
+const measurements = ref<Measurement[]>([])
 const measurementsApiError = ref<ApiError | null>(null)
 const latestMeasurementApiError = ref<ApiError | null>(null)
 const switchModeIcon = ref<string>('dark_mode')
@@ -75,7 +77,7 @@ async function pollLatestMeasurement() {
       },
       (success) => {
         latestMeasurementApiError.value = null
-        latestMeasurement.value = success
+        latestMeasurement.value = O.some(success)
       },
     ),
   )
@@ -109,6 +111,16 @@ onUnmounted(() => {
   if (latestMeasurementTimeoutId) clearTimeout(latestMeasurementTimeoutId)
   if (measurementsTimeoutId) clearTimeout(measurementsTimeoutId)
 })
+
+const latestMeasurementData = computed(() =>
+  pipe(
+    latestMeasurement.value,
+    O.match(
+      () => null,
+      (measurement) => measurement,
+    ),
+  ),
+)
 </script>
 
 <template>
@@ -122,32 +134,32 @@ onUnmounted(() => {
   </header>
   <main class="responsive">
     <ErrorPanel v-if="latestMeasurementApiError" :error="latestMeasurementApiError" />
-    <div v-else-if="latestMeasurement">
+    <div v-else-if="latestMeasurementData">
       <article>
         <div class="grid shrink-center">
           <div class="s6 m6 l6">
             <h6>Date:</h6>
           </div>
           <div class="s6 m6 l6">
-            <h6>{{ latestMeasurement.date.toLocaleDateString() }}</h6>
+            <h6>{{ latestMeasurementData.date.toLocaleDateString() }}</h6>
           </div>
           <div class="s6 m6 l6">
             <h6>Time:</h6>
           </div>
           <div class="s6 m6 l6">
-            <h6>{{ latestMeasurement.date.toLocaleTimeString() }}</h6>
+            <h6>{{ latestMeasurementData.date.toLocaleTimeString() }}</h6>
           </div>
           <div class="s6 m6 l6">
             <h6>Temperature:</h6>
           </div>
           <div class="s6 m6 l6">
-            <h6>{{ latestMeasurement.temperature.toFixed(1) }}°C</h6>
+            <h6>{{ latestMeasurementData.temperature.toFixed(1) }}°C</h6>
           </div>
           <div class="s6 m6 l6">
             <h6>Humidity:</h6>
           </div>
           <div class="s6 m6 l6">
-            <h6>{{ latestMeasurement.humidity.toFixed(1) }}%</h6>
+            <h6>{{ latestMeasurementData.humidity.toFixed(1) }}%</h6>
           </div>
         </div>
       </article>
