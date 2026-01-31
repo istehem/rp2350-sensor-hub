@@ -1,9 +1,12 @@
 <script setup lang="ts">
 import * as E from 'fp-ts/Either'
 import { pipe } from 'fp-ts/function'
-import { ref, onMounted, onUnmounted } from 'vue'
+import * as O from 'fp-ts/Option'
+import type { Option } from 'fp-ts/Option'
+import { computed, ref, onMounted, onUnmounted } from 'vue'
 
 import type { ApiError, Measurement } from './assets.ts'
+import { unknownError } from './assets.ts'
 import TemperatureChart from './charts/TemperatureChart.vue'
 import HumidityChart from './charts/HumidityChart.vue'
 import HumidityD3Chart from './charts/HumidityD3Chart.vue'
@@ -14,17 +17,17 @@ const primaryFallbackColor = '#cfbcff'
 const secondaryFallbackColor = '#cbc2db'
 const surfaceVariantFallbackColor = '#49454e'
 
-const latestMeasurement = ref<Measurement | null>(null)
-const measurements = ref<Measurement[] | null>(null)
-const measurementsApiError = ref<ApiError | null>(null)
-const latestMeasurementApiError = ref<ApiError | null>(null)
+const latestMeasurement = ref<Option<Measurement>>(O.none)
+const measurements = ref<Measurement[]>([])
+const latestMeasurementApiError = ref<Option<ApiError>>(O.none)
+const measurementsApiError = ref<Option<ApiError>>(O.none)
 const switchModeIcon = ref<string>('dark_mode')
 const primaryColor = ref<string>(primaryFallbackColor)
 const secondaryColor = ref<string>(primaryFallbackColor)
 const surfaceVariantColor = ref<string>(primaryFallbackColor)
 
-let latestMeasurementTimeoutId: number | null = null
-let measurementsTimeoutId: number | null = null
+let latestMeasurementTimeoutId: Option<number> = O.none
+let measurementsTimeoutId: Option<number> = O.none
 
 async function getCssColor(color: string, fallbackColor: string): Promise<string> {
   try {
@@ -72,15 +75,15 @@ async function pollLatestMeasurement() {
     measurementResponse,
     E.match(
       (error) => {
-        latestMeasurementApiError.value = error
+        latestMeasurementApiError.value = O.some(error)
       },
       (success) => {
-        latestMeasurementApiError.value = null
-        latestMeasurement.value = success
+        latestMeasurementApiError.value = O.none
+        latestMeasurement.value = O.some(success)
       },
     ),
   )
-  latestMeasurementTimeoutId = setTimeout(pollLatestMeasurement, 10000)
+  latestMeasurementTimeoutId = O.some(setTimeout(pollLatestMeasurement, 10000))
 }
 
 async function pollMeasurements() {
@@ -89,15 +92,15 @@ async function pollMeasurements() {
     measurementsResponse,
     E.match(
       (error) => {
-        measurementsApiError.value = error
+        measurementsApiError.value = O.some(error)
       },
       (success) => {
-        measurementsApiError.value = null
+        measurementsApiError.value = O.none
         measurements.value = success
       },
     ),
   )
-  measurementsTimeoutId = setTimeout(pollMeasurements, 60000)
+  measurementsTimeoutId = O.some(setTimeout(pollMeasurements, 60000))
 }
 
 onMounted(async () => {
@@ -106,10 +109,39 @@ onMounted(async () => {
   pollMeasurements()
 })
 
+function clearTimeoutIfPresent(timeoutId: Option<number>) {
+  pipe(
+    timeoutId,
+    O.match(
+      () => {},
+      (id: number) => clearTimeout(id),
+    ),
+  )
+}
+
 onUnmounted(() => {
-  if (latestMeasurementTimeoutId) clearTimeout(latestMeasurementTimeoutId)
-  if (measurementsTimeoutId) clearTimeout(measurementsTimeoutId)
+  clearTimeoutIfPresent(latestMeasurementTimeoutId)
+  clearTimeoutIfPresent(measurementsTimeoutId)
 })
+
+const latestMeasurementData = computed(() =>
+  pipe(
+    latestMeasurement.value,
+    O.match(
+      () => null,
+      (measurement) => measurement,
+    ),
+  ),
+)
+const latestMeasurementError = computed(() =>
+  pipe(
+    latestMeasurementApiError.value,
+    O.match(
+      () => unknownError,
+      (error) => error,
+    ),
+  ),
+)
 </script>
 
 <template>
@@ -122,33 +154,33 @@ onUnmounted(() => {
     </nav>
   </header>
   <main class="responsive">
-    <ErrorPanel v-if="latestMeasurementApiError" :error="latestMeasurementApiError" />
-    <div v-else-if="latestMeasurement">
+    <ErrorPanel v-if="O.isSome(latestMeasurementApiError)" :error="latestMeasurementError" />
+    <div v-else-if="latestMeasurementData">
       <article>
         <div class="grid shrink-center">
           <div class="s6 m6 l6">
             <h6>Date:</h6>
           </div>
           <div class="s6 m6 l6">
-            <h6>{{ latestMeasurement.date.toLocaleDateString() }}</h6>
+            <h6>{{ latestMeasurementData.date.toLocaleDateString() }}</h6>
           </div>
           <div class="s6 m6 l6">
             <h6>Time:</h6>
           </div>
           <div class="s6 m6 l6">
-            <h6>{{ latestMeasurement.date.toLocaleTimeString() }}</h6>
+            <h6>{{ latestMeasurementData.date.toLocaleTimeString() }}</h6>
           </div>
           <div class="s6 m6 l6">
             <h6>Temperature:</h6>
           </div>
           <div class="s6 m6 l6">
-            <h6>{{ latestMeasurement.temperature.toFixed(1) }}°C</h6>
+            <h6>{{ latestMeasurementData.temperature.toFixed(1) }}°C</h6>
           </div>
           <div class="s6 m6 l6">
             <h6>Humidity:</h6>
           </div>
           <div class="s6 m6 l6">
-            <h6>{{ latestMeasurement.humidity.toFixed(1) }}%</h6>
+            <h6>{{ latestMeasurementData.humidity.toFixed(1) }}%</h6>
           </div>
         </div>
       </article>
