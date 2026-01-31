@@ -25,8 +25,8 @@ const primaryColor = ref<string>(primaryFallbackColor)
 const secondaryColor = ref<string>(primaryFallbackColor)
 const surfaceVariantColor = ref<string>(primaryFallbackColor)
 
-let latestMeasurementTimeoutId: number | null = null
-let measurementsTimeoutId: number | null = null
+let latestMeasurementTimeoutId: Option<number> = O.none
+let measurementsTimeoutId: Option<number> = O.none
 
 async function getCssColor(color: string, fallbackColor: string): Promise<string> {
   try {
@@ -82,7 +82,7 @@ async function pollLatestMeasurement() {
       },
     ),
   )
-  latestMeasurementTimeoutId = setTimeout(pollLatestMeasurement, 10000)
+  latestMeasurementTimeoutId = O.some(setTimeout(pollLatestMeasurement, 10000))
 }
 
 async function pollMeasurements() {
@@ -99,7 +99,7 @@ async function pollMeasurements() {
       },
     ),
   )
-  measurementsTimeoutId = setTimeout(pollMeasurements, 60000)
+  measurementsTimeoutId = O.some(setTimeout(pollMeasurements, 60000))
 }
 
 onMounted(async () => {
@@ -108,9 +108,19 @@ onMounted(async () => {
   pollMeasurements()
 })
 
+function clearTimeoutIfPresent(timeoutId: Option<number>) {
+  pipe(
+    timeoutId,
+    O.match(
+      () => null,
+      (id: number) => clearTimeout(id),
+    ),
+  )
+}
+
 onUnmounted(() => {
-  if (latestMeasurementTimeoutId) clearTimeout(latestMeasurementTimeoutId)
-  if (measurementsTimeoutId) clearTimeout(measurementsTimeoutId)
+  clearTimeoutIfPresent(latestMeasurementTimeoutId)
+  clearTimeoutIfPresent(measurementsTimeoutId)
 })
 
 const latestMeasurementData = computed(() =>
