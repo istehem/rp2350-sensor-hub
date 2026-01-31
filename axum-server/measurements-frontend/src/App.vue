@@ -112,7 +112,7 @@ function clearTimeoutIfPresent(timeoutId: Option<number>) {
   pipe(
     timeoutId,
     O.match(
-      () => null,
+      () => {},
       (id: number) => clearTimeout(id),
     ),
   )
