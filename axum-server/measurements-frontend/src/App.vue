@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import * as E from 'fp-ts/Either'
+import { pipe } from 'fp-ts/function'
 import { ref, onMounted, onUnmounted } from 'vue'
 
 import type { ApiError, Measurement } from './assets.ts'
@@ -65,23 +67,35 @@ async function flipMode() {
 
 async function pollLatestMeasurement() {
   const measurementResponse = await fetchLatestMeasurement()
-  if (measurementResponse._kind === 'ApiError') {
-    latestMeasurementApiError.value = measurementResponse
-  } else {
-    latestMeasurementApiError.value = null
-    latestMeasurement.value = measurementResponse
-  }
+  pipe(
+    measurementResponse,
+    E.match(
+      (error) => {
+        latestMeasurementApiError.value = error
+      },
+      (success) => {
+        latestMeasurementApiError.value = null
+        latestMeasurement.value = success
+      },
+    ),
+  )
   latestMeasurementTimeoutId = setTimeout(pollLatestMeasurement, 10000)
 }
 
 async function pollMeasurements() {
   const measurementsResponse = await fetchMeasurements()
-  if (measurementsResponse._kind === 'ApiError') {
-    measurementsApiError.value = measurementsResponse
-  } else {
-    measurementsApiError.value = null
-    measurements.value = measurementsResponse.measurements
-  }
+  pipe(
+    measurementsResponse,
+    E.match(
+      (error) => {
+        measurementsApiError.value = error
+      },
+      (success) => {
+        measurementsApiError.value = null
+        measurements.value = success
+      },
+    ),
+  )
   measurementsTimeoutId = setTimeout(pollMeasurements, 60000)
 }
 
