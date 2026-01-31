@@ -1,13 +1,17 @@
 <script setup lang="ts">
 import 'd3'
-import { getCurrentInstance, onMounted, watch } from 'vue'
+import * as O from 'fp-ts/Option'
+import type { Option } from 'fp-ts/Option'
+import { pipe } from 'fp-ts/function'
+import { computed, getCurrentInstance, onMounted, watch } from 'vue'
 
+import { unknownError } from '../assets.ts'
 import type { ApiError, Measurement } from '../assets.ts'
 import ErrorPanel from '../ErrorPanel.vue'
 
 const properties = defineProps<{
-  measurements: Measurement[] | null
-  apiError: ApiError | null
+  measurements: Measurement[]
+  apiError: Option<ApiError>
   datasetColor: string
   textColor: string
   gridColor: string
@@ -106,9 +110,19 @@ watch(properties, async () => {
     node.appendChild(chart)
   }
 })
+
+const error = computed(() =>
+  pipe(
+    properties.apiError,
+    O.match(
+      () => unknownError,
+      (error) => error,
+    ),
+  ),
+)
 </script>
 
 <template>
-  <ErrorPanel v-if="apiError" :error="apiError" />
+  <ErrorPanel v-if="O.isSome(apiError)" :error="error" />
   <div v-else id="chart" />
 </template>
