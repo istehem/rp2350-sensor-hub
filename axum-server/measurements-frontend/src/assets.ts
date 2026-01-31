@@ -7,3 +7,7 @@ export interface Measurement {
 export interface ApiError {
   message: string
 }
+
+export const unknownError: ApiError = {
+  message: 'unknown error',
+}

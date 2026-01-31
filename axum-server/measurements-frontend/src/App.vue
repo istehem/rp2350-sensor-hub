@@ -6,6 +6,7 @@ import type { Option } from 'fp-ts/Option'
 import { computed, ref, onMounted, onUnmounted } from 'vue'
 
 import type { ApiError, Measurement } from './assets.ts'
+import { unknownError } from './assets.ts'
 import TemperatureChart from './charts/TemperatureChart.vue'
 import HumidityChart from './charts/HumidityChart.vue'
 import ErrorPanel from './ErrorPanel.vue'
@@ -17,8 +18,8 @@ const surfaceVariantFallbackColor = '#49454e'
 
 const latestMeasurement = ref<Option<Measurement>>(O.none)
 const measurements = ref<Measurement[]>([])
+const latestMeasurementApiError = ref<Option<ApiError>>(O.none)
 const measurementsApiError = ref<ApiError | null>(null)
-const latestMeasurementApiError = ref<ApiError | null>(null)
 const switchModeIcon = ref<string>('dark_mode')
 const primaryColor = ref<string>(primaryFallbackColor)
 const secondaryColor = ref<string>(primaryFallbackColor)
@@ -73,10 +74,10 @@ async function pollLatestMeasurement() {
     measurementResponse,
     E.match(
       (error) => {
-        latestMeasurementApiError.value = error
+        latestMeasurementApiError.value = O.some(error)
       },
       (success) => {
-        latestMeasurementApiError.value = null
+        latestMeasurementApiError.value = O.none
         latestMeasurement.value = O.some(success)
       },
     ),
@@ -121,6 +122,15 @@ const latestMeasurementData = computed(() =>
     ),
   ),
 )
+const latestMeasurementError = computed(() =>
+  pipe(
+    latestMeasurementApiError.value,
+    O.match(
+      () => unknownError,
+      (error) => error,
+    ),
+  ),
+)
 </script>
 
 <template>
@@ -133,7 +143,7 @@ const latestMeasurementData = computed(() =>
     </nav>
   </header>
   <main class="responsive">
-    <ErrorPanel v-if="latestMeasurementApiError" :error="latestMeasurementApiError" />
+    <ErrorPanel v-if="O.isSome(latestMeasurementApiError)" :error="latestMeasurementError" />
     <div v-else-if="latestMeasurementData">
       <article>
         <div class="grid shrink-center">
