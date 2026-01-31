@@ -1,15 +1,19 @@
 <script setup lang="ts">
+import type { Option } from 'fp-ts/Option'
+import * as O from 'fp-ts/Option'
+import { pipe } from 'fp-ts/function'
 import { computed } from 'vue'
 import { Line } from 'vue-chartjs'
 import type { ChartData, ChartOptions } from 'chart.js'
 import type { ApiError, Measurement } from '../assets.ts'
+import { unknownError } from '../assets.ts'
 
 import ErrorPanel from '../ErrorPanel.vue'
 import { calculateMeasurementAxisMinMax, generateChartOptions, tension } from './chartOptions.ts'
 
 const properties = defineProps<{
   measurements: Measurement[]
-  apiError: ApiError | null
+  apiError: Option<ApiError>
   datasetColor: string
   textColor: string
   gridColor: string
@@ -48,9 +52,19 @@ const chartOptions = computed<ChartOptions<'line'>>(() => {
     gridColor: properties.gridColor,
   })
 })
+
+const error = computed(() =>
+  pipe(
+    properties.apiError,
+    O.match(
+      () => unknownError,
+      (error) => error,
+    ),
+  ),
+)
 </script>
 
 <template>
-  <ErrorPanel v-if="apiError" :error="apiError" />
+  <ErrorPanel v-if="O.isSome(apiError)" :error="error" />
   <Line v-else :options="chartOptions" :data="chartData" />
 </template>

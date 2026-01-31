@@ -19,7 +19,7 @@ const surfaceVariantFallbackColor = '#49454e'
 const latestMeasurement = ref<Option<Measurement>>(O.none)
 const measurements = ref<Measurement[]>([])
 const latestMeasurementApiError = ref<Option<ApiError>>(O.none)
-const measurementsApiError = ref<ApiError | null>(null)
+const measurementsApiError = ref<Option<ApiError>>(O.none)
 const switchModeIcon = ref<string>('dark_mode')
 const primaryColor = ref<string>(primaryFallbackColor)
 const secondaryColor = ref<string>(primaryFallbackColor)
@@ -91,10 +91,10 @@ async function pollMeasurements() {
     measurementsResponse,
     E.match(
       (error) => {
-        measurementsApiError.value = error
+        measurementsApiError.value = O.some(error)
       },
       (success) => {
-        measurementsApiError.value = null
+        measurementsApiError.value = O.none
         measurements.value = success
       },
     ),
