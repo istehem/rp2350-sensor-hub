@@ -9,9 +9,11 @@ export const MeasurementCodec = t.type({
 
 export type Measurement = t.TypeOf<typeof MeasurementCodec>
 
-export interface ApiError {
-  message: string
-}
+export const ApiErrorCodec = t.type({
+  message: t.string,
+})
+
+export type ApiError = t.TypeOf<typeof ApiErrorCodec>
 
 export const unknownError: ApiError = {
   message: 'unknown error',

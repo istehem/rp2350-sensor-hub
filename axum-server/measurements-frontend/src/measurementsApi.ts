@@ -1,5 +1,5 @@
 import type { ApiError, Measurement } from './assets.ts'
-import { MeasurementCodec } from './assets.ts'
+import { ApiErrorCodec, MeasurementCodec } from './assets.ts'
 import config from './config.ts'
 
 import * as t from 'io-ts'
@@ -14,9 +14,7 @@ function getErrorMessage(error: unknown): string {
 }
 
 const toApiError = (errors: t.Errors): ApiError => ({
-  message:
-    'The request returned an invalid measurement: ' +
-    PathReporter.report(E.left(errors)).join(', '),
+  message: 'Measurements API validations failed: ' + PathReporter.report(E.left(errors)).join(', '),
 })
 
 const MeasurementsCodec = t.array(MeasurementCodec)
@@ -51,7 +49,15 @@ export const fetchLatestMeasurement = (): TE.TaskEither<ApiError, Measurement> =
           if (response.ok) {
             return response.json()
           } else {
-            return response.json().then((json) => Promise.reject<ApiError>(json))
+            return response.json().then((json) =>
+              pipe(
+                ApiErrorCodec.decode(json),
+                E.fold(
+                  (errors) => Promise.reject<ApiError>(toApiError(errors)),
+                  (validError) => Promise.reject<ApiError>(validError),
+                ),
+              ),
+            )
           }
         },
         (error): ApiError => error as ApiError,
