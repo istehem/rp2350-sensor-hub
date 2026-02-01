@@ -86,7 +86,7 @@ async function pollLatestMeasurement() {
 }
 
 async function pollMeasurements() {
-  const measurementsResponse = await fetchMeasurements()
+  const measurementsResponse = await fetchMeasurements()()
   pipe(
     measurementsResponse,
     E.match(
