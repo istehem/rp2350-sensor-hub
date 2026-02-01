@@ -5,6 +5,7 @@ import config from './config.ts'
 import * as t from 'io-ts'
 import * as E from 'fp-ts/Either'
 import * as TE from 'fp-ts/TaskEither'
+import { PathReporter } from 'io-ts/lib/PathReporter'
 import { pipe } from 'fp-ts/function'
 
 function getErrorMessage(error: unknown): string {
@@ -13,7 +14,9 @@ function getErrorMessage(error: unknown): string {
 }
 
 const toApiError = (errors: t.Errors): ApiError => ({
-  message: `the request returned an invalid measurement: ${errors}`,
+  message:
+    'The request returned an invalid measurement: ' +
+    PathReporter.report(E.left(errors)).join(', '),
 })
 
 const MeasurementsCodec = t.array(MeasurementCodec)
