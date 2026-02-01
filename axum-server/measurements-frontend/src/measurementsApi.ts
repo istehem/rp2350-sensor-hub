@@ -17,6 +17,26 @@ const toApiError = (errors: t.Errors): ApiError => ({
   message: 'Measurements API validations failed: ' + PathReporter.report(E.left(errors)).join(', '),
 })
 
+const handleResponse = (response: Response): TE.TaskEither<ApiError, unknown> =>
+  TE.tryCatch(
+    () => {
+      if (response.ok) {
+        return response.json()
+      } else {
+        return response.json().then((json) =>
+          pipe(
+            ApiErrorCodec.decode(json),
+            E.fold(
+              (errors) => Promise.reject<ApiError>(toApiError(errors)),
+              (validError) => Promise.reject<ApiError>(validError),
+            ),
+          ),
+        )
+      }
+    },
+    (error): ApiError => error as ApiError,
+  )
+
 const MeasurementsCodec = t.array(MeasurementCodec)
 
 export const fetchMeasurements = (): TE.TaskEither<ApiError, Measurement[]> =>
@@ -25,15 +45,7 @@ export const fetchMeasurements = (): TE.TaskEither<ApiError, Measurement[]> =>
       () => fetch(`${config.apiHost}/api/measurements?downsample=${config.downsample}`),
       (reason): ApiError => ({ message: getErrorMessage(reason) }),
     ),
-    TE.chain((response) =>
-      TE.tryCatch(
-        () => {
-          if (!response.ok) throw response
-          return response.json()
-        },
-        (reason): ApiError => ({ message: getErrorMessage(reason) }),
-      ),
-    ),
+    TE.chain(handleResponse),
     TE.chain((data) => pipe(MeasurementsCodec.decode(data), E.mapLeft(toApiError), TE.fromEither)),
   )
 
@@ -43,25 +55,6 @@ export const fetchLatestMeasurement = (): TE.TaskEither<ApiError, Measurement> =
       () => fetch(`${config.apiHost}/api/measurements/latest`),
       (reason): ApiError => ({ message: getErrorMessage(reason) }),
     ),
-    TE.chain((response) =>
-      TE.tryCatch(
-        () => {
-          if (response.ok) {
-            return response.json()
-          } else {
-            return response.json().then((json) =>
-              pipe(
-                ApiErrorCodec.decode(json),
-                E.fold(
-                  (errors) => Promise.reject<ApiError>(toApiError(errors)),
-                  (validError) => Promise.reject<ApiError>(validError),
-                ),
-              ),
-            )
-          }
-        },
-        (error): ApiError => error as ApiError,
-      ),
-    ),
+    TE.chain(handleResponse),
     TE.chain((data) => pipe(MeasurementCodec.decode(data), E.mapLeft(toApiError), TE.fromEither)),
   )
