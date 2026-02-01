@@ -1,4 +1,4 @@
-import type { ChartOptions } from 'chart.js'
+import type { ChartOptions, TooltipItem } from 'chart.js'
 import type { Measurement } from '../assets.js'
 
 interface Colors {
@@ -17,7 +17,6 @@ function timeAxis(textColor: string, gridColor: string): any {
     type: 'time' as const,
     time: {
       unit: 'hour' as const,
-      stepSize: 1,
       tooltipFormat: 'M/d/yyyy, h:mm:ss a',
     },
     ticks: {
@@ -26,7 +25,12 @@ function timeAxis(textColor: string, gridColor: string): any {
       minRotation: 0,
       maxRotation: 0,
       color: textColor,
-      callback(this: any, value: string | number | Date, index: number, ticks: any[]) {
+      callback(
+        this: any,
+        value: string | number | Date,
+        index: number,
+        ticks: TooltipItem<'line'>[],
+      ) {
         let t: number
         if (typeof value === 'number') t = value
         else if (value instanceof Date) t = value.getTime()
