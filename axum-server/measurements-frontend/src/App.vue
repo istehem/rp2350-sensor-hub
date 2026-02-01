@@ -69,7 +69,7 @@ async function flipMode() {
 }
 
 async function pollLatestMeasurement() {
-  const measurementResponse = await fetchLatestMeasurement()
+  const measurementResponse = await fetchLatestMeasurement()()
   pipe(
     measurementResponse,
     E.match(
