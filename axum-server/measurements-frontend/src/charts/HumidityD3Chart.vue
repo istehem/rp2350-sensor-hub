@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import 'd3'
 import * as O from 'fp-ts/Option'
+import { sequenceT } from 'fp-ts/Apply'
 import type { Option } from 'fp-ts/Option'
 import { pipe } from 'fp-ts/function'
 import { computed, getCurrentInstance, onMounted, watch } from 'vue'
@@ -103,12 +104,15 @@ onMounted(async () => {
 
 watch(properties, async () => {
   const container = d3.select('#chart')
-  const chart = createChart(properties.measurements || [])
-  const node = container.node() as HTMLElement | null
-  if (node && chart) {
-    container.select('svg').remove()
-    node.appendChild(chart)
-  }
+  const chart = O.fromNullable(createChart(properties.measurements))
+  const node = O.fromNullable(container.node() as HTMLElement | null)
+  pipe(
+    sequenceT(O.Applicative)(node, chart),
+    O.map(([node, chart]) => {
+      container.select('svg').remove()
+      node.appendChild(chart)
+    }),
+  )
 })
 
 const error = computed(() =>
