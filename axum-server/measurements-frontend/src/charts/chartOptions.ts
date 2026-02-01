@@ -11,8 +11,10 @@ interface MeasurementAxisMinMax {
   max: number
 }
 
-/* eslint-disable '@typescript-eslint/no-explicit-any' */
-function timeAxis(textColor: string, gridColor: string): any {
+function timeAxis(
+  textColor: string,
+  gridColor: string,
+): any /* eslint-disable-line @typescript-eslint/no-explicit-any */ {
   return {
     type: 'time' as const,
     time: {
@@ -26,7 +28,7 @@ function timeAxis(textColor: string, gridColor: string): any {
       maxRotation: 0,
       color: textColor,
       callback(
-        this: any,
+        this: unknown,
         value: string | number | Date,
         index: number,
         ticks: TooltipItem<'line'>[],
@@ -56,7 +58,6 @@ function timeAxis(textColor: string, gridColor: string): any {
     },
   }
 }
-/* eslint-enable @typescript-eslint/no-explicit-any */
 
 export function calculateMeasurementAxisMinMax(
   measurements: Measurement[],
