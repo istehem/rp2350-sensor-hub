@@ -1,7 +1,7 @@
 use axum::{
     Json, Router,
     extract::{Path, State},
-    http::{Method, StatusCode, header},
+    http::{Method, StatusCode, Uri, header},
     response::{Html, IntoResponse, Response, Result},
     routing::{get, post},
 };
@@ -127,7 +127,8 @@ async fn main() {
         .route("/api/measurements", get(query_measurements))
         .route("/api/measurements", post(create_measurement))
         .with_state(state)
-        .layer(cors);
+        .layer(cors)
+        .fallback(fallback);
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:5000").await.unwrap();
 
@@ -142,6 +143,14 @@ async fn shutdown_signal() {
     let mut sigterm = signal(SignalKind::terminate()).expect("failed to install signal handler");
     sigterm.recv().await;
     info!("SIGTERM received, shutting down...");
+}
+
+async fn fallback(uri: Uri) -> impl IntoResponse {
+    let message = format!("No such route: {}", uri.path());
+    (
+        StatusCode::NOT_FOUND,
+        axum::Json(serde_json::json!({ "message": message })),
+    )
 }
 
 async fn latest_measurement(
