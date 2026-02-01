@@ -127,8 +127,8 @@ async fn main() {
         .route("/api/measurements", get(query_measurements))
         .route("/api/measurements", post(create_measurement))
         .with_state(state)
-        .layer(cors)
-        .fallback(fallback);
+        .fallback(fallback)
+        .layer(cors);
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:5000").await.unwrap();
 
