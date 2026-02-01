@@ -48,10 +48,13 @@ export const fetchLatestMeasurement = (): TE.TaskEither<ApiError, Measurement> =
     TE.chain((response) =>
       TE.tryCatch(
         () => {
-          if (!response.ok) throw response
-          return response.json()
+          if (response.ok) {
+            return response.json()
+          } else {
+            return response.json().then((json) => Promise.reject<ApiError>(json))
+          }
         },
-        (reason): ApiError => ({ message: getErrorMessage(reason) }),
+        (error) => error,
       ),
     ),
     TE.chain((data) => pipe(MeasurementCodec.decode(data), E.mapLeft(toApiError), TE.fromEither)),
