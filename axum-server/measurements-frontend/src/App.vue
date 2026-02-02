@@ -22,8 +22,8 @@ const latestMeasurementApiError = ref<Option<ApiError>>(O.none)
 const measurementsApiError = ref<Option<ApiError>>(O.none)
 const switchModeIcon = ref<string>('dark_mode')
 const primaryColor = ref<string>(primaryFallbackColor)
-const secondaryColor = ref<string>(primaryFallbackColor)
-const surfaceVariantColor = ref<string>(primaryFallbackColor)
+const secondaryColor = ref<string>(secondaryFallbackColor)
+const surfaceVariantColor = ref<string>(surfaceVariantFallbackColor)
 
 let latestMeasurementTimeoutId: Option<number> = O.none
 let measurementsTimeoutId: Option<number> = O.none
