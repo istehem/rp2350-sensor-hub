@@ -3,6 +3,7 @@ import * as E from 'fp-ts/Either'
 import { pipe } from 'fp-ts/function'
 import * as O from 'fp-ts/Option'
 import type { Option } from 'fp-ts/Option'
+import * as S from 'fp-ts/State'
 import { computed, ref, onMounted, onUnmounted } from 'vue'
 
 import type { ApiError, Measurement } from './assets.ts'
@@ -16,7 +17,6 @@ const primaryFallbackColor = '#cfbcff'
 const secondaryFallbackColor = '#cbc2db'
 const surfaceVariantFallbackColor = '#49454e'
 
-const latestMeasurement = ref<Option<Measurement>>(O.none)
 const measurements = ref<Measurement[]>([])
 const latestMeasurementApiError = ref<Option<ApiError>>(O.none)
 const measurementsApiError = ref<Option<ApiError>>(O.none)
@@ -27,6 +27,21 @@ const surfaceVariantColor = ref<string>(primaryFallbackColor)
 
 let latestMeasurementTimeoutId: Option<number> = O.none
 let measurementsTimeoutId: Option<number> = O.none
+
+interface AppState {
+  latestMeasurement: Option<Measurement>
+}
+
+const initialState: AppState = { latestMeasurement: O.none }
+const state = ref(initialState)
+
+const setLatestMeasurement = (measurement: Option<Measurement>) =>
+  S.modify((s: AppState) => ({ ...s, latestMeasurement: measurement }))
+
+const update = (f: (s: AppState) => [unknown, AppState]) => {
+  const [, newState] = f(state.value)
+  state.value = newState
+}
 
 async function getCssColor(color: string, fallbackColor: string): Promise<string> {
   try {
@@ -75,10 +90,11 @@ async function pollLatestMeasurement() {
     E.match(
       (error) => {
         latestMeasurementApiError.value = O.some(error)
+        update(setLatestMeasurement(O.none))
       },
       (success) => {
         latestMeasurementApiError.value = O.none
-        latestMeasurement.value = O.some(success)
+        update(setLatestMeasurement(O.some(success)))
       },
     ),
   )
@@ -125,7 +141,7 @@ onUnmounted(() => {
 
 const latestMeasurementData = computed(() =>
   pipe(
-    latestMeasurement.value,
+    state.value.latestMeasurement,
     O.match(
       () => null,
       (measurement) => measurement,
