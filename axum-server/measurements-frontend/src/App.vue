@@ -13,30 +13,43 @@ import HumidityChart from './charts/HumidityChart.vue'
 import ErrorPanel from './ErrorPanel.vue'
 import { fetchLatestMeasurement, fetchMeasurements } from './measurementsApi.ts'
 
-const primaryFallbackColor = '#cfbcff'
-const secondaryFallbackColor = '#cbc2db'
-const surfaceVariantFallbackColor = '#49454e'
-
-const measurements = ref<Measurement[]>([])
 const latestMeasurementApiError = ref<Option<ApiError>>(O.none)
 const measurementsApiError = ref<Option<ApiError>>(O.none)
 const switchModeIcon = ref<string>('dark_mode')
-const primaryColor = ref<string>(primaryFallbackColor)
-const secondaryColor = ref<string>(secondaryFallbackColor)
-const surfaceVariantColor = ref<string>(surfaceVariantFallbackColor)
 
 let latestMeasurementTimeoutId: Option<number> = O.none
 let measurementsTimeoutId: Option<number> = O.none
 
-interface AppState {
-  latestMeasurement: Option<Measurement>
+interface Colors {
+  primary: string
+  secondary: string
+  surfaceVariant: string
 }
 
-const initialState: AppState = { latestMeasurement: O.none }
+interface AppState {
+  latestMeasurement: Option<Measurement>
+  measurements: Measurement[]
+  colors: Colors
+}
+
+const initialState: AppState = {
+  latestMeasurement: O.none,
+  measurements: [],
+  colors: {
+    primary: '#cfbcff',
+    secondary: '#cbc2db',
+    surfaceVariant: '#49454e',
+  },
+}
 const state = ref(initialState)
 
 const setLatestMeasurement = (measurement: Option<Measurement>) =>
   S.modify((s: AppState) => ({ ...s, latestMeasurement: measurement }))
+
+const setMeasurements = (measurements: Measurement[]) =>
+  S.modify((s: AppState) => ({ ...s, measurements: measurements }))
+
+const setColors = (colors: Colors) => S.modify((s: AppState) => ({ ...s, colors: colors }))
 
 const update = (f: (s: AppState) => [unknown, AppState]) => {
   const [, newState] = f(state.value)
@@ -68,9 +81,16 @@ async function toggleSwitchModeIcon() {
   } else {
     switchModeIcon.value = 'light_mode'
   }
-  primaryColor.value = await getCssColor('primary', primaryFallbackColor)
-  secondaryColor.value = await getCssColor('secondary', secondaryFallbackColor)
-  surfaceVariantColor.value = await getCssColor('surface-variant', surfaceVariantFallbackColor)
+  const primary = await getCssColor('primary', initialState.colors.primary)
+  const secondary = await getCssColor('secondary', initialState.colors.secondary)
+  const surfaceVariant = await getCssColor('surface-variant', initialState.colors.surfaceVariant)
+  update(
+    setColors({
+      primary,
+      secondary,
+      surfaceVariant,
+    }),
+  )
 }
 
 async function flipMode() {
@@ -111,7 +131,7 @@ async function pollMeasurements() {
       },
       (success) => {
         measurementsApiError.value = O.none
-        measurements.value = success
+        update(setMeasurements(success))
       },
     ),
   )
@@ -148,6 +168,7 @@ const latestMeasurementData = computed(() =>
     ),
   ),
 )
+
 const latestMeasurementError = computed(() =>
   pipe(
     latestMeasurementApiError.value,
@@ -157,6 +178,10 @@ const latestMeasurementError = computed(() =>
     ),
   ),
 )
+
+const measurements = computed(() => state.value.measurements)
+
+const colors = computed(() => state.value.colors)
 </script>
 
 <template>
@@ -203,18 +228,18 @@ const latestMeasurementError = computed(() =>
         <TemperatureChart
           :measurements="measurements"
           :api-error="measurementsApiError"
-          :dataset-color="primaryColor"
-          :text-color="secondaryColor"
-          :grid-color="surfaceVariantColor"
+          :dataset-color="colors.primary"
+          :text-color="colors.secondary"
+          :grid-color="colors.surfaceVariant"
         />
       </article>
       <article class="medium">
         <HumidityChart
           :measurements="measurements"
           :api-error="measurementsApiError"
-          :dataset-color="primaryColor"
-          :text-color="secondaryColor"
-          :grid-color="surfaceVariantColor"
+          :dataset-color="colors.primary"
+          :text-color="colors.secondary"
+          :grid-color="colors.surfaceVariant"
         />
       </article>
     </div>
