@@ -7,13 +7,11 @@ import * as S from 'fp-ts/State'
 import { computed, ref, onMounted, onUnmounted } from 'vue'
 
 import type { ApiError, Measurement } from './assets.ts'
-import { unknownError } from './assets.ts'
 import TemperatureChart from './charts/TemperatureChart.vue'
 import HumidityChart from './charts/HumidityChart.vue'
 import ErrorPanel from './ErrorPanel.vue'
 import { fetchLatestMeasurement, fetchMeasurements } from './measurementsApi.ts'
 
-const latestMeasurementApiError = ref<Option<ApiError>>(O.none)
 const measurementsApiError = ref<Option<ApiError>>(O.none)
 const switchModeIcon = ref<string>('dark_mode')
 
@@ -28,12 +26,14 @@ interface Colors {
 
 interface AppState {
   latestMeasurement: Option<Measurement>
+  latestMeasurementApiError: Option<ApiError>
   measurements: Measurement[]
   colors: Colors
 }
 
 const initialState: AppState = {
   latestMeasurement: O.none,
+  latestMeasurementApiError: O.none,
   measurements: [],
   colors: {
     primary: '#cfbcff',
@@ -50,6 +50,9 @@ const setMeasurements = (measurements: Measurement[]) =>
   S.modify((s: AppState) => ({ ...s, measurements: measurements }))
 
 const setColors = (colors: Colors) => S.modify((s: AppState) => ({ ...s, colors: colors }))
+
+const setLatestMeasurementApiError = (error: Option<ApiError>) =>
+  S.modify((s: AppState) => ({ ...s, latestMeasurementApiError: error }))
 
 const update = (f: (s: AppState) => [unknown, AppState]) => {
   const [, newState] = f(state.value)
@@ -109,11 +112,11 @@ async function pollLatestMeasurement() {
     measurementResponse,
     E.match(
       (error) => {
-        latestMeasurementApiError.value = O.some(error)
+        update(setLatestMeasurementApiError(O.some(error)))
         update(setLatestMeasurement(O.none))
       },
       (success) => {
-        latestMeasurementApiError.value = O.none
+        update(setLatestMeasurementApiError(O.none))
         update(setLatestMeasurement(O.some(success)))
       },
     ),
@@ -171,9 +174,9 @@ const latestMeasurementData = computed(() =>
 
 const latestMeasurementError = computed(() =>
   pipe(
-    latestMeasurementApiError.value,
+    state.value.latestMeasurementApiError,
     O.match(
-      () => unknownError,
+      () => null,
       (error) => error,
     ),
   ),
@@ -194,7 +197,7 @@ const colors = computed(() => state.value.colors)
     </nav>
   </header>
   <main class="responsive">
-    <ErrorPanel v-if="O.isSome(latestMeasurementApiError)" :error="latestMeasurementError" />
+    <ErrorPanel v-if="latestMeasurementError" :error="latestMeasurementError" />
     <div v-else-if="latestMeasurementData">
       <article>
         <div class="grid shrink-center">
