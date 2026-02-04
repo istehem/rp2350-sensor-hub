@@ -12,7 +12,6 @@ import HumidityChart from './charts/HumidityChart.vue'
 import ErrorPanel from './ErrorPanel.vue'
 import { fetchLatestMeasurement, fetchMeasurements } from './measurementsApi.ts'
 
-const measurementsApiError = ref<Option<ApiError>>(O.none)
 const switchModeIcon = ref<string>('dark_mode')
 
 let latestMeasurementTimeoutId: Option<number> = O.none
@@ -28,6 +27,7 @@ interface AppState {
   latestMeasurement: Option<Measurement>
   latestMeasurementApiError: Option<ApiError>
   measurements: Measurement[]
+  measurementsApiError: Option<ApiError>
   colors: Colors
 }
 
@@ -35,6 +35,7 @@ const initialState: AppState = {
   latestMeasurement: O.none,
   latestMeasurementApiError: O.none,
   measurements: [],
+  measurementsApiError: O.none,
   colors: {
     primary: '#cfbcff',
     secondary: '#cbc2db',
@@ -46,13 +47,16 @@ const state = ref(initialState)
 const setLatestMeasurement = (measurement: Option<Measurement>) =>
   S.modify((s: AppState) => ({ ...s, latestMeasurement: measurement }))
 
+const setLatestMeasurementApiError = (error: Option<ApiError>) =>
+  S.modify((s: AppState) => ({ ...s, latestMeasurementApiError: error }))
+
 const setMeasurements = (measurements: Measurement[]) =>
   S.modify((s: AppState) => ({ ...s, measurements: measurements }))
 
-const setColors = (colors: Colors) => S.modify((s: AppState) => ({ ...s, colors: colors }))
+const setMeasurementsApiError = (error: Option<ApiError>) =>
+  S.modify((s: AppState) => ({ ...s, measurementsApiError: error }))
 
-const setLatestMeasurementApiError = (error: Option<ApiError>) =>
-  S.modify((s: AppState) => ({ ...s, latestMeasurementApiError: error }))
+const setColors = (colors: Colors) => S.modify((s: AppState) => ({ ...s, colors: colors }))
 
 const update = (f: (s: AppState) => [unknown, AppState]) => {
   const [, newState] = f(state.value)
@@ -130,10 +134,10 @@ async function pollMeasurements() {
     measurementsResponse,
     E.match(
       (error) => {
-        measurementsApiError.value = O.some(error)
+        update(setMeasurementsApiError(O.some(error)))
       },
       (success) => {
-        measurementsApiError.value = O.none
+        update(setMeasurementsApiError(O.none))
         update(setMeasurements(success))
       },
     ),
@@ -171,7 +175,6 @@ const latestMeasurementData = computed(() =>
     ),
   ),
 )
-
 const latestMeasurementError = computed(() =>
   pipe(
     state.value.latestMeasurementApiError,
@@ -183,6 +186,7 @@ const latestMeasurementError = computed(() =>
 )
 
 const measurements = computed(() => state.value.measurements)
+const measurementsError = computed(() => state.value.measurementsApiError)
 
 const colors = computed(() => state.value.colors)
 </script>
@@ -230,7 +234,7 @@ const colors = computed(() => state.value.colors)
       <article class="medium">
         <TemperatureChart
           :measurements="measurements"
-          :api-error="measurementsApiError"
+          :api-error="measurementsError"
           :dataset-color="colors.primary"
           :text-color="colors.secondary"
           :grid-color="colors.surfaceVariant"
@@ -239,7 +243,7 @@ const colors = computed(() => state.value.colors)
       <article class="medium">
         <HumidityChart
           :measurements="measurements"
-          :api-error="measurementsApiError"
+          :api-error="measurementsError"
           :dataset-color="colors.primary"
           :text-color="colors.secondary"
           :grid-color="colors.surfaceVariant"
