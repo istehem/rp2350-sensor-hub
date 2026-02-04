@@ -117,11 +117,14 @@ async function pollLatestMeasurement() {
     E.match(
       (error) => {
         update(setLatestMeasurementApiError(O.some(error)))
-        update(setLatestMeasurement(O.none))
       },
       (success) => {
-        update(setLatestMeasurementApiError(O.none))
-        update(setLatestMeasurement(O.some(success)))
+        update(
+          S.sequenceArray([
+            setLatestMeasurementApiError(O.none),
+            setLatestMeasurement(O.some(success)),
+          ]),
+        )
       },
     ),
   )
@@ -137,8 +140,7 @@ async function pollMeasurements() {
         update(setMeasurementsApiError(O.some(error)))
       },
       (success) => {
-        update(setMeasurementsApiError(O.none))
-        update(setMeasurements(success))
+        update(S.sequenceArray([setMeasurementsApiError(O.none), setMeasurements(success)]))
       },
     ),
   )
