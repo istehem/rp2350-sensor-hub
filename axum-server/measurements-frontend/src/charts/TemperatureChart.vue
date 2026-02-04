@@ -6,7 +6,6 @@ import { computed } from 'vue'
 import { Line } from 'vue-chartjs'
 import type { ChartData, ChartOptions } from 'chart.js'
 import type { ApiError, Measurement } from '../assets.ts'
-import { unknownError } from '../assets.ts'
 
 import ErrorPanel from '../ErrorPanel.vue'
 import { calculateMeasurementAxisMinMax, generateChartOptions, tension } from './chartOptions.ts'
@@ -57,7 +56,7 @@ const error = computed(() =>
   pipe(
     properties.apiError,
     O.match(
-      () => unknownError,
+      () => null,
       (error) => error,
     ),
   ),
@@ -65,6 +64,6 @@ const error = computed(() =>
 </script>
 
 <template>
-  <ErrorPanel v-if="O.isSome(apiError)" :error="error" />
+  <ErrorPanel v-if="error" :error="error" />
   <Line v-else :options="chartOptions" :data="chartData" />
 </template>

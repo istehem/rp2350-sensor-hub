@@ -14,7 +14,3 @@ export const ApiErrorCodec = t.type({
 })
 
 export type ApiError = t.TypeOf<typeof ApiErrorCodec>
-
-export const unknownError: ApiError = {
-  message: 'unknown error',
-}
