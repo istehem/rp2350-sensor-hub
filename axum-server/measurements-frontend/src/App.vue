@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import * as E from 'fp-ts/Either'
-import { pipe } from 'fp-ts/function'
 import * as O from 'fp-ts/Option'
-import type { Option } from 'fp-ts/Option'
 import * as S from 'fp-ts/State'
+import * as T from 'fp-ts/Task'
+import { pipe } from 'fp-ts/function'
+import type { Option } from 'fp-ts/Option'
 import { computed, ref, onMounted, onUnmounted } from 'vue'
 
 import type { ApiError, Measurement } from './assets.ts'
@@ -14,7 +15,6 @@ import { fetchLatestMeasurement, fetchMeasurements } from './measurementsApi.ts'
 
 const switchModeIcon = ref<string>('dark_mode')
 
-let latestMeasurementTimeoutId: Option<number> = O.none
 let measurementsTimeoutId: Option<number> = O.none
 
 interface Colors {
@@ -110,26 +110,36 @@ async function flipMode() {
   await toggleSwitchModeIcon()
 }
 
-async function pollLatestMeasurement() {
-  const measurementResponse = await fetchLatestMeasurement()()
+const poll = (task: T.Task<void>, delayMs: number): T.Task<never> =>
   pipe(
-    measurementResponse,
-    E.match(
-      (error) => {
-        update(setLatestMeasurementApiError(O.some(error)))
-      },
-      (success) => {
-        update(
-          S.sequenceArray([
-            setLatestMeasurementApiError(O.none),
-            setLatestMeasurement(O.some(success)),
-          ]),
-        )
-      },
+    task,
+    T.chain(() => T.delay(delayMs)(poll(task, delayMs))),
+  )
+
+const handleLatestMeasurement = (): T.Task<void> =>
+  pipe(
+    fetchLatestMeasurement(),
+    T.chain((latestMeasurement) =>
+      pipe(
+        latestMeasurement,
+        E.match(
+          (error) =>
+            T.fromIO(() => {
+              update(setLatestMeasurementApiError(O.some(error)))
+            }),
+          (success) =>
+            T.fromIO(() => {
+              update(
+                S.sequenceArray([
+                  setLatestMeasurementApiError(O.none),
+                  setLatestMeasurement(O.some(success)),
+                ]),
+              )
+            }),
+        ),
+      ),
     ),
   )
-  latestMeasurementTimeoutId = O.some(setTimeout(pollLatestMeasurement, 10000))
-}
 
 async function pollMeasurements() {
   const measurementsResponse = await fetchMeasurements()()
@@ -149,7 +159,7 @@ async function pollMeasurements() {
 
 onMounted(async () => {
   toggleSwitchModeIcon()
-  pollLatestMeasurement()
+  poll(handleLatestMeasurement(), 10000)()
   pollMeasurements()
 })
 
@@ -164,7 +174,6 @@ function clearTimeoutIfPresent(timeoutId: Option<number>) {
 }
 
 onUnmounted(() => {
-  clearTimeoutIfPresent(latestMeasurementTimeoutId)
   clearTimeoutIfPresent(measurementsTimeoutId)
 })
 
