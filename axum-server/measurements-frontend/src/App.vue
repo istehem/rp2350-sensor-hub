@@ -3,6 +3,8 @@ import * as E from 'fp-ts/Either'
 import * as O from 'fp-ts/Option'
 import * as S from 'fp-ts/State'
 import * as T from 'fp-ts/Task'
+import * as RTE from 'fp-ts/ReaderTaskEither'
+//import * as TE from 'fp-ts/TaskEither'
 import { pipe } from 'fp-ts/function'
 import type { Option } from 'fp-ts/Option'
 import { computed, ref, onMounted, onUnmounted } from 'vue'
@@ -116,6 +118,32 @@ const poll = (task: T.Task<void>, delayMs: number): T.Task<never> =>
     T.chain(() => T.delay(delayMs)(poll(task, delayMs))),
   )
 
+const handleLatestMeasurement2 = (): RTE.ReaderTaskEither<AppState, never, AppState> =>
+  pipe(
+    fetchLatestMeasurement(),
+    RTE.fromTask,
+    RTE.chain((latestMeasurement) =>
+      pipe(
+        latestMeasurement,
+        E.match(
+          (error) =>
+            RTE.asks((state: AppState) => {
+              const [, newState] = setLatestMeasurementApiError(O.some(error))(state)
+              return newState
+            }),
+          (success) =>
+            RTE.asks((state: AppState) => {
+              const [, newState] = S.sequenceArray([
+                setMeasurementsApiError(O.none),
+                setLatestMeasurement(O.some(success)),
+              ])(state)
+              return newState
+            }),
+        ),
+      ),
+    ),
+  )
+
 const handleLatestMeasurement = (): T.Task<void> =>
   pipe(
     fetchLatestMeasurement(),
@@ -159,6 +187,7 @@ async function pollMeasurements() {
 
 onMounted(async () => {
   toggleSwitchModeIcon()
+  handleLatestMeasurement2()(initialState)
   poll(handleLatestMeasurement(), 10000)()
   pollMeasurements()
 })
