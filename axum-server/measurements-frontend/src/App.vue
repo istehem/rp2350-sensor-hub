@@ -72,12 +72,10 @@ const transferStateToVue = (f: (state: AppState) => [unknown, AppState]): T.Task
 
 async function getCssColor(color: string, fallbackColor: string): Promise<string> {
   try {
-    const mode: O.Option<Mode> = await getMode()()
-    const orDefaultMode = pipe(
-      mode,
-      O.getOrElse(() => 'dark' as Mode),
-    )
-    const theme = await getTheme(orDefaultMode)()
+    const theme = await pipe(
+      getMode(),
+      TO.chain((mode) => getTheme(mode)),
+    )()
 
     if (O.isNone(theme)) {
       return fallbackColor
@@ -86,7 +84,14 @@ async function getCssColor(color: string, fallbackColor: string): Promise<string
       theme,
       O.getOrElse(() => ''),
     )
+    return findColorFromCss(themeCss, color, fallbackColor)
+  } catch {
+    return fallbackColor
+  }
+}
 
+function findColorFromCss(themeCss: string, color: string, fallbackColor: string): string {
+  try {
     const varRe = new RegExp(`--${color}\\s*:\\s*([^;]+);?`)
     const m = themeCss.match(varRe)
     const raw = m?.[1]?.trim()
@@ -102,7 +107,7 @@ const getMode = (): TO.TaskOption<Mode> =>
     TO.chain(TO.fromPredicate((mode) => mode === 'dark' || mode == 'light')),
   )
 
-const getTheme = (mode: 'light' | 'dark'): TO.TaskOption<string> =>
+const getTheme = (mode: Mode): TO.TaskOption<string> =>
   pipe(
     TO.tryCatch(() => Promise.resolve(ui('theme'))),
     TO.chain(
