@@ -70,49 +70,35 @@ type Mode = 'dark' | 'light'
 const transferStateToVue = (f: (state: AppState) => [unknown, AppState]): T.Task<void> =>
   T.fromIO(() => updateAppState(f))
 
-async function getCssColor(color: string, fallbackColor: string): Promise<string> {
-  try {
-    const theme = await pipe(
-      getMode(),
-      TO.chain((mode) => getTheme(mode)),
-    )()
+const getCssColorOrDefault = (color: string, fallbackColor: string): TO.TaskOption<string> =>
+  pipe(
+    getCssColor(color),
+    TO.chain((option) =>
+      pipe(
+        option,
+        O.match(
+          () => TO.some(fallbackColor),
+          (color) => TO.some(color),
+        ),
+      ),
+    ),
+  )
 
-    if (O.isNone(theme)) {
-      return fallbackColor
-    }
-    const themeCss = pipe(
-      theme,
-      O.getOrElse(() => ''),
-    )
-    return pipe(
-      findColorFromCss(themeCss, color),
-      O.getOrElse(() => fallbackColor),
-    )
-  } catch {
-    return fallbackColor
-  }
-}
-
-/*
-const getCssColor2 = (color: string, fallbackColor: string): TO.TaskOption<string> =>
+const getCssColor = (color: string): TO.TaskOption<O.Option<string>> =>
   pipe(
     getMode(),
-    TO.chain((mode) => getTheme(mode)),
-    TO.map((theme) => findColorFromCss(theme, color, fallbackColor)),
+    TO.chain((mode) => getThemeCss(mode)),
+    TO.map((themeCss) => findColorFromCss(themeCss, color)),
   )
-*/
+
 function findColorFromCss(themeCss: string, color: string): O.Option<string> {
-  try {
-    const varRe = new RegExp(`--${color}\\s*:\\s*([^;]+);?`)
-    const m = themeCss.match(varRe)
-    const raw = m?.[1]?.trim()
-    if (raw) {
-      return O.some(raw)
-    }
-    return O.none
-  } catch {
-    return O.none
+  const varRe = new RegExp(`--${color}\\s*:\\s*([^;]+);?`)
+  const m = themeCss.match(varRe)
+  const raw = m?.[1]?.trim()
+  if (raw) {
+    return O.some(raw)
   }
+  return O.none
 }
 
 const getMode = (): TO.TaskOption<Mode> =>
@@ -121,7 +107,7 @@ const getMode = (): TO.TaskOption<Mode> =>
     TO.chain(TO.fromPredicate((mode) => mode === 'dark' || mode == 'light')),
   )
 
-const getTheme = (mode: Mode): TO.TaskOption<string> =>
+const getThemeCss = (mode: Mode): TO.TaskOption<string> =>
   pipe(
     TO.tryCatch(() => Promise.resolve(ui('theme'))),
     TO.chain(
@@ -140,9 +126,18 @@ async function toggleSwitchModeIcon() {
   } else {
     switchModeIcon.value = 'light_mode'
   }
-  const primary = await getCssColor('primary', initialState.colors.primary)
-  const secondary = await getCssColor('secondary', initialState.colors.secondary)
-  const surfaceVariant = await getCssColor('surface-variant', initialState.colors.surfaceVariant)
+  const primary = pipe(
+    await getCssColorOrDefault('primary', initialState.colors.primary)(),
+    O.getOrElse(() => initialState.colors.primary),
+  )
+  const secondary = pipe(
+    await getCssColorOrDefault('secondary', initialState.colors.secondary)(),
+    O.getOrElse(() => initialState.colors.secondary),
+  )
+  const surfaceVariant = pipe(
+    await getCssColorOrDefault('surface-variant', initialState.colors.surfaceVariant)(),
+    O.getOrElse(() => initialState.colors.surfaceVariant),
+  )
   updateAppState(
     setColors({
       primary,
