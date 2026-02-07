@@ -8,6 +8,8 @@ import { pipe } from 'fp-ts/function'
 import type { Option } from 'fp-ts/Option'
 import { computed, ref, onMounted } from 'vue'
 
+import * as AS from './appState.ts'
+import type { AppState, Colors } from './appState.ts'
 import type { ApiError, Measurement } from './assets.ts'
 import TemperatureChart from './charts/TemperatureChart.vue'
 import HumidityChart from './charts/HumidityChart.vue'
@@ -16,32 +18,7 @@ import { fetchLatestMeasurement, fetchMeasurements } from './measurementsApi.ts'
 
 const switchModeIcon = ref<string>('dark_mode')
 
-interface Colors {
-  primary: string
-  secondary: string
-  surfaceVariant: string
-}
-
-interface AppState {
-  latestMeasurement: Option<Measurement>
-  latestMeasurementApiError: Option<ApiError>
-  measurements: Measurement[]
-  measurementsApiError: Option<ApiError>
-  colors: Colors
-}
-
-const initialState: AppState = {
-  latestMeasurement: O.none,
-  latestMeasurementApiError: O.none,
-  measurements: [],
-  measurementsApiError: O.none,
-  colors: {
-    primary: '#cfbcff',
-    secondary: '#cbc2db',
-    surfaceVariant: '#49454e',
-  },
-}
-const state = ref(initialState)
+const state = ref(AS.initialState)
 
 const setLatestMeasurement = (measurement: Option<Measurement>) =>
   S.modify((s: AppState) => ({ ...s, latestMeasurement: measurement }))
@@ -127,16 +104,16 @@ async function toggleSwitchModeIcon() {
     switchModeIcon.value = 'light_mode'
   }
   const primary = pipe(
-    await getCssColorOrDefault('primary', initialState.colors.primary)(),
-    O.getOrElse(() => initialState.colors.primary),
+    await getCssColorOrDefault('primary', AS.initialState.colors.primary)(),
+    O.getOrElse(() => AS.initialState.colors.primary),
   )
   const secondary = pipe(
-    await getCssColorOrDefault('secondary', initialState.colors.secondary)(),
-    O.getOrElse(() => initialState.colors.secondary),
+    await getCssColorOrDefault('secondary', AS.initialState.colors.secondary)(),
+    O.getOrElse(() => AS.initialState.colors.secondary),
   )
   const surfaceVariant = pipe(
-    await getCssColorOrDefault('surface-variant', initialState.colors.surfaceVariant)(),
-    O.getOrElse(() => initialState.colors.surfaceVariant),
+    await getCssColorOrDefault('surface-variant', AS.initialState.colors.surfaceVariant)(),
+    O.getOrElse(() => AS.initialState.colors.surfaceVariant),
   )
   updateAppState(
     setColors({
