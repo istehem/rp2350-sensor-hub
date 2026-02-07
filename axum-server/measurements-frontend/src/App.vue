@@ -3,8 +3,6 @@ import * as E from 'fp-ts/Either'
 import * as O from 'fp-ts/Option'
 import * as S from 'fp-ts/State'
 import * as T from 'fp-ts/Task'
-import * as RTE from 'fp-ts/ReaderTaskEither'
-//import * as TE from 'fp-ts/TaskEither'
 import { pipe } from 'fp-ts/function'
 import type { Option } from 'fp-ts/Option'
 import { computed, ref, onMounted, onUnmounted } from 'vue'
@@ -60,10 +58,16 @@ const setMeasurementsApiError = (error: Option<ApiError>) =>
 
 const setColors = (colors: Colors) => S.modify((s: AppState) => ({ ...s, colors: colors }))
 
-const update = (f: (s: AppState) => [unknown, AppState]) => {
+const updateAppState = (f: (s: AppState) => [unknown, AppState]) => {
   const [, newState] = f(state.value)
   state.value = newState
 }
+
+/**
+ * This causes a side effect.
+ */
+const transferStateToVue = (f: (state: AppState) => [unknown, AppState]): T.Task<void> =>
+  T.fromIO(() => updateAppState(f))
 
 async function getCssColor(color: string, fallbackColor: string): Promise<string> {
   try {
@@ -93,7 +97,7 @@ async function toggleSwitchModeIcon() {
   const primary = await getCssColor('primary', initialState.colors.primary)
   const secondary = await getCssColor('secondary', initialState.colors.secondary)
   const surfaceVariant = await getCssColor('surface-variant', initialState.colors.surfaceVariant)
-  update(
+  updateAppState(
     setColors({
       primary,
       secondary,
@@ -118,32 +122,6 @@ const poll = (task: T.Task<void>, delayMs: number): T.Task<never> =>
     T.chain(() => T.delay(delayMs)(poll(task, delayMs))),
   )
 
-const handleLatestMeasurement2 = (): RTE.ReaderTaskEither<AppState, never, AppState> =>
-  pipe(
-    fetchLatestMeasurement(),
-    RTE.fromTask,
-    RTE.chain((latestMeasurement) =>
-      pipe(
-        latestMeasurement,
-        E.match(
-          (error) =>
-            RTE.asks((state: AppState) => {
-              const [, newState] = setLatestMeasurementApiError(O.some(error))(state)
-              return newState
-            }),
-          (success) =>
-            RTE.asks((state: AppState) => {
-              const [, newState] = S.sequenceArray([
-                setMeasurementsApiError(O.none),
-                setLatestMeasurement(O.some(success)),
-              ])(state)
-              return newState
-            }),
-        ),
-      ),
-    ),
-  )
-
 const handleLatestMeasurement = (): T.Task<void> =>
   pipe(
     fetchLatestMeasurement(),
@@ -151,19 +129,14 @@ const handleLatestMeasurement = (): T.Task<void> =>
       pipe(
         latestMeasurement,
         E.match(
-          (error) =>
-            T.fromIO(() => {
-              update(setLatestMeasurementApiError(O.some(error)))
-            }),
+          (error) => transferStateToVue(setLatestMeasurementApiError(O.some(error))),
           (success) =>
-            T.fromIO(() => {
-              update(
-                S.sequenceArray([
-                  setLatestMeasurementApiError(O.none),
-                  setLatestMeasurement(O.some(success)),
-                ]),
-              )
-            }),
+            transferStateToVue(
+              S.sequenceArray([
+                setLatestMeasurementApiError(O.none),
+                setLatestMeasurement(O.some(success)),
+              ]),
+            ),
         ),
       ),
     ),
@@ -175,10 +148,10 @@ async function pollMeasurements() {
     measurementsResponse,
     E.match(
       (error) => {
-        update(setMeasurementsApiError(O.some(error)))
+        updateAppState(setMeasurementsApiError(O.some(error)))
       },
       (success) => {
-        update(S.sequenceArray([setMeasurementsApiError(O.none), setMeasurements(success)]))
+        updateAppState(S.sequenceArray([setMeasurementsApiError(O.none), setMeasurements(success)]))
       },
     ),
   )
@@ -187,7 +160,6 @@ async function pollMeasurements() {
 
 onMounted(async () => {
   toggleSwitchModeIcon()
-  handleLatestMeasurement2()(initialState)
   poll(handleLatestMeasurement(), 10000)()
   pollMeasurements()
 })
