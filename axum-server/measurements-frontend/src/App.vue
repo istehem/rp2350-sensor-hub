@@ -5,7 +5,7 @@ import * as S from 'fp-ts/State'
 import * as T from 'fp-ts/Task'
 import { pipe } from 'fp-ts/function'
 import type { Option } from 'fp-ts/Option'
-import { computed, ref, onMounted, onUnmounted } from 'vue'
+import { computed, ref, onMounted } from 'vue'
 
 import type { ApiError, Measurement } from './assets.ts'
 import TemperatureChart from './charts/TemperatureChart.vue'
@@ -14,8 +14,6 @@ import ErrorPanel from './ErrorPanel.vue'
 import { fetchLatestMeasurement, fetchMeasurements } from './measurementsApi.ts'
 
 const switchModeIcon = ref<string>('dark_mode')
-
-let measurementsTimeoutId: Option<number> = O.none
 
 interface Colors {
   primary: string
@@ -142,40 +140,27 @@ const handleLatestMeasurement = (): T.Task<void> =>
     ),
   )
 
-async function pollMeasurements() {
-  const measurementsResponse = await fetchMeasurements()()
+const handleMeasurements = (): T.Task<void> =>
   pipe(
-    measurementsResponse,
-    E.match(
-      (error) => {
-        updateAppState(setMeasurementsApiError(O.some(error)))
-      },
-      (success) => {
-        updateAppState(S.sequenceArray([setMeasurementsApiError(O.none), setMeasurements(success)]))
-      },
+    fetchMeasurements(),
+    T.chain((latestMeasurement) =>
+      pipe(
+        latestMeasurement,
+        E.match(
+          (error) => transferStateToVue(setMeasurementsApiError(O.some(error))),
+          (success) =>
+            transferStateToVue(
+              S.sequenceArray([setMeasurementsApiError(O.none), setMeasurements(success)]),
+            ),
+        ),
+      ),
     ),
   )
-  measurementsTimeoutId = O.some(setTimeout(pollMeasurements, 60000))
-}
 
 onMounted(async () => {
   toggleSwitchModeIcon()
   poll(handleLatestMeasurement(), 10000)()
-  pollMeasurements()
-})
-
-function clearTimeoutIfPresent(timeoutId: Option<number>) {
-  pipe(
-    timeoutId,
-    O.match(
-      () => {},
-      (id: number) => clearTimeout(id),
-    ),
-  )
-}
-
-onUnmounted(() => {
-  clearTimeoutIfPresent(measurementsTimeoutId)
+  poll(handleMeasurements(), 60000)()
 })
 
 const latestMeasurementData = computed(() =>
