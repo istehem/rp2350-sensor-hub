@@ -1,4 +1,5 @@
 import * as O from 'fp-ts/Option'
+import * as S from 'fp-ts/State'
 
 import type { ApiError, Measurement } from './assets.ts'
 
@@ -27,3 +28,17 @@ export const initialState: AppState = {
     surfaceVariant: '#49454e',
   },
 }
+
+export const setLatestMeasurement = (measurement: O.Option<Measurement>) =>
+  S.modify((s: AppState) => ({ ...s, latestMeasurement: measurement }))
+
+export const setLatestMeasurementApiError = (error: O.Option<ApiError>) =>
+  S.modify((s: AppState) => ({ ...s, latestMeasurementApiError: error }))
+
+export const setMeasurements = (measurements: Measurement[]) =>
+  S.modify((s: AppState) => ({ ...s, measurements: measurements }))
+
+export const setMeasurementsApiError = (error: O.Option<ApiError>) =>
+  S.modify((s: AppState) => ({ ...s, measurementsApiError: error }))
+
+export const setColors = (colors: Colors) => S.modify((s: AppState) => ({ ...s, colors: colors }))

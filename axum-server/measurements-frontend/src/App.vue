@@ -5,12 +5,10 @@ import * as S from 'fp-ts/State'
 import * as T from 'fp-ts/Task'
 import * as TO from 'fp-ts/TaskOption'
 import { pipe } from 'fp-ts/function'
-import type { Option } from 'fp-ts/Option'
 import { computed, ref, onMounted } from 'vue'
 
 import * as AS from './appState.ts'
-import type { AppState, Colors } from './appState.ts'
-import type { ApiError, Measurement } from './assets.ts'
+import type { AppState } from './appState.ts'
 import TemperatureChart from './charts/TemperatureChart.vue'
 import HumidityChart from './charts/HumidityChart.vue'
 import ErrorPanel from './ErrorPanel.vue'
@@ -19,20 +17,6 @@ import { fetchLatestMeasurement, fetchMeasurements } from './measurementsApi.ts'
 const switchModeIcon = ref<string>('dark_mode')
 
 const state = ref(AS.initialState)
-
-const setLatestMeasurement = (measurement: Option<Measurement>) =>
-  S.modify((s: AppState) => ({ ...s, latestMeasurement: measurement }))
-
-const setLatestMeasurementApiError = (error: Option<ApiError>) =>
-  S.modify((s: AppState) => ({ ...s, latestMeasurementApiError: error }))
-
-const setMeasurements = (measurements: Measurement[]) =>
-  S.modify((s: AppState) => ({ ...s, measurements: measurements }))
-
-const setMeasurementsApiError = (error: Option<ApiError>) =>
-  S.modify((s: AppState) => ({ ...s, measurementsApiError: error }))
-
-const setColors = (colors: Colors) => S.modify((s: AppState) => ({ ...s, colors: colors }))
 
 const updateAppState = (f: (s: AppState) => [unknown, AppState]) => {
   const [, newState] = f(state.value)
@@ -116,7 +100,7 @@ async function toggleSwitchModeIcon() {
     O.getOrElse(() => AS.initialState.colors.surfaceVariant),
   )
   updateAppState(
-    setColors({
+    AS.setColors({
       primary,
       secondary,
       surfaceVariant,
@@ -147,12 +131,12 @@ const handleLatestMeasurement = (): T.Task<void> =>
       pipe(
         latestMeasurement,
         E.match(
-          (error) => transferStateToVue(setLatestMeasurementApiError(O.some(error))),
+          (error) => transferStateToVue(AS.setLatestMeasurementApiError(O.some(error))),
           (success) =>
             transferStateToVue(
               S.sequenceArray([
-                setLatestMeasurementApiError(O.none),
-                setLatestMeasurement(O.some(success)),
+                AS.setLatestMeasurementApiError(O.none),
+                AS.setLatestMeasurement(O.some(success)),
               ]),
             ),
         ),
@@ -167,10 +151,10 @@ const handleMeasurements = (): T.Task<void> =>
       pipe(
         latestMeasurement,
         E.match(
-          (error) => transferStateToVue(setMeasurementsApiError(O.some(error))),
+          (error) => transferStateToVue(AS.setMeasurementsApiError(O.some(error))),
           (success) =>
             transferStateToVue(
-              S.sequenceArray([setMeasurementsApiError(O.none), setMeasurements(success)]),
+              S.sequenceArray([AS.setMeasurementsApiError(O.none), AS.setMeasurements(success)]),
             ),
         ),
       ),
