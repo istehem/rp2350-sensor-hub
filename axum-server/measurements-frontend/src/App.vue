@@ -62,6 +62,8 @@ const updateAppState = (f: (s: AppState) => [unknown, AppState]) => {
   state.value = newState
 }
 
+type Mode = 'dark' | 'light'
+
 /**
  * This causes a side effect.
  */
@@ -70,8 +72,12 @@ const transferStateToVue = (f: (state: AppState) => [unknown, AppState]): T.Task
 
 async function getCssColor(color: string, fallbackColor: string): Promise<string> {
   try {
-    const mode = (await ui('mode')) as 'light' | 'dark' | undefined
-    const theme = await getTheme(mode || 'dark')()
+    const mode: O.Option<Mode> = await getMode()()
+    const orDefaultMode = pipe(
+      mode,
+      O.getOrElse(() => 'dark' as Mode),
+    )
+    const theme = await getTheme(orDefaultMode)()
 
     if (O.isNone(theme)) {
       return fallbackColor
@@ -89,6 +95,12 @@ async function getCssColor(color: string, fallbackColor: string): Promise<string
     return fallbackColor
   }
 }
+
+const getMode = (): TO.TaskOption<Mode> =>
+  pipe(
+    TO.tryCatch(() => Promise.resolve(ui('mode'))),
+    TO.chain(TO.fromPredicate((mode) => mode === 'dark' || mode == 'light')),
+  )
 
 const getTheme = (mode: 'light' | 'dark'): TO.TaskOption<string> =>
   pipe(
