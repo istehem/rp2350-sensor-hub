@@ -84,20 +84,34 @@ async function getCssColor(color: string, fallbackColor: string): Promise<string
       theme,
       O.getOrElse(() => ''),
     )
-    return findColorFromCss(themeCss, color, fallbackColor)
+    return pipe(
+      findColorFromCss(themeCss, color),
+      O.getOrElse(() => fallbackColor),
+    )
   } catch {
     return fallbackColor
   }
 }
 
-function findColorFromCss(themeCss: string, color: string, fallbackColor: string): string {
+/*
+const getCssColor2 = (color: string, fallbackColor: string): TO.TaskOption<string> =>
+  pipe(
+    getMode(),
+    TO.chain((mode) => getTheme(mode)),
+    TO.map((theme) => findColorFromCss(theme, color, fallbackColor)),
+  )
+*/
+function findColorFromCss(themeCss: string, color: string): O.Option<string> {
   try {
     const varRe = new RegExp(`--${color}\\s*:\\s*([^;]+);?`)
     const m = themeCss.match(varRe)
     const raw = m?.[1]?.trim()
-    return raw || fallbackColor
+    if (raw) {
+      return O.some(raw)
+    }
+    return O.none
   } catch {
-    return fallbackColor
+    return O.none
   }
 }
 
