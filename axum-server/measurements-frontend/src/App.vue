@@ -3,6 +3,7 @@ import * as E from 'fp-ts/Either'
 import * as O from 'fp-ts/Option'
 import * as S from 'fp-ts/State'
 import * as T from 'fp-ts/Task'
+import * as TO from 'fp-ts/TaskOption'
 import { pipe } from 'fp-ts/function'
 import type { Option } from 'fp-ts/Option'
 import { computed, ref, onMounted } from 'vue'
@@ -69,12 +70,16 @@ const transferStateToVue = (f: (state: AppState) => [unknown, AppState]): T.Task
 
 async function getCssColor(color: string, fallbackColor: string): Promise<string> {
   try {
-    const theme = await ui('theme')
     const mode = (await ui('mode')) as 'light' | 'dark' | undefined
+    const theme = await getTheme(mode || 'dark')()
 
-    if (!theme || typeof theme === 'string') return fallbackColor
-    const themeCss = theme[(mode || 'light') as 'light' | 'dark']
-    if (!themeCss || typeof themeCss !== 'string') return fallbackColor
+    if (O.isNone(theme)) {
+      return fallbackColor
+    }
+    const themeCss = pipe(
+      theme,
+      O.getOrElse(() => ''),
+    )
 
     const varRe = new RegExp(`--${color}\\s*:\\s*([^;]+);?`)
     const m = themeCss.match(varRe)
@@ -84,6 +89,18 @@ async function getCssColor(color: string, fallbackColor: string): Promise<string
     return fallbackColor
   }
 }
+
+const getTheme = (mode: 'light' | 'dark'): TO.TaskOption<string> =>
+  pipe(
+    TO.tryCatch(() => Promise.resolve(ui('theme'))),
+    TO.chain(
+      TO.fromPredicate(
+        (theme): theme is IBeerCssTheme =>
+          typeof theme === 'object' && theme !== null && mode in theme,
+      ),
+    ),
+    TO.map((theme) => theme[mode]),
+  )
 
 async function toggleSwitchModeIcon() {
   const mode = await ui('mode')
