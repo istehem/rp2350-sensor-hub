@@ -8,6 +8,7 @@ import { pipe } from 'fp-ts/function'
 import { computed, ref, onMounted } from 'vue'
 
 import * as AS from './appState.ts'
+import config from './config.ts'
 import type { AppState } from './appState.ts'
 import TemperatureChart from './charts/TemperatureChart.vue'
 import HumidityChart from './charts/HumidityChart.vue'
@@ -163,8 +164,8 @@ const handleMeasurements = (): T.Task<void> =>
 
 onMounted(async () => {
   toggleSwitchModeIcon()
-  poll(handleLatestMeasurement(), 10000)()
-  poll(handleMeasurements(), 60000)()
+  poll(handleLatestMeasurement(), config.latestMeasurement.pollEvery)()
+  poll(handleMeasurements(), config.measurements.pollEvery)()
 })
 
 const latestMeasurementData = computed(() =>

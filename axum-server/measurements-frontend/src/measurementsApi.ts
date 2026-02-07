@@ -42,7 +42,8 @@ const MeasurementsCodec = t.array(MeasurementCodec)
 export const fetchMeasurements = (): TE.TaskEither<ApiError, Measurement[]> =>
   pipe(
     TE.tryCatch(
-      () => fetch(`${config.apiHost}/api/measurements?downsample=${config.downsample}`),
+      () =>
+        fetch(`${config.apiHost}/api/measurements?downsample=${config.measurements.downsample}`),
       (reason): ApiError => ({ message: getErrorMessage(reason) }),
     ),
     TE.chain(handleResponse),
