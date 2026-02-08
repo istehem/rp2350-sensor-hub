@@ -9,6 +9,7 @@ import { pipe } from 'fp-ts/function'
 import { computed, ref, onMounted } from 'vue'
 
 import * as AS from './appState.ts'
+import { getCssColorOrDefault } from './cssColors.ts'
 import config from './config.ts'
 import type { AppState, Colors, Mode } from './appState.ts'
 import TemperatureChart from './charts/TemperatureChart.vue'
@@ -25,37 +26,6 @@ const updateAppState = (f: (s: AppState) => [unknown, AppState]) => {
 
 const transferStateToVue = (f: (state: AppState) => [unknown, AppState]): T.Task<void> =>
   T.fromIO(() => updateAppState(f))
-
-const getCssColorOrDefault = (color: string, fallbackColor: string): TO.TaskOption<string> =>
-  pipe(
-    getCssColor(color),
-    TO.chain((option) =>
-      pipe(
-        option,
-        O.match(
-          () => TO.some(fallbackColor),
-          (color) => TO.some(color),
-        ),
-      ),
-    ),
-  )
-
-const getCssColor = (color: string): TO.TaskOption<O.Option<string>> =>
-  pipe(
-    getMode(),
-    TO.chain((mode) => getThemeCss(mode)),
-    TO.map((themeCss) => findColorFromCss(themeCss, color)),
-  )
-
-function findColorFromCss(themeCss: string, color: string): O.Option<string> {
-  const varRe = new RegExp(`--${color}\\s*:\\s*([^;]+);?`)
-  const m = themeCss.match(varRe)
-  const raw = m?.[1]?.trim()
-  if (raw) {
-    return O.some(raw)
-  }
-  return O.none
-}
 
 const getMode = (): TO.TaskOption<Mode> =>
   pipe(
@@ -78,18 +48,6 @@ const getModeOrDefault = (): T.Task<Mode> =>
     ),
   )
 
-const getThemeCss = (mode: Mode): TO.TaskOption<string> =>
-  pipe(
-    TO.tryCatch(() => Promise.resolve(ui('theme'))),
-    TO.chain(
-      TO.fromPredicate(
-        (theme): theme is IBeerCssTheme =>
-          typeof theme === 'object' && theme !== null && mode in theme,
-      ),
-    ),
-    TO.map((theme) => theme[mode]),
-  )
-
 const asColors =
   (primary: string) =>
   (secondary: string) =>
@@ -103,24 +61,24 @@ const asColors =
 
 const invertMode = (mode: Mode): Mode => (mode === 'light' ? 'dark' : 'light')
 
-const setColors = (): T.Task<void> =>
+const setColors = (mode: Mode): T.Task<void> =>
   pipe(
     T.of(asColors),
     T.ap(
       pipe(
-        getCssColorOrDefault('primary', AS.initialState.colors.primary),
+        getCssColorOrDefault(mode, 'primary', AS.initialState.colors.primary),
         TO.getOrElse(() => T.of(AS.initialState.colors.primary)),
       ),
     ),
     T.ap(
       pipe(
-        getCssColorOrDefault('secondary', AS.initialState.colors.secondary),
+        getCssColorOrDefault(mode, 'secondary', AS.initialState.colors.secondary),
         TO.getOrElse(() => T.of(AS.initialState.colors.secondary)),
       ),
     ),
     T.ap(
       pipe(
-        getCssColorOrDefault('surface-variant', AS.initialState.colors.surfaceVariant),
+        getCssColorOrDefault(mode, 'surface-variant', AS.initialState.colors.surfaceVariant),
         TO.getOrElse(() => T.of(AS.initialState.colors.surfaceVariant)),
       ),
     ),
@@ -129,7 +87,7 @@ const setColors = (): T.Task<void> =>
 
 const adaptToMode = (mode: Mode): T.Task<void> =>
   pipe(
-    A.sequenceT(T.ApplyPar)(transferStateToVue(AS.setMode(mode)), setColors()),
+    A.sequenceT(T.ApplyPar)(transferStateToVue(AS.setMode(mode)), setColors(mode)),
     T.map(() => {}),
   )
 
