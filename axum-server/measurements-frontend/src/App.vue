@@ -23,9 +23,6 @@ const updateAppState = (f: (s: AppState) => [unknown, AppState]) => {
   state.value = newState
 }
 
-/**
- * This causes a side effect.
- */
 const transferStateToVue = (f: (state: AppState) => [unknown, AppState]): T.Task<void> =>
   T.fromIO(() => updateAppState(f))
 
