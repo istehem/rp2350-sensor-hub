@@ -207,17 +207,13 @@ const handleMeasurements = (): T.Task<void> =>
     ),
   )
 
-onMounted(async () => {
-  await pipe(
+onMounted(() =>
+  A.sequenceT(T.ApplyPar)(
     adaptToMode(),
-    T.chain(() =>
-      A.sequenceT(T.ApplyPar)(
-        poll(handleLatestMeasurement(), config.latestMeasurement.pollEvery),
-        poll(handleMeasurements(), config.measurements.pollEvery),
-      ),
-    ),
-  )()
-})
+    poll(handleLatestMeasurement(), config.latestMeasurement.pollEvery),
+    poll(handleMeasurements(), config.measurements.pollEvery),
+  )(),
+)
 
 const latestMeasurementData = computed(() =>
   pipe(
