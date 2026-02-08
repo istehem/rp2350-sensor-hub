@@ -157,9 +157,11 @@ const toggleMode = (): T.Task<void> =>
     T.chain((mode) => T.of(setMode(mode as Mode))),
   )
 
-async function flipMode() {
-  await toggleMode()()
-  await adaptToMode()()
+async function onToggleModeClicked() {
+  await pipe(
+    toggleMode(),
+    T.chain(() => adaptToMode()),
+  )()
 }
 
 const poll = (task: T.Task<void>, delayMs: number): T.Task<never> =>
@@ -235,14 +237,14 @@ const measurementsError = computed(() => state.value.measurementsApiError)
 
 const colors = computed(() => state.value.colors)
 
-const switchModeIcon = computed(() => (state.value.mode === 'light' ? 'dark_mode' : 'light_mode'))
+const toggleModeIcon = computed(() => (state.value.mode === 'light' ? 'dark_mode' : 'light_mode'))
 </script>
 
 <template>
   <header class="fixed">
     <nav>
-      <button class="circle transparent primary-text" @click="flipMode">
-        <i>{{ switchModeIcon }}</i>
+      <button class="circle transparent primary-text" @click="onToggleModeClicked">
+        <i>{{ toggleModeIcon }}</i>
       </button>
       <h6 class="max">Measurements</h6>
     </nav>
