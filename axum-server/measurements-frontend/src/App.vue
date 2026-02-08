@@ -64,24 +64,9 @@ const invertMode = (mode: Mode): Mode => (mode === 'light' ? 'dark' : 'light')
 const setColors = (mode: Mode): T.Task<void> =>
   pipe(
     T.of(asColors),
-    T.ap(
-      pipe(
-        getCssColorOrDefault(mode, 'primary', AS.initialState.colors.primary),
-        TO.getOrElse(() => T.of(AS.initialState.colors.primary)),
-      ),
-    ),
-    T.ap(
-      pipe(
-        getCssColorOrDefault(mode, 'secondary', AS.initialState.colors.secondary),
-        TO.getOrElse(() => T.of(AS.initialState.colors.secondary)),
-      ),
-    ),
-    T.ap(
-      pipe(
-        getCssColorOrDefault(mode, 'surface-variant', AS.initialState.colors.surfaceVariant),
-        TO.getOrElse(() => T.of(AS.initialState.colors.surfaceVariant)),
-      ),
-    ),
+    T.ap(getCssColorOrDefault(mode, 'primary', AS.initialState.colors.primary)),
+    T.ap(getCssColorOrDefault(mode, 'secondary', AS.initialState.colors.secondary)),
+    T.ap(getCssColorOrDefault(mode, 'surface-variant', AS.initialState.colors.surfaceVariant)),
     T.chain((colors) => transferStateToVue(AS.setColors(colors))),
   )
 

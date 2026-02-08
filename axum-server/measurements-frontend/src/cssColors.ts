@@ -1,5 +1,6 @@
 import * as O from 'fp-ts/Option'
 import * as TO from 'fp-ts/TaskOption'
+import * as T from 'fp-ts/Task'
 import { pipe } from 'fp-ts/function'
 import type { Mode } from './appState.ts'
 
@@ -35,7 +36,7 @@ export const getCssColorOrDefault = (
   mode: Mode,
   color: string,
   fallbackColor: string,
-): TO.TaskOption<string> =>
+): T.Task<string> =>
   pipe(
     getCssColor(mode, color),
     TO.chain((option) =>
@@ -47,4 +48,5 @@ export const getCssColorOrDefault = (
         ),
       ),
     ),
+    TO.getOrElse(() => T.of(fallbackColor)),
   )
