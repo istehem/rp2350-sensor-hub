@@ -27,6 +27,12 @@ const updateAppState = (f: (s: AppState) => [unknown, AppState]) => {
 const transferStateToVue = (f: (state: AppState) => [unknown, AppState]): T.Task<void> =>
   T.fromIO(() => updateAppState(f))
 
+const invertMode = (mode: Mode): Mode => (mode === 'light' ? 'dark' : 'light')
+
+const setMode = (mode: Mode) => {
+  ui('mode', mode)
+}
+
 const getMode = (): TO.TaskOption<Mode> =>
   pipe(
     TO.tryCatch(() => Promise.resolve(ui('mode'))),
@@ -48,6 +54,13 @@ const getModeOrDefault = (): T.Task<Mode> =>
     ),
   )
 
+const toggleMode = (): T.Task<Mode> =>
+  pipe(
+    getModeOrDefault(),
+    T.chain((mode) => T.of(invertMode(mode))),
+    T.chain((invertedMode) => pipe(setMode(invertedMode), () => T.of(invertedMode))),
+  )
+
 const asColors =
   (primary: string) =>
   (secondary: string) =>
@@ -58,8 +71,6 @@ const asColors =
       surfaceVariant,
     }
   }
-
-const invertMode = (mode: Mode): Mode => (mode === 'light' ? 'dark' : 'light')
 
 const setColors = (mode: Mode): T.Task<void> =>
   pipe(
@@ -74,17 +85,6 @@ const adaptToMode = (mode: Mode): T.Task<void> =>
   pipe(
     A.sequenceT(T.ApplyPar)(transferStateToVue(AS.setMode(mode)), setColors(mode)),
     T.map(() => {}),
-  )
-
-const setMode = (mode: Mode) => {
-  ui('mode', mode)
-}
-
-const toggleMode = (): T.Task<Mode> =>
-  pipe(
-    getModeOrDefault(),
-    T.chain((mode) => T.of(invertMode(mode))),
-    T.chain((invertedMode) => pipe(setMode(invertedMode), () => T.of(invertedMode))),
   )
 
 const poll = (task: T.Task<void>, delayMs: number): T.Task<never> =>
@@ -156,6 +156,7 @@ const latestMeasurementData = computed(() =>
     ),
   ),
 )
+
 const latestMeasurementError = computed(() =>
   pipe(
     state.value.latestMeasurementApiError,
