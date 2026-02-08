@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import * as A from 'fp-ts/Apply'
 import * as E from 'fp-ts/Either'
 import * as O from 'fp-ts/Option'
 import * as S from 'fp-ts/State'
@@ -112,21 +113,26 @@ const setColors = (): T.Task<void> =>
     T.chain((colors) => transferStateToVue(AS.setColors(colors))),
   )
 
-const toggleMode = (): T.Task<void> =>
+const adaptToMode = (): T.Task<void> =>
   pipe(
-    getMode(),
-    T.chain((mode) =>
+    A.sequenceT(T.ApplyPar)(
       pipe(
-        mode,
-        O.match(
-          () => 'light',
-          (mode) => (mode === 'light' ? 'dark' : 'light'),
+        getMode(),
+        T.chain((mode) =>
+          pipe(
+            mode,
+            O.match(
+              () => 'light',
+              (mode) => (mode === 'light' ? 'dark' : 'light'),
+            ),
+            T.of,
+          ),
         ),
-        T.of,
+        T.chain((mode) => transferStateToVue(AS.setMode(mode as Mode))),
       ),
+      setColors(),
     ),
-    T.chain((mode) => transferStateToVue(AS.setMode(mode as Mode))),
-    T.chain(() => setColors()),
+    T.map(() => {}),
   )
 
 async function flipMode() {
@@ -136,7 +142,7 @@ async function flipMode() {
   } else {
     ui('mode', 'light')
   }
-  await toggleMode()()
+  await adaptToMode()()
 }
 
 const poll = (task: T.Task<void>, delayMs: number): T.Task<never> =>
@@ -183,7 +189,7 @@ const handleMeasurements = (): T.Task<void> =>
   )
 
 onMounted(async () => {
-  await toggleMode()()
+  await adaptToMode()()
   poll(handleLatestMeasurement(), config.latestMeasurement.pollEvery)()
   poll(handleMeasurements(), config.measurements.pollEvery)()
 })
