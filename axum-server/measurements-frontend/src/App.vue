@@ -124,13 +124,13 @@ const adaptToMode = (): T.Task<void> =>
           pipe(
             mode,
             O.match(
-              () => 'dark',
-              (mode) => inverseMode(mode),
+              () => 'dark' as Mode,
+              (mode) => mode,
             ),
             T.of,
           ),
         ),
-        T.chain((mode) => transferStateToVue(AS.setMode(mode as Mode))),
+        T.chain((mode) => transferStateToVue(AS.setMode(mode))),
       ),
       setColors(),
     ),
