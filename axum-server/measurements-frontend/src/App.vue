@@ -145,12 +145,11 @@ const handleMeasurements = (): T.Task<void> =>
     ),
   )
 
-async function onToggleModeClicked() {
+const onToggleModeClicked = async () =>
   await pipe(
     toggleMode(),
     T.chain((mode) => adaptToMode(mode)),
   )()
-}
 
 onMounted(() =>
   A.sequenceT(T.ApplyPar)(
