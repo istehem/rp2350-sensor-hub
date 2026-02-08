@@ -89,6 +89,8 @@ const asColors =
     }
   }
 
+const inverseMode = (mode: Mode): Mode => (mode === 'light' ? 'dark' : 'light')
+
 const setColors = (): T.Task<void> =>
   pipe(
     T.of(asColors),
@@ -122,8 +124,8 @@ const adaptToMode = (): T.Task<void> =>
           pipe(
             mode,
             O.match(
-              () => 'light',
-              (mode) => (mode === 'light' ? 'dark' : 'light'),
+              () => 'dark',
+              (mode) => inverseMode(mode),
             ),
             T.of,
           ),
@@ -135,13 +137,28 @@ const adaptToMode = (): T.Task<void> =>
     T.map(() => {}),
   )
 
+const setMode = (mode: Mode) => {
+  ui('mode', mode)
+}
+
+const toggleMode = (): T.Task<void> =>
+  pipe(
+    getMode(),
+    T.chain((mode) =>
+      pipe(
+        mode,
+        O.match(
+          () => 'dark',
+          (mode) => inverseMode(mode),
+        ),
+        T.of,
+      ),
+    ),
+    T.chain((mode) => T.of(setMode(mode as Mode))),
+  )
+
 async function flipMode() {
-  const mode = await ui('mode')
-  if (mode === 'light') {
-    ui('mode', 'dark')
-  } else {
-    ui('mode', 'light')
-  }
+  await toggleMode()()
   await adaptToMode()()
 }
 
