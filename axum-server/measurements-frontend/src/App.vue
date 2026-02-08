@@ -66,6 +66,21 @@ const getMode = (): TO.TaskOption<Mode> =>
     TO.chain(TO.fromPredicate((mode) => mode === 'dark' || mode == 'light')),
   )
 
+const getModeOrDefault = (): T.Task<Mode> =>
+  pipe(
+    getMode(),
+    T.chain((mode) =>
+      pipe(
+        mode,
+        O.match(
+          () => AS.initialState.mode,
+          (mode) => mode,
+        ),
+        T.of,
+      ),
+    ),
+  )
+
 const getThemeCss = (mode: Mode): TO.TaskOption<string> =>
   pipe(
     TO.tryCatch(() => Promise.resolve(ui('theme'))),
@@ -89,7 +104,7 @@ const asColors =
     }
   }
 
-const inverseMode = (mode: Mode): Mode => (mode === 'light' ? 'dark' : 'light')
+const invertMode = (mode: Mode): Mode => (mode === 'light' ? 'dark' : 'light')
 
 const setColors = (): T.Task<void> =>
   pipe(
@@ -115,25 +130,9 @@ const setColors = (): T.Task<void> =>
     T.chain((colors) => transferStateToVue(AS.setColors(colors))),
   )
 
-const adaptToMode = (): T.Task<void> =>
+const adaptToMode = (mode: Mode): T.Task<void> =>
   pipe(
-    A.sequenceT(T.ApplyPar)(
-      pipe(
-        getMode(),
-        T.chain((mode) =>
-          pipe(
-            mode,
-            O.match(
-              () => 'dark' as Mode,
-              (mode) => mode,
-            ),
-            T.of,
-          ),
-        ),
-        T.chain((mode) => transferStateToVue(AS.setMode(mode))),
-      ),
-      setColors(),
-    ),
+    A.sequenceT(T.ApplyPar)(transferStateToVue(AS.setMode(mode)), setColors()),
     T.map(() => {}),
   )
 
@@ -141,20 +140,11 @@ const setMode = (mode: Mode) => {
   ui('mode', mode)
 }
 
-const toggleMode = (): T.Task<void> =>
+const toggleMode = (): T.Task<Mode> =>
   pipe(
-    getMode(),
-    T.chain((mode) =>
-      pipe(
-        mode,
-        O.match(
-          () => 'dark',
-          (mode) => inverseMode(mode),
-        ),
-        T.of,
-      ),
-    ),
-    T.chain((mode) => T.of(setMode(mode as Mode))),
+    getModeOrDefault(),
+    T.chain((mode) => T.of(invertMode(mode))),
+    T.chain((invertedMode) => pipe(setMode(invertedMode), () => T.of(invertedMode))),
   )
 
 const poll = (task: T.Task<void>, delayMs: number): T.Task<never> =>
@@ -203,13 +193,16 @@ const handleMeasurements = (): T.Task<void> =>
 async function onToggleModeClicked() {
   await pipe(
     toggleMode(),
-    T.chain(() => adaptToMode()),
+    T.chain((mode) => adaptToMode(mode)),
   )()
 }
 
 onMounted(() =>
   A.sequenceT(T.ApplyPar)(
-    adaptToMode(),
+    pipe(
+      getModeOrDefault(),
+      T.chain((mode) => adaptToMode(mode)),
+    ),
     poll(handleLatestMeasurement(), config.latestMeasurement.pollEvery),
     poll(handleMeasurements(), config.measurements.pollEvery),
   )(),
