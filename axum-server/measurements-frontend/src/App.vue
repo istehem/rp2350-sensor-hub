@@ -9,13 +9,11 @@ import { computed, ref, onMounted } from 'vue'
 
 import * as AS from './appState.ts'
 import config from './config.ts'
-import type { AppState } from './appState.ts'
+import type { AppState, Colors, Mode } from './appState.ts'
 import TemperatureChart from './charts/TemperatureChart.vue'
 import HumidityChart from './charts/HumidityChart.vue'
 import ErrorPanel from './ErrorPanel.vue'
 import { fetchLatestMeasurement, fetchMeasurements } from './measurementsApi.ts'
-
-const switchModeIcon = ref<string>('dark_mode')
 
 const state = ref(AS.initialState)
 
@@ -23,8 +21,6 @@ const updateAppState = (f: (s: AppState) => [unknown, AppState]) => {
   const [, newState] = f(state.value)
   state.value = newState
 }
-
-type Mode = 'dark' | 'light'
 
 /**
  * This causes a side effect.
@@ -81,33 +77,57 @@ const getThemeCss = (mode: Mode): TO.TaskOption<string> =>
     TO.map((theme) => theme[mode]),
   )
 
-async function toggleSwitchModeIcon() {
-  const mode = await ui('mode')
-  if (mode === 'light') {
-    switchModeIcon.value = 'dark_mode'
-  } else {
-    switchModeIcon.value = 'light_mode'
-  }
-  const primary = pipe(
-    await getCssColorOrDefault('primary', AS.initialState.colors.primary)(),
-    O.getOrElse(() => AS.initialState.colors.primary),
-  )
-  const secondary = pipe(
-    await getCssColorOrDefault('secondary', AS.initialState.colors.secondary)(),
-    O.getOrElse(() => AS.initialState.colors.secondary),
-  )
-  const surfaceVariant = pipe(
-    await getCssColorOrDefault('surface-variant', AS.initialState.colors.surfaceVariant)(),
-    O.getOrElse(() => AS.initialState.colors.surfaceVariant),
-  )
-  updateAppState(
-    AS.setColors({
+const asColors =
+  (primary: string) =>
+  (secondary: string) =>
+  (surfaceVariant: string): Colors => {
+    return {
       primary,
       secondary,
       surfaceVariant,
-    }),
+    }
+  }
+
+const setColors = (): T.Task<void> =>
+  pipe(
+    T.of(asColors),
+    T.ap(
+      pipe(
+        getCssColorOrDefault('primary', AS.initialState.colors.primary),
+        TO.getOrElse(() => T.of(AS.initialState.colors.primary)),
+      ),
+    ),
+    T.ap(
+      pipe(
+        getCssColorOrDefault('secondary', AS.initialState.colors.secondary),
+        TO.getOrElse(() => T.of(AS.initialState.colors.secondary)),
+      ),
+    ),
+    T.ap(
+      pipe(
+        getCssColorOrDefault('surface-variant', AS.initialState.colors.surfaceVariant),
+        TO.getOrElse(() => T.of(AS.initialState.colors.surfaceVariant)),
+      ),
+    ),
+    T.chain((colors) => transferStateToVue(AS.setColors(colors))),
   )
-}
+
+const toggleMode = (): T.Task<void> =>
+  pipe(
+    getMode(),
+    T.chain((mode) =>
+      pipe(
+        mode,
+        O.match(
+          () => 'light',
+          (mode) => (mode === 'light' ? 'dark' : 'light'),
+        ),
+        T.of,
+      ),
+    ),
+    T.chain((mode) => transferStateToVue(AS.setMode(mode as Mode))),
+    T.chain(() => setColors()),
+  )
 
 async function flipMode() {
   const mode = await ui('mode')
@@ -116,7 +136,7 @@ async function flipMode() {
   } else {
     ui('mode', 'light')
   }
-  await toggleSwitchModeIcon()
+  await toggleMode()()
 }
 
 const poll = (task: T.Task<void>, delayMs: number): T.Task<never> =>
@@ -163,7 +183,7 @@ const handleMeasurements = (): T.Task<void> =>
   )
 
 onMounted(async () => {
-  toggleSwitchModeIcon()
+  await toggleMode()()
   poll(handleLatestMeasurement(), config.latestMeasurement.pollEvery)()
   poll(handleMeasurements(), config.measurements.pollEvery)()
 })
@@ -191,6 +211,8 @@ const measurements = computed(() => state.value.measurements)
 const measurementsError = computed(() => state.value.measurementsApiError)
 
 const colors = computed(() => state.value.colors)
+
+const switchModeIcon = computed(() => (state.value.mode === 'light' ? 'dark_mode' : 'light_mode'))
 </script>
 
 <template>
