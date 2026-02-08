@@ -157,13 +157,6 @@ const toggleMode = (): T.Task<void> =>
     T.chain((mode) => T.of(setMode(mode as Mode))),
   )
 
-async function onToggleModeClicked() {
-  await pipe(
-    toggleMode(),
-    T.chain(() => adaptToMode()),
-  )()
-}
-
 const poll = (task: T.Task<void>, delayMs: number): T.Task<never> =>
   pipe(
     task,
@@ -207,6 +200,13 @@ const handleMeasurements = (): T.Task<void> =>
     ),
   )
 
+async function onToggleModeClicked() {
+  await pipe(
+    toggleMode(),
+    T.chain(() => adaptToMode()),
+  )()
+}
+
 onMounted(() =>
   A.sequenceT(T.ApplyPar)(
     adaptToMode(),
@@ -236,9 +236,7 @@ const latestMeasurementError = computed(() =>
 
 const measurements = computed(() => state.value.measurements)
 const measurementsError = computed(() => state.value.measurementsApiError)
-
 const colors = computed(() => state.value.colors)
-
 const toggleModeIcon = computed(() => (state.value.mode === 'light' ? 'dark_mode' : 'light_mode'))
 </script>
 
