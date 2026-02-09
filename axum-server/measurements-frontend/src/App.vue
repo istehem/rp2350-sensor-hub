@@ -8,7 +8,7 @@ import { pipe } from 'fp-ts/function'
 import { computed, ref, onMounted } from 'vue'
 
 import * as AS from './appState.ts'
-import * as css from './cssColors.ts'
+import * as css from './cssManager.ts'
 import config from './config.ts'
 import type { AppState, Colors, Mode } from './appState.ts'
 import TemperatureChart from './charts/TemperatureChart.vue'
@@ -25,10 +25,6 @@ const updateAppState = (f: (s: AppState) => [unknown, AppState]) => {
 
 const transferStateToVue = (f: (state: AppState) => [unknown, AppState]): T.Task<void> =>
   T.fromIO(() => updateAppState(f))
-
-const getModeOrDefault = (): T.Task<Mode> => css.getModeOrDefault(AS.initialState.mode)
-
-const toggleMode = (): T.Task<Mode> => css.toggleModeOrDefault(AS.initialState.mode)
 
 const asColors =
   (primary: string) =>
@@ -101,14 +97,14 @@ const handleMeasurements = (): T.Task<void> =>
 
 const onToggleModeClicked = async () =>
   await pipe(
-    toggleMode(),
+    css.toggleModeOrDefault(AS.initialState.mode),
     T.chain((mode) => adaptToMode(mode)),
   )()
 
 onMounted(() =>
   A.sequenceT(T.ApplyPar)(
     pipe(
-      getModeOrDefault(),
+      css.getModeOrDefault(AS.initialState.mode),
       T.chain((mode) => adaptToMode(mode)),
     ),
     poll(handleLatestMeasurement(), config.latestMeasurement.pollEvery),
