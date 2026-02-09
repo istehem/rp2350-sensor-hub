@@ -4,6 +4,40 @@ import * as T from 'fp-ts/Task'
 import { pipe } from 'fp-ts/function'
 import type { Mode } from './appState.ts'
 
+const invertMode = (mode: Mode): Mode => (mode === 'light' ? 'dark' : 'light')
+
+const setMode = (mode: Mode) => {
+  ui('mode', mode)
+}
+
+const getMode = (): TO.TaskOption<Mode> =>
+  pipe(
+    TO.tryCatch(() => Promise.resolve(ui('mode'))),
+    TO.chain(TO.fromPredicate((mode) => mode === 'dark' || mode == 'light')),
+  )
+
+export const getModeOrDefault = (defaultMode: Mode): T.Task<Mode> =>
+  pipe(
+    getMode(),
+    T.chain((mode) =>
+      pipe(
+        mode,
+        O.match(
+          () => defaultMode,
+          (mode) => mode,
+        ),
+        T.of,
+      ),
+    ),
+  )
+
+export const toggleModeOrDefault = (defaultMode: Mode): T.Task<Mode> =>
+  pipe(
+    getModeOrDefault(defaultMode),
+    T.chain((mode) => T.of(invertMode(mode))),
+    T.chain((invertedMode) => pipe(setMode(invertedMode), () => T.of(invertedMode))),
+  )
+
 const findColorFromCss = (themeCss: string, color: string): O.Option<string> => {
   const varRe = new RegExp(`--${color}\\s*:\\s*([^;]+);?`)
   const m = themeCss.match(varRe)

@@ -4,12 +4,11 @@ import * as E from 'fp-ts/Either'
 import * as O from 'fp-ts/Option'
 import * as S from 'fp-ts/State'
 import * as T from 'fp-ts/Task'
-import * as TO from 'fp-ts/TaskOption'
 import { pipe } from 'fp-ts/function'
 import { computed, ref, onMounted } from 'vue'
 
 import * as AS from './appState.ts'
-import { getCssColorOrDefault } from './cssColors.ts'
+import * as css from './cssColors.ts'
 import config from './config.ts'
 import type { AppState, Colors, Mode } from './appState.ts'
 import TemperatureChart from './charts/TemperatureChart.vue'
@@ -27,39 +26,9 @@ const updateAppState = (f: (s: AppState) => [unknown, AppState]) => {
 const transferStateToVue = (f: (state: AppState) => [unknown, AppState]): T.Task<void> =>
   T.fromIO(() => updateAppState(f))
 
-const invertMode = (mode: Mode): Mode => (mode === 'light' ? 'dark' : 'light')
+const getModeOrDefault = (): T.Task<Mode> => css.getModeOrDefault(AS.initialState.mode)
 
-const setMode = (mode: Mode) => {
-  ui('mode', mode)
-}
-
-const getMode = (): TO.TaskOption<Mode> =>
-  pipe(
-    TO.tryCatch(() => Promise.resolve(ui('mode'))),
-    TO.chain(TO.fromPredicate((mode) => mode === 'dark' || mode == 'light')),
-  )
-
-const getModeOrDefault = (): T.Task<Mode> =>
-  pipe(
-    getMode(),
-    T.chain((mode) =>
-      pipe(
-        mode,
-        O.match(
-          () => AS.initialState.mode,
-          (mode) => mode,
-        ),
-        T.of,
-      ),
-    ),
-  )
-
-const toggleMode = (): T.Task<Mode> =>
-  pipe(
-    getModeOrDefault(),
-    T.chain((mode) => T.of(invertMode(mode))),
-    T.chain((invertedMode) => pipe(setMode(invertedMode), () => T.of(invertedMode))),
-  )
+const toggleMode = (): T.Task<Mode> => css.toggleModeOrDefault(AS.initialState.mode)
 
 const asColors =
   (primary: string) =>
@@ -75,9 +44,9 @@ const asColors =
 const setColors = (mode: Mode): T.Task<void> =>
   pipe(
     T.of(asColors),
-    T.ap(getCssColorOrDefault(mode, 'primary', AS.initialState.colors.primary)),
-    T.ap(getCssColorOrDefault(mode, 'secondary', AS.initialState.colors.secondary)),
-    T.ap(getCssColorOrDefault(mode, 'surface-variant', AS.initialState.colors.surfaceVariant)),
+    T.ap(css.getCssColorOrDefault(mode, 'primary', AS.initialState.colors.primary)),
+    T.ap(css.getCssColorOrDefault(mode, 'secondary', AS.initialState.colors.secondary)),
+    T.ap(css.getCssColorOrDefault(mode, 'surface-variant', AS.initialState.colors.surfaceVariant)),
     T.chain((colors) => transferStateToVue(AS.setColors(colors))),
   )
 
