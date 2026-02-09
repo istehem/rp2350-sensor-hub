@@ -40,9 +40,9 @@ const asColors =
 const setColors = (mode: Mode): T.Task<void> =>
   pipe(
     T.of(asColors),
-    T.ap(css.getCssColorOrDefault(mode, 'primary', AS.initialState.colors.primary)),
-    T.ap(css.getCssColorOrDefault(mode, 'secondary', AS.initialState.colors.secondary)),
-    T.ap(css.getCssColorOrDefault(mode, 'surface-variant', AS.initialState.colors.surfaceVariant)),
+    T.ap(css.getColorOrDefault(mode, 'primary', AS.initialState.colors.primary)),
+    T.ap(css.getColorOrDefault(mode, 'secondary', AS.initialState.colors.secondary)),
+    T.ap(css.getColorOrDefault(mode, 'surface-variant', AS.initialState.colors.surfaceVariant)),
     T.chain((colors) => transferStateToVue(AS.setColors(colors))),
   )
 

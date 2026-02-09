@@ -38,9 +38,9 @@ export const toggleModeOrDefault = (defaultMode: Mode): T.Task<Mode> =>
     T.chain((invertedMode) => pipe(setMode(invertedMode), () => T.of(invertedMode))),
   )
 
-const findColorFromCss = (themeCss: string, color: string): O.Option<string> => {
+const findColorInTheme = (theme: string, color: string): O.Option<string> => {
   const varRe = new RegExp(`--${color}\\s*:\\s*([^;]+);?`)
-  const m = themeCss.match(varRe)
+  const m = theme.match(varRe)
   const raw = m?.[1]?.trim()
   if (raw) {
     return O.some(raw)
@@ -48,7 +48,7 @@ const findColorFromCss = (themeCss: string, color: string): O.Option<string> => 
   return O.none
 }
 
-const getThemeCss = (mode: Mode): TO.TaskOption<string> =>
+const getTheme = (mode: Mode): TO.TaskOption<string> =>
   pipe(
     TO.tryCatch(() => Promise.resolve(ui('theme'))),
     TO.chain(
@@ -60,19 +60,19 @@ const getThemeCss = (mode: Mode): TO.TaskOption<string> =>
     TO.map((theme) => theme[mode]),
   )
 
-const getCssColor = (mode: Mode, color: string): TO.TaskOption<O.Option<string>> =>
+const getColor = (mode: Mode, color: string): TO.TaskOption<O.Option<string>> =>
   pipe(
-    getThemeCss(mode),
-    TO.map((themeCss) => findColorFromCss(themeCss, color)),
+    getTheme(mode),
+    TO.map((theme) => findColorInTheme(theme, color)),
   )
 
-export const getCssColorOrDefault = (
+export const getColorOrDefault = (
   mode: Mode,
   color: string,
   fallbackColor: string,
 ): T.Task<string> =>
   pipe(
-    getCssColor(mode, color),
+    getColor(mode, color),
     TO.chain((option) =>
       pipe(
         option,
