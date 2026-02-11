@@ -91,6 +91,11 @@ build-server:
 build-server-image: stage-frontend
   podman compose -f {{PROJECT_ROOT}}/axum-server/docker-compose.yaml build
 
+# build the server podman image
+[group: 'publish']
+push-server-image: build-server-image
+  podman compose -f {{PROJECT_ROOT}}/axum-server/docker-compose.yaml push
+
 # lint the server
 [group: 'lint']
 clippy-server:
