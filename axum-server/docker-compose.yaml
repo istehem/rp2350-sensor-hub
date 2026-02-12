@@ -5,6 +5,7 @@ services:
       args:
         - REST_USER=${REST_USER}
         - REST_USER_PASSWORD=${REST_USER_PASSWORD}
+        - ARCH_TARGET=${ARCH_TARGET}
     image: localhost:5002/axum-server:latest
     ports:
       - "5000:5000"
