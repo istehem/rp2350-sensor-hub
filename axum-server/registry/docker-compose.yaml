@@ -5,7 +5,7 @@ services:
       - "5002:5000"
     restart: always
     volumes:
-      - registry-data:/var/lib/registry
-
-volumes:
-  registry-data:
+      - ./registry-data:/var/lib/registry
+      - ./config.yml:/etc/distribution/config.yml
+    environment:
+      REGISTRY_STORAGE_DELETE_ENABLED=true

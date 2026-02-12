@@ -91,10 +91,26 @@ build-server:
 build-server-image: stage-frontend
   podman compose -f {{PROJECT_ROOT}}/axum-server/docker-compose.yaml build
 
-# build the server podman image
+# publish the server image to a registry
 [group: 'publish']
 push-server-image: build-server-image
-  podman compose -f {{PROJECT_ROOT}}/axum-server/docker-compose.yaml push
+  podman push --tls-verify=false localhost:5002/axum-server
+
+# list tags for the server image in the repository
+[group: 'registry']
+registry-list-tags:
+  curl http://localhost:5002/v2/axum-server/tags/list | jq '.'
+
+# list digests for the 'latest' tag for the server image in the repository
+[group: 'registry']
+registry-list-digests:
+  curl -H "Accept: application/vnd.oci.image.manifest.v1+json" -I http://localhost:5002/v2/axum-server/manifests/latest
+
+# remove a digest for the server image in the repository
+[group: 'registry']
+registry-delete DIGEST:
+  curl -X DELETE http://localhost:5002/v2/axum-server/manifests/{{DIGEST}}
+  podman exec registry_registry_1 registry garbage-collect /etc/distribution/config.yml
 
 # lint the server
 [group: 'lint']
