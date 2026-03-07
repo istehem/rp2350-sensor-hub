@@ -109,7 +109,7 @@ build-server-image-arm: stage-frontend
 
 # publish the server image to a registry
 [group: 'publish']
-push-server-image-amd: build-server-image-amd
+push-server-image: build-server-image-amd build-server-image-arm
   podman manifest push --tls-verify=false {{DOCKER_REGISTRY}}/axum-server:latest
 
 # list tags for the server image in the repository
