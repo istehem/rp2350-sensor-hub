@@ -1,6 +1,10 @@
 export MEASUREMENTS_ENDPOINT := "http://192.168.132.170:5000/api/measurements"
 PROJECT_ROOT := justfile_directory()
 
+DOCKER_REGISTRY := "localhost:5002"
+SERVER_MANIFEST := DOCKER_REGISTRY + "/axum-server:latest"
+SERVER_BUILD_ARGS := "--build-arg REST_USER=$REST_USER --build-arg REST_USER_PASSWORD=$REST_USER_PASSWORD"
+
 set dotenv-required
 set dotenv-path := "hub.env"
 
@@ -81,40 +85,47 @@ clippy-all-pico:
 clippy-all-pico-no-temperature:
   cargo clippy --all -- --deny=warnings
 
+# enable an execution of different multi-architecture containers by QEMU 1 and binfmt_misc
+[group: 'setup']
+setup-multi-arch-build:
+  sudo podman run --rm --privileged docker.io/multiarch/qemu-user-static --reset -p yes
+
 # build the server
 [group: 'build']
 build-server:
   cargo build --manifest-path ./axum-server/Cargo.toml --target=x86_64-unknown-linux-gnu
 
-# build the server podman image
+# build the server podman image for amd64
 [group: 'build']
-build-server-image: stage-frontend
-  podman compose -f {{PROJECT_ROOT}}/axum-server/docker-compose.yaml build
+build-server-image-amd: stage-frontend
+  podman build --platform linux/amd64 --manifest {{SERVER_MANIFEST}} {{SERVER_BUILD_ARGS}} \
+      -t {{DOCKER_REGISTRY}}/axum-server:amd64 -f {{PROJECT_ROOT}}/axum-server/Dockerfile {{PROJECT_ROOT}}/axum-server
 
-# build the server podman image form arm64
+# build the server podman image for arm64
 [group: 'build']
 build-server-image-arm: stage-frontend
-  podman build --platform linux/arm64 -t localhost:5002/axum-server-arm:latest -f {{PROJECT_ROOT}}/axum-server/Dockerfile {{PROJECT_ROOT}}/axum-server
+  podman build --platform linux/arm64 --manifest {{SERVER_MANIFEST}} {{SERVER_BUILD_ARGS}} \
+      -t {{DOCKER_REGISTRY}}/axum-server:arm64 -f {{PROJECT_ROOT}}/axum-server/Dockerfile {{PROJECT_ROOT}}/axum-server
 
 # publish the server image to a registry
 [group: 'publish']
-push-server-image: build-server-image
-  podman push --tls-verify=false localhost:5002/axum-server
+push-server-image-amd: build-server-image-amd
+  podman manifest push --tls-verify=false {{DOCKER_REGISTRY}}/axum-server:latest
 
 # list tags for the server image in the repository
 [group: 'registry']
 registry-list-tags:
-  curl http://localhost:5002/v2/axum-server/tags/list | jq '.'
+  curl {{DOCKER_REGISTRY}}/v2/axum-server/tags/list | jq '.'
 
 # list digests for the 'latest' tag for the server image in the repository
 [group: 'registry']
 registry-list-digests:
-  curl -H "Accept: application/vnd.oci.image.manifest.v1+json" -I http://localhost:5002/v2/axum-server/manifests/latest
+  curl -H "Accept: application/vnd.oci.image.manifest.v1+json" -I {{DOCKER_REGISTRY}}/v2/axum-server/manifests/latest
 
 # remove a digest for the server image in the repository
 [group: 'registry']
 registry-delete DIGEST:
-  curl -X DELETE http://localhost:5002/v2/axum-server/manifests/{{DIGEST}}
+  curl -X DELETE {{DOCKER_REGISTRY}}/v2/axum-server/manifests/{{DIGEST}}
   podman exec registry_registry_1 registry garbage-collect /etc/distribution/config.yml
 
 # lint the server
@@ -134,7 +145,7 @@ run-pico-no-temperature:
 
 # run the server in podman
 [group: 'run']
-run-server: build-server-image
+run-server: build-server-image-amd
   podman compose -f {{PROJECT_ROOT}}/axum-server/docker-compose.yaml up --force-recreate -d
 
 # use before git push
