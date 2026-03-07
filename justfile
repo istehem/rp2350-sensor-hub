@@ -89,12 +89,12 @@ build-server:
 # build the server podman image
 [group: 'build']
 build-server-image: stage-frontend
-  ARCH_TARGET=x86_64-unknown-linux-gnu podman compose -f {{PROJECT_ROOT}}/axum-server/docker-compose.yaml build
+  podman compose -f {{PROJECT_ROOT}}/axum-server/docker-compose.yaml build
 
 # build the server podman image form arm64
 [group: 'build']
 build-server-image-arm: stage-frontend
-  ARCH_TARGET=aarch64-unknown-linux-gnu podman compose -f {{PROJECT_ROOT}}/axum-server/docker-compose.yaml build
+  podman build --platform linux/arm64 -t localhost:5002/axum-server-arm:latest -f {{PROJECT_ROOT}}/axum-server/Dockerfile {{PROJECT_ROOT}}/axum-server
 
 # publish the server image to a registry
 [group: 'publish']
