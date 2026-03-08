@@ -1,7 +1,7 @@
 export MEASUREMENTS_ENDPOINT := "http://192.168.132.170:5000/api/measurements"
 PROJECT_ROOT := justfile_directory()
 
-DOCKER_REGISTRY := "localhost:5002"
+DOCKER_REGISTRY := "192.168.132.170:5002"
 SERVER_MANIFEST := DOCKER_REGISTRY + "/axum-server:latest"
 SERVER_BUILD_ARGS := "--build-arg REST_USER=$REST_USER --build-arg REST_USER_PASSWORD=$REST_USER_PASSWORD"
 
@@ -145,7 +145,7 @@ run-pico-no-temperature:
 
 # run the server in podman
 [group: 'run']
-run-server: build-server-image-amd
+run-server:
   podman compose -f {{PROJECT_ROOT}}/axum-server/docker-compose.yaml up --force-recreate -d
 
 # use before git push

@@ -1,5 +1,6 @@
 services:
   server:
+    image: 192.168.132.170:5002/axum-server:latest
     ports:
       - "5000:5000"
     restart: always
