@@ -7,6 +7,7 @@ use embedded_graphics::{
 use core::cmp::Ordering;
 use rand::distr::{Distribution, StandardUniform};
 use rand::Rng;
+use rand::RngExt;
 
 use crate::aliases::{Display, DrawTarget};
 use crate::utils;

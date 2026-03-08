@@ -64,7 +64,7 @@ embassy-dht-rp2350-sensor = { path = "./crates/embassy-dht-rp2350-sensor", optio
 
 [workspace.dependencies]
 embedded-graphics = "0.8.1"
-rand = { version = "0.9.2", features = ["small_rng"], default-features = false }
+rand = { version = "0.10.0", default-features = false }
 trait-set = "0.3.0"
 u8g2-fonts = "0.7.2"
 

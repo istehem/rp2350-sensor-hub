@@ -2,7 +2,7 @@ use core::fmt;
 use core::ops::Sub;
 use pico_display::dice::Dice;
 use pico_display::die::{Die, FaceValue};
-use rand::Rng;
+use rand::RngExt;
 use rand::rngs::SmallRng;
 
 impl fmt::Display for NumberOfDice {
