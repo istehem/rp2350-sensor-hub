@@ -54,9 +54,7 @@ pub async fn spawn_tasks(
     i2c: I2c<'static, I2C1, embassy_rp::i2c::Async>,
 ) {
     let roll_channel = ROLL_CHANNEL.init(Channel::new());
-    spawner
-        .spawn(break_beam_roller_task(sensor, led_channel, roll_channel))
-        .unwrap();
+    spawner.spawn(break_beam_roller_task(sensor, led_channel, roll_channel).unwrap());
 
     let interface = I2CDisplayInterface::new(i2c);
 
@@ -75,23 +73,11 @@ pub async fn spawn_tasks(
     let display_state_channel = DISPLAY_STATE_CHANNEL.init(Channel::new());
 
     let game_state_channel = GAME_STATE_CHANNEL.init(Channel::new());
-    spawner
-        .spawn(play_and_draw_task(
-            display,
-            roll_channel,
-            game_state_channel,
-        ))
-        .unwrap();
-    spawner
-        .spawn(display_state_handler_task(display, display_state_channel))
-        .unwrap();
-    spawner
-        .spawn(display_animations_task(
-            display,
-            game_state_channel,
-            display_state_channel,
-        ))
-        .unwrap();
+    spawner.spawn(play_and_draw_task(display, roll_channel, game_state_channel).unwrap());
+    spawner.spawn(display_state_handler_task(display, display_state_channel).unwrap());
+    spawner.spawn(
+        display_animations_task(display, game_state_channel, display_state_channel).unwrap(),
+    );
 }
 
 #[embassy_executor::task]

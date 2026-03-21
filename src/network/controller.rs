@@ -63,7 +63,7 @@ pub async fn run(
     let state = STATE.init(cyw43::State::new());
     let (net_device, mut control, runner) = cyw43::new(state, power, spi, firmware).await;
 
-    spawner.spawn(cyw43_task(runner)).unwrap();
+    spawner.spawn(cyw43_task(runner).unwrap());
 
     control.init(clm).await;
     control
@@ -83,7 +83,7 @@ pub async fn run(
         seed,
     );
 
-    spawner.spawn(net_task(runner)).unwrap();
+    spawner.spawn(net_task(runner).unwrap());
 
     while let Err(err) = control
         .join(WIFI_NETWORK, JoinOptions::new(WIFI_PASSWORD.as_bytes()))

@@ -21,13 +21,7 @@ pub async fn spawn_tasks(
     temp_humidity_channel: &'static TempHumidityChannel,
 ) {
     spawner
-        .spawn(read_sensor_task(
-            sensor_pin,
-            common,
-            state_machine,
-            temp_humidity_channel,
-        ))
-        .unwrap();
+        .spawn(read_sensor_task(sensor_pin, common, state_machine, temp_humidity_channel).unwrap());
 }
 
 #[embassy_executor::task]
