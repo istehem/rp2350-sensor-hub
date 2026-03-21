@@ -15,7 +15,8 @@
     "type-check": "vue-tsc --build",
     "format": "prettier --write --experimental-cli --cache-location node_modules/.cache/prettier vite.config.ts eslint.config.js src/",
     "format-check": "prettier --check --experimental-cli --cache-location node_modules/.cache/prettier vite.config.ts eslint.config.js src/",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "outdated": "npm outdated"
   },
   "dependencies": {
     "beercss": "^3.13.3",
