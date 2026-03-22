@@ -87,6 +87,7 @@ pub async fn run(
 
     spawner.spawn(net_task(runner).unwrap());
 
+    info!("try to join the network...");
     while let Err(err) = control
         .join(WIFI_NETWORK, JoinOptions::new(WIFI_PASSWORD.as_bytes()))
         .await
