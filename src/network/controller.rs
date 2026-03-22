@@ -1,4 +1,6 @@
+use cyw43::JoinError;
 use cyw43::JoinOptions;
+use cyw43::aligned_bytes;
 use cyw43_pio::PioSpi;
 use defmt::{debug, error, info, warn};
 use embassy_executor::Spawner;
@@ -46,8 +48,7 @@ pub static PICOTOOL_ENTRIES: [embassy_rp::binary_info::EntryAddr; 4] = [
 
 static STATE: StaticCell<cyw43::State> = StaticCell::new();
 type Pio = embassy_rp::peripherals::PIO1;
-type Dma = embassy_rp::peripherals::DMA_CH0;
-type WifiPioSpi = PioSpi<'static, Pio, 0, Dma>;
+type WifiPioSpi = PioSpi<'static, Pio, 0>;
 
 pub async fn run(
     spawner: &Spawner,
@@ -56,12 +57,13 @@ pub async fn run(
     led_channel: &'static LedChannel,
     temp_humidity_channel: &'static TempHumidityChannel,
 ) {
-    let firmware = include_bytes!("../../cyw43-firmware/43439A0.bin");
+    let firmware = aligned_bytes!("../../cyw43-firmware/43439A0.bin");
     // Country Locale Matrix
-    let clm = include_bytes!("../../cyw43-firmware/43439A0_clm.bin");
+    let clm = aligned_bytes!("../../cyw43-firmware/43439A0_clm.bin");
+    let nvram = aligned_bytes!("../../cyw43-firmware/nvram_rp2040.bin");
 
     let state = STATE.init(cyw43::State::new());
-    let (net_device, mut control, runner) = cyw43::new(state, power, spi, firmware).await;
+    let (net_device, mut control, runner) = cyw43::new(state, power, spi, firmware, nvram).await;
 
     spawner.spawn(cyw43_task(runner).unwrap());
 
@@ -89,7 +91,7 @@ pub async fn run(
         .join(WIFI_NETWORK, JoinOptions::new(WIFI_PASSWORD.as_bytes()))
         .await
     {
-        warn!("join failed with status={}", err.status);
+        log_join_errror(err);
     }
 
     info!("waiting for link...");
@@ -114,6 +116,14 @@ pub async fn run(
             post_measurement(&mut http_client, temp_humidity_channel),
         )
         .await;
+    }
+}
+
+fn log_join_errror(err: JoinError) {
+    match err {
+        JoinError::NetworkNotFound => warn!("network not found"),
+        JoinError::AuthenticationFailure => warn!("authentication failure"),
+        JoinError::JoinFailure(status) => warn!("join failed with status={}", status),
     }
 }
 
@@ -190,7 +200,9 @@ async fn http_post(
 }
 
 #[embassy_executor::task]
-async fn cyw43_task(runner: cyw43::Runner<'static, Output<'static>, WifiPioSpi>) -> ! {
+async fn cyw43_task(
+    runner: cyw43::Runner<'static, cyw43::SpiBus<Output<'static>, WifiPioSpi>>,
+) -> ! {
     runner.run().await
 }
 

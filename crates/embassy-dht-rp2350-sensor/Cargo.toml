@@ -32,7 +32,7 @@ embassy-time = { version = "0.5", features = [
   "defmt-timestamp-uptime",
 ] }
 
-embassy-rp = { version = "0.9.0", features = [
+embassy-rp = { version = "0.10.0", features = [
   "rp235xa",
   "defmt",
   "unstable-pac",

@@ -6,10 +6,10 @@ extern crate alloc;
 use cyw43_pio::{PioSpi, RM2_CLOCK_DIVIDER};
 use embassy_executor::Spawner;
 use embassy_rp::{
-    bind_interrupts,
+    bind_interrupts, dma,
     gpio::{Input, Level, Output, Pull},
     i2c::{self, Config as I2cConfig, I2c},
-    peripherals::{I2C1, PIO1},
+    peripherals::{DMA_CH0, I2C1, PIO1},
     pio::{InterruptHandler, Pio},
 };
 use embassy_sync::blocking_mutex::raw::NoopRawMutex;
@@ -64,6 +64,7 @@ bind_interrupts!(struct Irqs {
     PIO1_IRQ_0 => InterruptHandler<PIO1>;
     #[cfg(feature = "temperature")]
     PIO0_IRQ_0 => InterruptHandler<PIO0>;
+    DMA_IRQ_0 => dma::InterruptHandler<DMA_CH0>;
 });
 
 #[embassy_executor::main]
@@ -117,7 +118,7 @@ async fn main(spawner: Spawner) {
         p.PIN_24,
         // Wireless SPI Clock
         p.PIN_29,
-        p.DMA_CH0,
+        dma::Channel::new(p.DMA_CH0, Irqs),
     );
     network::controller::run(&spawner, power, spi, led_channel, temp_humidity_channel).await;
 }
