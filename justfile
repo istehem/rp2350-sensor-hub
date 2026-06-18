@@ -122,10 +122,15 @@ push-server-image: rm-old-manifest build-server-image-amd build-server-image-arm
 registry-list-tags:
   curl {{DOCKER_REGISTRY}}/v2/axum-server/tags/list | jq '.'
 
-# list digests for the 'latest' tag for the server image in the repository
+# get the manifest header for the 'latest' tag for the server image in the repository
 [group: 'registry']
-registry-list-digests:
+registry-manifest-header:
   curl -H "Accept: application/vnd.oci.image.manifest.v1+json" -I {{DOCKER_REGISTRY}}/v2/axum-server/manifests/latest
+
+# get the manifest for the 'latest' tag for the server image in the repository
+[group: 'registry']
+registry-manifest:
+  curl -s -H 'Accept: application/vnd.docker.distribution.manifest.v2+json' {{DOCKER_REGISTRY}}/v2/axum-server/manifests/latest | jq
 
 # remove a digest for the server image in the repository
 [group: 'registry']
