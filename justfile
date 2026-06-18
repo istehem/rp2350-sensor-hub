@@ -132,6 +132,12 @@ registry-manifest-header:
 registry-manifest:
   curl -s -H 'Accept: application/vnd.docker.distribution.manifest.v2+json' {{DOCKER_REGISTRY}}/v2/axum-server/manifests/latest | jq
 
+# get the manifest for a digest for the server image in the repository
+[group: 'registry']
+registry-manifest-by-digest DIGEST:
+ curl -s -H 'Accept: application/vnd.oci.image.manifest.v1+json' {{DOCKER_REGISTRY}}/v2/axum-server/manifests/{{DIGEST}} | jq
+
+
 # remove a digest for the server image in the repository
 [group: 'registry']
 registry-delete DIGEST:
