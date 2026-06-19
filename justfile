@@ -107,20 +107,35 @@ build-server-image-arm: stage-frontend
   podman build --platform linux/arm64 --manifest {{SERVER_MANIFEST}} {{SERVER_BUILD_ARGS}} \
       -t {{DOCKER_REGISTRY}}/axum-server:arm64 -f {{PROJECT_ROOT}}/axum-server/Dockerfile {{PROJECT_ROOT}}/axum-server
 
+# remove old manifest
+[group: 'publish']
+rm-old-manifest:
+  podman manifest rm --ignore {{DOCKER_REGISTRY}}/axum-server:latest
+
 # publish the server image to a registry
 [group: 'publish']
-push-server-image: build-server-image-amd build-server-image-arm
+push-server-image: rm-old-manifest build-server-image-amd build-server-image-arm
   podman manifest push --tls-verify=false {{DOCKER_REGISTRY}}/axum-server:latest
 
 # list tags for the server image in the repository
 [group: 'registry']
 registry-list-tags:
-  curl {{DOCKER_REGISTRY}}/v2/axum-server/tags/list | jq '.'
+  curl -s {{DOCKER_REGISTRY}}/v2/axum-server/tags/list | jq '.'
 
-# list digests for the 'latest' tag for the server image in the repository
+# get the manifest header for the 'latest' tag for the server image in the repository
 [group: 'registry']
-registry-list-digests:
-  curl -H "Accept: application/vnd.oci.image.manifest.v1+json" -I {{DOCKER_REGISTRY}}/v2/axum-server/manifests/latest
+registry-manifest-header:
+  curl -s -H "Accept: application/vnd.oci.image.manifest.v1+json" -I {{DOCKER_REGISTRY}}/v2/axum-server/manifests/latest
+
+# get the manifest for the 'latest' tag for the server image in the repository
+[group: 'registry']
+registry-manifest:
+  curl -s -H 'Accept: application/vnd.oci.image.manifest.v1+json' {{DOCKER_REGISTRY}}/v2/axum-server/manifests/latest | jq
+
+# get the manifest for a digest for the server image in the repository
+[group: 'registry']
+registry-manifest-by-digest DIGEST:
+  curl -s -H 'Accept: application/vnd.oci.image.manifest.v1+json' {{DOCKER_REGISTRY}}/v2/axum-server/manifests/{{DIGEST}} | jq
 
 # remove a digest for the server image in the repository
 [group: 'registry']
