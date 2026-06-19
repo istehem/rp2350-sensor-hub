@@ -1,6 +1,6 @@
 {
   "name": "measurements-frontend",
-  "version": "0.0.0",
+  "version": "1.0.1",
   "private": true,
   "type": "module",
   "engines": {
@@ -17,7 +17,8 @@
     "format-check": "prettier --check --experimental-cli --cache-location node_modules/.cache/prettier vite.config.ts eslint.config.js src/",
     "lint": "eslint .",
     "outdated": "npm outdated",
-    "update": "npm update"
+    "update": "npm update",
+    "patch-version": "npm version patch"
   },
   "dependencies": {
     "beercss": "^4.0.21",

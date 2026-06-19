@@ -145,7 +145,7 @@ const toggleModeIcon = computed(() => (state.value.mode === 'light' ? 'dark_mode
         <i>{{ toggleModeIcon }}</i>
       </button>
       <h6 class="max">Measurements</h6>
-      <h6>{{ config.appVersion }}</h6>
+      <p>{{ config.appVersion }}</p>
     </nav>
   </header>
   <main class="responsive">

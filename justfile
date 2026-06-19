@@ -114,7 +114,7 @@ rm-old-manifest:
 
 # publish the server image to a registry
 [group: 'publish']
-push-server-image: rm-old-manifest build-server-image-amd build-server-image-arm
+push-server-image: rm-old-manifest (frontend 'patch-version') build-server-image-amd build-server-image-arm
   podman manifest push --tls-verify=false {{DOCKER_REGISTRY}}/axum-server:latest
 
 # list tags for the server image in the repository
