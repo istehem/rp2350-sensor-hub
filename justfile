@@ -161,6 +161,7 @@ run-pico-no-temperature:
 # run the server in podman
 [group: 'run']
 run-server:
+  podman compose -f {{PROJECT_ROOT}}/axum-server/docker-compose.yaml pull
   podman compose -f {{PROJECT_ROOT}}/axum-server/docker-compose.yaml up --force-recreate -d
 
 # use before git push
