@@ -1,3 +1,5 @@
+import pkg from '../package.json'
+
 export default {
   apiHost: import.meta.env.VITE_MEASUREMENTS_API_HOST || '',
   measurements: {
@@ -7,4 +9,5 @@ export default {
   latestMeasurement: {
     pollEvery: import.meta.env.VITE_POLL_LATEST_MEASUREMENT_EVERY || 10000,
   },
+  appVersion: pkg.version,
 }
