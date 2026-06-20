@@ -1,5 +1,5 @@
-import type { ApiError, Measurement } from './assets.ts'
-import { ApiErrorCodec, MeasurementCodec } from './assets.ts'
+import type { ApiError, Measurement, Version } from './assets.ts'
+import { ApiErrorCodec, MeasurementCodec, VersionCodec } from './assets.ts'
 import config from './config.ts'
 
 import * as t from 'io-ts'
@@ -58,4 +58,14 @@ export const fetchLatestMeasurement = (): TE.TaskEither<ApiError, Measurement> =
     ),
     TE.chain(handleResponse),
     TE.chain((data) => pipe(MeasurementCodec.decode(data), E.mapLeft(toApiError), TE.fromEither)),
+  )
+
+export const fetchServerVersion = (): TE.TaskEither<ApiError, Version> =>
+  pipe(
+    TE.tryCatch(
+      () => fetch(`${config.apiHost}/api/version`),
+      (reason): ApiError => ({ message: getErrorMessage(reason) }),
+    ),
+    TE.chain(handleResponse),
+    TE.chain((data) => pipe(VersionCodec.decode(data), E.mapLeft(toApiError), TE.fromEither)),
   )

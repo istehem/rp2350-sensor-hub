@@ -9,6 +9,12 @@ export const MeasurementCodec = t.type({
 
 export type Measurement = t.TypeOf<typeof MeasurementCodec>
 
+export const VersionCodec = t.type({
+  version: t.string,
+})
+
+export type Version = t.TypeOf<typeof VersionCodec>
+
 export const ApiErrorCodec = t.type({
   message: t.string,
 })

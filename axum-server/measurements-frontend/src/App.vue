@@ -14,7 +14,7 @@ import type { AppState, Colors, Mode } from './appState.ts'
 import TemperatureChart from './charts/TemperatureChart.vue'
 import HumidityChart from './charts/HumidityChart.vue'
 import ErrorPanel from './ErrorPanel.vue'
-import { fetchLatestMeasurement, fetchMeasurements } from './measurementsApi.ts'
+import { fetchLatestMeasurement, fetchMeasurements, fetchServerVersion } from './measurementsApi.ts'
 
 const state = ref(AS.initialState)
 
@@ -95,6 +95,20 @@ const handleMeasurements = (): T.Task<void> =>
     ),
   )
 
+const handleServerVersion = (): T.Task<void> =>
+  pipe(
+    fetchServerVersion(),
+    T.chain((serverVersion) =>
+      pipe(
+        serverVersion,
+        E.match(
+          (error) => T.fromIO(() => console.log(error.message)),
+          (success) => transferStateToVue(AS.setServerVersion(success.version)),
+        ),
+      ),
+    ),
+  )
+
 const onToggleModeClicked = async () =>
   await pipe(
     css.toggleModeOrDefault(AS.initialState.mode),
@@ -107,6 +121,7 @@ onMounted(() =>
       css.getModeOrDefault(AS.initialState.mode),
       T.chain((mode) => adaptToMode(mode)),
     ),
+    handleServerVersion(),
     poll(handleLatestMeasurement(), config.latestMeasurement.pollEvery),
     poll(handleMeasurements(), config.measurements.pollEvery),
   )(),
@@ -132,6 +147,16 @@ const latestMeasurementError = computed(() =>
   ),
 )
 
+const serverVersion = computed(() =>
+  pipe(
+    state.value.serverVersion,
+    O.match(
+      () => 'unknown',
+      (version) => version,
+    ),
+  ),
+)
+
 const measurements = computed(() => state.value.measurements)
 const measurementsError = computed(() => state.value.measurementsApiError)
 const colors = computed(() => state.value.colors)
@@ -145,7 +170,7 @@ const toggleModeIcon = computed(() => (state.value.mode === 'light' ? 'dark_mode
         <i>{{ toggleModeIcon }}</i>
       </button>
       <h6 class="max">Measurements</h6>
-      <p>{{ config.appVersion }}</p>
+      <p>{{ config.appVersion }} ({{ serverVersion }})</p>
     </nav>
   </header>
   <main class="responsive">

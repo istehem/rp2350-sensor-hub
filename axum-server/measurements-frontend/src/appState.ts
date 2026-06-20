@@ -18,6 +18,7 @@ export interface AppState {
   measurementsApiError: O.Option<ApiError>
   colors: Colors
   mode: Mode
+  serverVersion: O.Option<string>
 }
 
 export const initialState: AppState = {
@@ -31,6 +32,7 @@ export const initialState: AppState = {
     surfaceVariant: '#49454e',
   },
   mode: 'dark',
+  serverVersion: O.none,
 }
 
 export const setLatestMeasurement = (measurement: O.Option<Measurement>) =>
@@ -48,3 +50,6 @@ export const setMeasurementsApiError = (error: O.Option<ApiError>) =>
 export const setColors = (colors: Colors) => S.modify((s: AppState) => ({ ...s, colors: colors }))
 
 export const setMode = (mode: Mode) => S.modify((s: AppState) => ({ ...s, mode: mode }))
+
+export const setServerVersion = (version: string) =>
+  S.modify((s: AppState) => ({ ...s, serverVersion: O.some(version) }))
