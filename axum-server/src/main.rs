@@ -55,6 +55,11 @@ struct Params {
     downsample: Option<usize>,
 }
 
+#[derive(Serialize)]
+struct Version {
+    version: String,
+}
+
 impl IntoResponse for MeasurementError {
     fn into_response(self) -> Response {
         let (status, message) = match self {
@@ -123,6 +128,7 @@ async fn main() {
     let app = Router::new()
         .route("/", get(index))
         .route("/static-content/{*param}", get(static_content))
+        .route("/api/version", get(version))
         .route("/api/measurements/latest", get(latest_measurement))
         .route("/api/measurements", get(query_measurements))
         .route("/api/measurements", post(create_measurement))
@@ -204,6 +210,12 @@ async fn query_measurements(
     }
 
     Ok(Json(measurements))
+}
+
+async fn version() -> Json<Version> {
+    Json(Version {
+        version: env!("CARGO_PKG_VERSION").to_string(),
+    })
 }
 
 fn validate_authorization(
