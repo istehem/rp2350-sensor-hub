@@ -162,6 +162,11 @@ run-pico:
 run-pico-no-temperature:
   cargo run --release
 
+# run the server in podman for development
+[group: 'run']
+run-server-development:
+  podman compose -f {{PROJECT_ROOT}}/axum-server/docker-compose.yaml -f {{PROJECT_ROOT}}/axum-server/docker-compose.development.override.yaml  up --force-recreate --build
+
 # run the server in podman
 [group: 'run']
 run-server:

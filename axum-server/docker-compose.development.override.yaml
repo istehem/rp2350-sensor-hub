@@ -1,0 +1,8 @@
+services:
+  server:
+    image: localhost/axum-server:latest
+    build:
+      context: .
+      args:
+        - REST_USER=${REST_USER}
+        - REST_USER_PASSWORD=${REST_USER_PASSWORD}
