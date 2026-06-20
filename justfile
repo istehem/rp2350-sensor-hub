@@ -107,6 +107,10 @@ build-server-image-arm: stage-frontend
   podman build --platform linux/arm64 --manifest {{SERVER_MANIFEST}} {{SERVER_BUILD_ARGS}} \
       -t {{DOCKER_REGISTRY}}/axum-server:arm64 -f {{PROJECT_ROOT}}/axum-server/Dockerfile {{PROJECT_ROOT}}/axum-server
 
+# patch the server version
+server-version-patch:
+  cargo set-version --bump patch --manifest-path ./axum-server/Cargo.toml
+
 # remove old manifest
 [group: 'publish']
 rm-old-manifest:
@@ -114,7 +118,7 @@ rm-old-manifest:
 
 # publish the server image to a registry
 [group: 'publish']
-push-server-image: rm-old-manifest (frontend 'patch-version') build-server-image-amd build-server-image-arm
+push-server-image: rm-old-manifest (frontend 'version-patch') server-version-patch build-server-image-amd build-server-image-arm
   podman manifest push --tls-verify=false {{DOCKER_REGISTRY}}/axum-server:latest
 
 # list tags for the server image in the repository

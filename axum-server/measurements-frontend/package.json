@@ -18,7 +18,7 @@
     "lint": "eslint .",
     "outdated": "npm outdated",
     "update": "npm update",
-    "patch-version": "npm version patch"
+    "version-patch": "npm version patch"
   },
   "dependencies": {
     "beercss": "^4.0.21",
