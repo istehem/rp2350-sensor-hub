@@ -17,7 +17,7 @@
     "format-check": "prettier --check --experimental-cli --cache-location node_modules/.cache/prettier vite.config.ts eslint.config.js src/",
     "lint": "eslint .",
     "outdated": "npm outdated",
-    "update": "npm update",
+    "update": "npx npm-check-updates -u",
     "version-patch": "npm version patch"
   },
   "dependencies": {
@@ -32,11 +32,12 @@
     "vue-chartjs": "^5.3.3"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@tsconfig/node24": "^24.0.4",
-    "@types/node": "^25.9.3",
+    "@types/node": "^26.0.0",
     "@vitejs/plugin-vue": "^6.0.7",
     "@vue/tsconfig": "^0.9.1",
-    "eslint": "^9.39.2",
+    "eslint": "^10.5.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-vue": "^10.9.2",
     "globals": "^17.6.0",
