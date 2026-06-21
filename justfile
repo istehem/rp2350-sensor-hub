@@ -108,6 +108,7 @@ build-server-image-arm: stage-frontend
       -t {{DOCKER_REGISTRY}}/axum-server:arm64 -f {{PROJECT_ROOT}}/axum-server/Dockerfile {{PROJECT_ROOT}}/axum-server
 
 # patch the server version
+[group: 'publish']
 server-version-patch:
   cargo set-version --bump patch --manifest-path ./axum-server/Cargo.toml
 
