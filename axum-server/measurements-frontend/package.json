@@ -19,7 +19,8 @@
     "outdated": "npm outdated",
     "update": "npx npm-check-updates -u",
     "version-patch": "npm version patch",
-    "test": "npx playwright test"
+    "test": "npx playwright test",
+    "test:ui": "npx playwright test --ui"
   },
   "dependencies": {
     "beercss": "^4.0.21",
