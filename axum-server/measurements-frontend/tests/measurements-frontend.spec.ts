@@ -26,8 +26,8 @@ test('mock latest measurement success', async ({ page }) => {
 
   await page.goto(config.homeUrl);
 
-  await expect(page.locator('article').getByText(`${temperature}°C`)).toBeVisible();
-  await expect(page.locator('article').getByText(`${humidity}%`)).toBeVisible();
+  await expect(page.locator('article').getByText(`${temperature}°C`, { exact: true })).toBeVisible();
+  await expect(page.locator('article').getByText(`${humidity}%`, { exact: true })).toBeVisible();
 });
 
 test('mock latest measurement error', async ({ page }) => {
