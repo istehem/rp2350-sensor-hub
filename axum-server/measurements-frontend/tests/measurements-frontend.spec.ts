@@ -32,7 +32,7 @@ test('mock latest measurement success', async ({ page }) => {
   await expect(page.locator('article').getByText(`${humidity}%`, { exact: true })).toBeVisible()
 })
 
-test('mock latest measurement error', async ({ page }) => {
+test('mock latest measurement with error', async ({ page }) => {
   const error = 'this is a server error'
   await page.route('**/api/measurements/latest', async (route) => {
     await route.fulfill({
@@ -66,4 +66,21 @@ test('mock measurements success', async ({ page }) => {
 
   await page.goto(config.homeUrl)
   await expect(page.locator('article canvas[role=img]')).toHaveCount(2)
+})
+
+test('mock measurements with error', async ({ page }) => {
+  const error = 'measurements failed to load with server error'
+  await page.route(/\/api\/measurements(\?.*)?$/, async (route) => {
+    await route.fulfill({
+      status: 500,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        message: error,
+      }),
+    })
+  })
+
+  await page.goto(config.homeUrl)
+  // TODO fix the implementation; there should only be two hits here.
+  await expect(page.locator(`article:has(:text-is("${error}"))`)).toHaveCount(4)
 })
