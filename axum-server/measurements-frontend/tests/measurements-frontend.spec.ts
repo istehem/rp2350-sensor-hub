@@ -81,6 +81,5 @@ test('mock measurements with error', async ({ page }) => {
   })
 
   await page.goto(config.homeUrl)
-  // TODO fix the implementation; there should only be two hits here.
-  await expect(page.locator(`article:has(:text-is("${error}"))`)).toHaveCount(4)
+  await expect(page.locator(`article article:has(:text-is("${error}"))`)).toHaveCount(2)
 })
