@@ -1,5 +1,19 @@
-import { test, expect } from '@playwright/test'
+import { test, expect, Page } from '@playwright/test'
 import { config } from './constants'
+
+const mockLatestMeasurementSuccess = async (page: Page, temperature: number, humidity: number) => {
+  await page.route('**/api/measurements/latest', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        date: '2026-06-23T20:38:43.688746298Z',
+        temperature: temperature,
+        humidity: humidity,
+      }),
+    })
+  })
+}
 
 test('has title', async ({ page }) => {
   await page.goto(config.homeUrl)
@@ -14,18 +28,7 @@ test('has navigation', async ({ page }) => {
 test('mock latest measurement success', async ({ page }) => {
   const temperature = 33.1
   const humidity = 33.2
-  await page.route('**/api/measurements/latest', async (route) => {
-    await route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify({
-        date: '2026-06-23T20:38:43.688746298Z',
-        temperature: temperature,
-        humidity: humidity,
-      }),
-    })
-  })
-
+  mockLatestMeasurementSuccess(page, temperature, humidity)
   await page.goto(config.homeUrl)
 
   await expect(page.locator('article').getByText(`${temperature}°C`, { exact: true })).toBeVisible()
@@ -52,6 +55,7 @@ test('mock latest measurement with error', async ({ page }) => {
 test('mock measurements success', async ({ page }) => {
   const temperature = 33.1
   const humidity = 33.2
+  await mockLatestMeasurementSuccess(page, temperature, humidity)
   await page.route(/\/api\/measurements(\?.*)?$/, async (route) => {
     await route.fulfill({
       status: 200,
@@ -69,6 +73,7 @@ test('mock measurements success', async ({ page }) => {
 })
 
 test('mock measurements with error', async ({ page }) => {
+  await mockLatestMeasurementSuccess(page, 33, 33)
   const error = 'measurements failed to load with server error'
   await page.route(/\/api\/measurements(\?.*)?$/, async (route) => {
     await route.fulfill({
