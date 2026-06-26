@@ -1,5 +1,6 @@
 import { test, expect, Page } from '@playwright/test'
 import { config } from './constants'
+import pkg from '../package.json' with { type: 'json' }
 
 const mockLatestMeasurementSuccess = async (page: Page, temperature: number, humidity: number) => {
   await page.route('**/api/measurements/latest', async (route) => {
@@ -89,18 +90,19 @@ test('mock measurements with error', async ({ page }) => {
   await expect(page.locator(`article article:has(:text-is("${error}"))`)).toHaveCount(2)
 })
 
-test('test server version', async ({ page }) => {
-  const version = '33.33.33'
+test('test version', async ({ page }) => {
+  const frontendVersion = pkg.version
+  const serverVersion = '33.33.33'
   await page.route('**/api/version', async (route) => {
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
       body: JSON.stringify({
-        version: version,
+        version: serverVersion,
       }),
     })
   })
 
   await page.goto(config.homeUrl)
-  await expect(page.locator('nav').getByText(version)).toBeVisible()
+  await expect(page.locator('nav').getByText(`${frontendVersion} (${serverVersion})`)).toBeVisible()
 })
