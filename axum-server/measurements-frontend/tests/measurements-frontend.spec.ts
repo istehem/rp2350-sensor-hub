@@ -88,3 +88,19 @@ test('mock measurements with error', async ({ page }) => {
   await page.goto(config.homeUrl)
   await expect(page.locator(`article article:has(:text-is("${error}"))`)).toHaveCount(2)
 })
+
+test('test server version', async ({ page }) => {
+  const version = '33.33.33'
+  await page.route('**/api/version', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        version: version,
+      }),
+    })
+  })
+
+  await page.goto(config.homeUrl)
+  await expect(page.locator('nav').getByText(version)).toBeVisible()
+})
