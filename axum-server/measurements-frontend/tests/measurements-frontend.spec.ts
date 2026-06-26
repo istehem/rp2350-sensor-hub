@@ -90,7 +90,7 @@ test('mock measurements with error', async ({ page }) => {
   await expect(page.locator(`article article:has(:text-is("${error}"))`)).toHaveCount(2)
 })
 
-test('test version', async ({ page }) => {
+test('test version success', async ({ page }) => {
   const frontendVersion = pkg.version
   const serverVersion = '33.33.33'
   await page.route('**/api/version', async (route) => {
@@ -105,4 +105,32 @@ test('test version', async ({ page }) => {
 
   await page.goto(config.homeUrl)
   await expect(page.locator('nav').getByText(`${frontendVersion} (${serverVersion})`)).toBeVisible()
+})
+
+test('test version error', async ({ page }) => {
+  const error = 'the version failed to load with server error'
+  const frontendVersion = pkg.version
+  const errorLogs: string[] = []
+
+  page.on('console', (msg) => {
+    if (msg.type() === 'error') {
+      errorLogs.push(msg.text())
+    }
+  })
+
+  await page.route('**/api/version', async (route) => {
+    await route.fulfill({
+      status: 500,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        message: error,
+      }),
+    })
+  })
+
+  await page.goto(config.homeUrl)
+  await expect(page.locator('nav').getByText(`${frontendVersion} (unknown)`)).toBeVisible()
+  await expect(async () => {
+    expect(errorLogs).toContain(error)
+  }).toPass({ timeout: 5000 })
 })

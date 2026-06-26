@@ -102,7 +102,7 @@ const handleServerVersion = (): T.Task<void> =>
       pipe(
         serverVersion,
         E.match(
-          (error) => T.fromIO(() => console.log(error.message)),
+          (error) => T.fromIO(() => console.error(error.message)),
           (success) => transferStateToVue(AS.setServerVersion(success.version)),
         ),
       ),
