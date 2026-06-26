@@ -50,5 +50,9 @@ jobs:
       - uses: extractions/setup-just@v3
         with:
           just-version: '1.46.0'
-      - run: touch hub.env
-      - run: just ci-check
+      - name: Install Playwright Browsers
+        run: npx playwright install chromium --with-deps
+      - name: Create an env file for Just
+        run: touch hub.env
+      - name: Run CI checks in Just
+        run: just ci-check

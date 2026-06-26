@@ -188,7 +188,8 @@ pre-push: \
   (frontend 'install-deps') \
   (frontend 'format') \
   (frontend 'lint') \
-  (frontend 'build')
+  (frontend 'build') \
+  (frontend 'test')
 
 # checks performed by continuous integration
 [group: 'check']
@@ -204,4 +205,5 @@ ci-check: \
   (frontend 'install-deps') \
   (frontend 'format-check') \
   (frontend 'lint') \
-  (frontend 'build')
+  (frontend 'build') \
+  (frontend 'test')
