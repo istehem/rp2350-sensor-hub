@@ -18,6 +18,11 @@ outdated:
   # run `cargo upgrade --dry-run` to check versions defined in [workspace.dependencies]
   cargo outdated -w --root-deps-only
 
+# check for unused dependencies
+[group: 'maintenance']
+unused:
+  cargo machete
+
 # run 'npm run {{COMMAND}}' on the frontend
 [group: 'frontend']
 frontend COMMAND:
