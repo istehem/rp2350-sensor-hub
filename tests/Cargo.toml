@@ -8,7 +8,7 @@ publish = false
 lazy_static = "1.5.0"
 rstest = "0.26.1"
 tracing = "0.1.44"
-test-log = { version = "0.2", features = ["trace"] }
+test-log = { version = "0.2.21", features = ["trace"] }
 embedded-graphics = { workspace = true }
 embedded-graphics-simulator = "0.8.0"
 rand = { workspace = true, default-features = true }
