@@ -21,10 +21,7 @@ path = "src/lib.rs"
 cortex-m = { version = "0.7" }
 cortex-m-rt = "0.7"
 
-embassy-time = { version = "0.5", features = [
-  "defmt",
-  "defmt-timestamp-uptime",
-] }
+embassy-time = { workspace = true }
 
 embassy-rp = { version = "0.10.0", features = [
   "rp235xa",
