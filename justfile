@@ -23,6 +23,18 @@ outdated:
 unused:
   cargo machete
 
+# check for outdated dependencies for the server
+[group: 'maintenance']
+outdated-server:
+  cargo outdated -w --root-deps-only --manifest-path ./axum-server/Cargo.toml
+
+# check for unused dependencies for the server
+[group: 'maintenance']
+unused-server:
+  #!/usr/bin/env bash
+  cd ./axum-server/
+  cargo machete
+
 # run 'npm run {{COMMAND}}' on the frontend
 [group: 'frontend']
 frontend COMMAND:
