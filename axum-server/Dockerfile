@@ -1,4 +1,4 @@
-FROM rust:1.96-slim
+FROM rust:1.97-slim
 
 ARG REST_USER
 ARG REST_USER_PASSWORD
