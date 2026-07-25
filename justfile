@@ -102,11 +102,6 @@ clippy-all-pico:
 clippy-all-pico-no-temperature:
   cargo clippy --all -- --deny=warnings
 
-# enable an execution of different multi-architecture containers by QEMU 1 and binfmt_misc
-[group: 'setup']
-setup-multi-arch-build:
-  sudo podman run --rm --privileged docker.io/multiarch/qemu-user-static --reset -p yes
-
 # build the server
 [group: 'build']
 build-server:
@@ -115,13 +110,14 @@ build-server:
 # build the server podman image for amd64
 [group: 'build']
 build-server-image-amd: stage-frontend
-  podman build --platform linux/amd64 --manifest {{SERVER_MANIFEST}} {{SERVER_BUILD_ARGS}} \
+  podman build --manifest {{SERVER_MANIFEST}} {{SERVER_BUILD_ARGS}} \
       -t {{DOCKER_REGISTRY}}/axum-server:amd64 -f {{PROJECT_ROOT}}/axum-server/Dockerfile {{PROJECT_ROOT}}/axum-server
 
 # build the server podman image for arm64
 [group: 'build']
 build-server-image-arm: stage-frontend
-  podman build --platform linux/arm64 --manifest {{SERVER_MANIFEST}} {{SERVER_BUILD_ARGS}} \
+  podman build --manifest {{SERVER_MANIFEST}} {{SERVER_BUILD_ARGS}} \
+      --build-arg="ARCH_TARGET=aarch64-unknown-linux-gnu" --build-arg="PLATFORM=linux/arm64" \
       -t {{DOCKER_REGISTRY}}/axum-server:arm64 -f {{PROJECT_ROOT}}/axum-server/Dockerfile {{PROJECT_ROOT}}/axum-server
 
 # patch the server version
