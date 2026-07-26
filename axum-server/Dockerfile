@@ -23,7 +23,7 @@ RUN rustup target add $ARCH_TARGET && \
   cargo build --release --target ${ARCH_TARGET}
 
 
-FROM --platform=$PLATFORM debian:bookworm-slim
+FROM --platform=$PLATFORM gcr.io/distroless/cc-debian13:latest
 
 ARG ARCH_TARGET
 

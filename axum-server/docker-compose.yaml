@@ -6,4 +6,4 @@ services:
     restart: always
     environment:
       - RUST_LOG=debug
-    command: axum-server
+    command: ["/usr/local/bin/axum-server"]
