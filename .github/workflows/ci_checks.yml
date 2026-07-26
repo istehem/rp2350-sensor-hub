@@ -51,7 +51,8 @@ jobs:
         with:
           just-version: '1.46.0'
       - name: Install Playwright Browsers
-        run: npm --prefix axum-server/measurements-frontend run install-deps && npx playwright install chromium
+        working-directory: axum-server/measurements-frontend
+        run: npm install && npx playwright install chromium
       - name: Create an env file for Just
         run: touch hub.env
       - name: Run CI checks in Just
