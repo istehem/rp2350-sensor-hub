@@ -77,7 +77,7 @@ fmt-check-server:
 test-all:
   cargo test --target=x86_64-unknown-linux-gnu -p tests -- --nocapture
 
-# TEST := die|game|player
+# TEST := die|game|player|network
 [group: 'test']
 test TEST:
   cargo test --target=x86_64-unknown-linux-gnu -p tests --test test-{{TEST}} -- --nocapture
