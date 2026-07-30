@@ -18,3 +18,21 @@ vim.g.rustaceanvim = {
 		},
 	},
 }
+
+local function run_test_current()
+	local filename = vim.fn.expand("%:t")
+	local name = filename:match("^test_(.-)%.rs$")
+	if not name then
+		vim.notify("Not a tests/test_*.rs file: " .. filename, vim.log.levels.WARN)
+		return
+	end
+
+	local cmd = table.concat({
+		"just test",
+		name,
+	}, " ")
+
+	vim.cmd("terminal " .. cmd)
+end
+
+vim.keymap.set("n", "<leader>tt", run_test_current, { desc = "Run current tests/test_*.rs" })
