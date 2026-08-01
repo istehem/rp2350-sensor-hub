@@ -3035,6 +3035,7 @@ dependencies = [
  "lazy_static",
  "pico-display",
  "rand",
+ "rp2350-sensor-hub",
  "rstest",
  "test-log",
  "tracing",

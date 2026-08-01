@@ -14,7 +14,8 @@ embedded-graphics-simulator = "0.8.0"
 rand = { workspace = true, default-features = true }
 pico-display = { path = "../crates/pico-display" }
 game-logic = { path = "../crates/game-logic" }
-#rp2350-sensor-hub = { path = ".." }
+rp2350-sensor-hub = { path = "..", default-features = false }
+#embassy-mock = "0.5"
 
 [[test]]
 name = "test-die"
