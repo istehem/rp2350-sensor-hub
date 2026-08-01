@@ -1,8 +1,6 @@
 #![no_std]
 #![no_main]
 
-extern crate alloc;
-
 use cyw43_pio::{PioSpi, RM2_CLOCK_DIVIDER};
 use embassy_executor::Spawner;
 use embassy_rp::{
@@ -12,44 +10,19 @@ use embassy_rp::{
     peripherals::{DMA_CH0, I2C1, PIO1},
     pio::{InterruptHandler, Pio},
 };
-use embassy_sync::blocking_mutex::raw::NoopRawMutex;
 use embassy_sync::channel::Channel;
 use embedded_alloc::LlffHeap;
-use serde::Serialize;
 use static_cell::StaticCell;
 use {defmt_rtt as _, panic_probe as _};
 
-mod game {
-    mod cache;
-    mod entities;
-    mod error;
-    mod player;
-    pub mod tasks;
-}
-
-mod network {
-    pub mod controller;
-    mod error;
-}
+use rp2350_sensor_hub::LedChannel;
+use rp2350_sensor_hub::TempHumidityChannel;
+use rp2350_sensor_hub::game;
+use rp2350_sensor_hub::network;
+use rp2350_sensor_hub::temperature_and_humidity;
 
 #[cfg(feature = "temperature")]
-mod temperature_and_humidity {
-    mod error;
-    pub mod tasks;
-    pub use embassy_rp::peripherals::PIO0;
-}
-
-#[derive(Clone, Serialize)]
-struct Measurement {
-    pub humidity: f32,
-    pub temperature: f32,
-}
-type TempHumidityChannel = Channel<NoopRawMutex, Measurement, 4>;
-
-type LedChannel = Channel<NoopRawMutex, bool, 4>;
-
-#[cfg(feature = "temperature")]
-use temperature_and_humidity::PIO0;
+use rp2350_sensor_hub::temperature_and_humidity::PIO0;
 
 static LED_CHANNEL: StaticCell<LedChannel> = StaticCell::new();
 static TEMP_HUMIDITY_CHANNEL: StaticCell<TempHumidityChannel> = StaticCell::new();
