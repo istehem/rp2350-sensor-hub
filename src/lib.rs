@@ -12,3 +12,10 @@ pub struct Measurement {
 pub type TempHumidityChannel = Channel<NoopRawMutex, Measurement, 4>;
 
 pub type LedChannel = Channel<NoopRawMutex, bool, 4>;
+
+pub mod network {
+    pub mod api;
+    #[cfg(feature = "board")]
+    pub mod controller;
+    mod error;
+}

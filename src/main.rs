@@ -18,6 +18,7 @@ use {defmt_rtt as _, panic_probe as _};
 
 use rp2350_sensor_hub::LedChannel;
 use rp2350_sensor_hub::TempHumidityChannel;
+use rp2350_sensor_hub::network;
 
 static LED_CHANNEL: StaticCell<LedChannel> = StaticCell::new();
 static TEMP_HUMIDITY_CHANNEL: StaticCell<TempHumidityChannel> = StaticCell::new();
@@ -33,11 +34,6 @@ mod game {
     mod error;
     mod player;
     pub mod tasks;
-}
-
-mod network {
-    pub mod controller;
-    mod error;
 }
 
 #[cfg(feature = "temperature")]
