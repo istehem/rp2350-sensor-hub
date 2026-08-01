@@ -36,3 +36,32 @@ local function run_test_current()
 end
 
 vim.keymap.set("n", "<leader>tt", run_test_current, { desc = "Run current tests/test_*.rs" })
+
+-- suppress RA rustc errors arising from use of the std crate: source = "rustc"
+-- :lua vim.print(vim.diagnostic.get(0))
+local orig = vim.lsp.handlers["textDocument/publishDiagnostics"]
+
+vim.lsp.handlers["textDocument/publishDiagnostics"] = function(err, result, ctx, config)
+	if not result or not result.uri then
+		return orig(err, result, ctx, config)
+	end
+
+	local path = vim.uri_to_fname(result.uri)
+	if not path or path == "" then
+		return orig(err, result, ctx, config)
+	end
+	path = path:gsub("\\", "/")
+
+	local rel = vim.fn.fnamemodify(path, ":.")
+	rel = rel:gsub("\\", "/")
+	if rel:match("^tests/test_.*%.rs$") then
+		local filtered = {}
+		for _, d in ipairs(result.diagnostics or {}) do
+			if not (d.source and d.source:match("rust")) then
+				table.insert(filtered, d)
+			end
+		end
+		result.diagnostics = filtered
+	end
+	return orig(err, result, ctx, config)
+end
