@@ -19,8 +19,8 @@ use rp2350_sensor_hub::LedChannel;
 use rp2350_sensor_hub::TempHumidityChannel;
 use rp2350_sensor_hub::game;
 use rp2350_sensor_hub::network;
+#[cfg(feature = "temperature")]
 use rp2350_sensor_hub::temperature_and_humidity;
-
 #[cfg(feature = "temperature")]
 use rp2350_sensor_hub::temperature_and_humidity::PIO0;
 

@@ -16,8 +16,8 @@ mod tests {
     };
     use tracing::info;
 
-    use rand::SeedableRng;
     use rand::rngs::SmallRng;
+    use rand::SeedableRng;
 
     use std::thread;
     use std::time::Duration;
