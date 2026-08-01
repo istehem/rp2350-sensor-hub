@@ -1,6 +1,5 @@
 #[cfg(test)]
 mod tests {
-    use rand;
     use rstest::{fixture, rstest};
 
     use game_logic::two_four_eighteen::Game;
@@ -17,8 +16,8 @@ mod tests {
     };
     use tracing::info;
 
-    use rand::rngs::SmallRng;
     use rand::SeedableRng;
+    use rand::rngs::SmallRng;
 
     use std::thread;
     use std::time::Duration;
