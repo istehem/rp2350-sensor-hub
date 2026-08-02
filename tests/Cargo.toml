@@ -35,5 +35,9 @@ name = "test-game"
 path = "test_game.rs"
 
 [[test]]
+name = "test-game-logic"
+path = "test_game_logic.rs"
+
+[[test]]
 name = "test-network"
 path = "test_network.rs"
