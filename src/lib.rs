@@ -21,12 +21,14 @@ pub mod network {
     pub mod error;
 }
 
-#[cfg(feature = "board")]
 pub mod game {
+    #[cfg(feature = "board")]
     mod cache;
+    #[cfg(feature = "board")]
     mod entities;
-    mod error;
-    mod player;
+    pub mod error;
+    pub mod player;
+    #[cfg(feature = "board")]
     pub mod tasks;
 }
 
