@@ -2,7 +2,7 @@ use cyw43::JoinError;
 use cyw43::JoinOptions;
 use cyw43::aligned_bytes;
 use cyw43_pio::PioSpi;
-use defmt::{info, warn};
+use defmt::{debug, error, info, warn};
 use embassy_executor::Spawner;
 use embassy_futures::select::select;
 use embassy_net::dns::DnsSocket;
@@ -11,17 +11,20 @@ use embassy_net::{Config, StackResources};
 use embassy_rp::clocks::RoscRng;
 use embassy_rp::gpio::Output;
 use reqwless::client::HttpClient;
+use reqwless::response::StatusCode;
 use static_cell::StaticCell;
 
 use crate::LedChannel;
 use crate::TempHumidityChannel;
-use crate::network::api::post_measurement;
+use crate::network::api;
 
 const TCP_TX_SIZE: usize = 4096;
 const TCP_RX_SIZE: usize = TCP_TX_SIZE;
 
 const WIFI_NETWORK: &str = env!("WIFI_NETWORK");
 const WIFI_PASSWORD: &str = env!("WIFI_PASSWORD");
+
+type TcpHttpClient<'a> = HttpClient<'a, TcpClient<'a, 1, TCP_TX_SIZE, TCP_RX_SIZE>, DnsSocket<'a>>;
 
 // Program metadata for `picotool info`.
 // This isn't needed, but it's recommended to have these minimal entries.
@@ -108,6 +111,37 @@ pub async fn run(
             post_measurement(&mut http_client, temp_humidity_channel),
         )
         .await;
+    }
+}
+
+async fn post_measurement(
+    http_client: &mut TcpHttpClient<'_>,
+    temp_humidity_channel: &'static TempHumidityChannel,
+) -> () {
+    match api::post_measurement(http_client, temp_humidity_channel).await {
+        Ok(status_code) => handle_status_code(status_code),
+        Err(err) => error!("Posting measurement failed with: {}", err),
+        #[allow(unreachable_patterns)]
+        _ => unreachable!(),
+    }
+}
+
+fn handle_status_code(status_code: StatusCode) {
+    if status_code.is_successful() {
+        debug!(
+            "Posting measurement succeeded with http exit code: {}",
+            status_code.0
+        )
+    } else if status_code.is_client_error() || status_code.is_server_error() {
+        error!(
+            "Posting measurement failed with http exit code: {}",
+            status_code.0
+        )
+    } else {
+        warn!(
+            "Posting measurement exited with a non successful http exit code: {}",
+            status_code.0
+        )
     }
 }
 

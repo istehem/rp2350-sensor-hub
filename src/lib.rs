@@ -17,5 +17,5 @@ pub mod network {
     pub mod api;
     #[cfg(feature = "board")]
     pub mod controller;
-    mod error;
+    pub mod error;
 }

@@ -13,7 +13,9 @@ mod defmt_stubs {
 
     // Use raw pointer and length, not &[u8]
     #[no_mangle]
-    extern "C" fn _defmt_write(_bytes: *const u8, _len: usize) {}
+    extern "C" fn _defmt_write(_bytes: *const u8, _len: usize) {
+        // No-op for tests
+    }
 
     #[no_mangle]
     extern "C" fn _defmt_timestamp() -> u64 {
@@ -37,6 +39,7 @@ mod tests {
     use embassy_sync::channel::Channel;
     use reqwless::client::HttpClient;
     use rp2350_sensor_hub::network::api;
+    use rp2350_sensor_hub::network::error::SendMeasurementError;
     use rp2350_sensor_hub::{Measurement, TempHumidityChannel};
     use rstest::rstest;
     use static_cell::StaticCell;
@@ -47,7 +50,7 @@ mod tests {
     #[rstest]
     #[tokio::test]
     #[test_log::test]
-    async fn network() -> () {
+    async fn network() -> Result<(), SendMeasurementError> {
         let stack = Stack::default();
         let mut client = HttpClient::new(&stack, &stack);
         let channel = TEMP_HUMIDITY_CHANNEL.init(Channel::new());
@@ -56,7 +59,8 @@ mod tests {
             humidity: 45.0,
         };
         //channel.send(_measurement).await;
-        api::post_measurement(&mut client, channel).await;
-        assert!(true)
+        let status_code = api::post_measurement(&mut client, channel).await?;
+        assert_eq!(status_code.0, 401);
+        Ok(())
     }
 }
