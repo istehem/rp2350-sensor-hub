@@ -23,6 +23,7 @@ const TCP_RX_SIZE: usize = TCP_TX_SIZE;
 
 const WIFI_NETWORK: &str = env!("WIFI_NETWORK");
 const WIFI_PASSWORD: &str = env!("WIFI_PASSWORD");
+const MEASUREMENTS_ENDPOINT: &str = env!("MEASUREMENTS_ENDPOINT");
 
 type TcpHttpClient<'a> = HttpClient<'a, TcpClient<'a, 1, TCP_TX_SIZE, TCP_RX_SIZE>, DnsSocket<'a>>;
 
@@ -118,7 +119,7 @@ async fn post_measurement(
     http_client: &mut TcpHttpClient<'_>,
     temp_humidity_channel: &'static TempHumidityChannel,
 ) -> () {
-    match api::post_measurement(http_client, temp_humidity_channel).await {
+    match api::post_measurement(http_client, MEASUREMENTS_ENDPOINT, temp_humidity_channel).await {
         Ok(status_code) => handle_status_code(status_code),
         Err(err) => error!("Posting measurement failed with: {}", err),
         #[allow(unreachable_patterns)]

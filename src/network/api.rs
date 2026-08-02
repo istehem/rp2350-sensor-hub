@@ -7,7 +7,6 @@ use reqwless::headers::ContentType;
 use reqwless::request::{Method, RequestBuilder};
 use reqwless::response::StatusCode;
 
-const MEASUREMENTS_ENDPOINT: &str = env!("MEASUREMENTS_ENDPOINT");
 const REST_USER: &str = env!("REST_USER");
 const REST_USER_PASSWORD: &str = env!("REST_USER_PASSWORD");
 
@@ -15,6 +14,7 @@ const TCP_RX_SIZE: usize = 4096;
 
 pub async fn post_measurement<T, D>(
     http_client: &mut HttpClient<'_, T, D>,
+    endpoint: &str,
     temp_humidity_channel: &'static TempHumidityChannel,
 ) -> Result<StatusCode, SendMeasurementError>
 where
@@ -25,14 +25,7 @@ where
     match serde_json_core::to_string::<_, TCP_RX_SIZE>(&measurement) {
         Ok(body) => {
             debug!("Going to post: {}", body.as_str());
-            http_post(
-                http_client,
-                MEASUREMENTS_ENDPOINT,
-                REST_USER,
-                REST_USER_PASSWORD,
-                &body,
-            )
-            .await
+            http_post(http_client, endpoint, REST_USER, REST_USER_PASSWORD, &body).await
         }
         Err(err) => {
             error!(

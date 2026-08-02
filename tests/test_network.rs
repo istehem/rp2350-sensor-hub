@@ -45,12 +45,28 @@ mod tests {
     use static_cell::StaticCell;
     use std_embedded_nal_async::Stack;
 
+    use wiremock::matchers::{method, path};
+    use wiremock::{Mock, MockServer, ResponseTemplate};
+
     static TEMP_HUMIDITY_CHANNEL: StaticCell<TempHumidityChannel> = StaticCell::new();
+
+    async fn mock_measurements(mock_server: &MockServer) {
+        Mock::given(method("POST"))
+            .and(path("/api/measurements"))
+            .respond_with(ResponseTemplate::new(201))
+            .mount(&mock_server)
+            .await;
+    }
 
     #[rstest]
     #[tokio::test]
     #[test_log::test]
     async fn network() -> Result<(), SendMeasurementError> {
+        let mock_server = MockServer::start().await;
+        mock_measurements(&mock_server).await;
+
+        let endpoint = format!("{}/api/measurements", mock_server.uri());
+
         let stack = Stack::default();
         let mut client = HttpClient::new(&stack, &stack);
         let channel = TEMP_HUMIDITY_CHANNEL.init(Channel::new());
@@ -58,9 +74,12 @@ mod tests {
             temperature: 25.0,
             humidity: 45.0,
         };
-        //channel.send(_measurement).await;
-        let status_code = api::post_measurement(&mut client, channel).await?;
-        assert_eq!(status_code.0, 401);
+        channel.send(_measurement).await;
+        let status_code = api::post_measurement(&mut client, endpoint.as_str(), channel).await?;
+
+        mock_server.verify().await;
+        assert_eq!(status_code.0, 201);
+
         Ok(())
     }
 }

@@ -20,6 +20,7 @@ reqwless = { workspace = true }
 std-embedded-nal-async = "0.4.0"
 embassy-sync = { version = "0.8.0", features = ["defmt", "std"] }
 static_cell = "2.1.1"
+wiremock = "0.6.5"
 #embassy-mock = "0.5"
 
 [[test]]

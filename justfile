@@ -195,6 +195,7 @@ pre-push: \
   clippy-all-pico-no-temperature \
   build-all-pico \
   build-all-pico-no-temperature \
+  (test 'network') \
   fmt-server \
   clippy-server \
   build-server \
@@ -212,6 +213,7 @@ ci-check: \
   clippy-all-pico-no-temperature \
   build-all-pico \
   build-all-pico-no-temperature \
+  (test 'network') \
   fmt-check-server \
   clippy-server \
   build-server \
