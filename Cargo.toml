@@ -45,6 +45,7 @@ embassy-time = { workspace = true }
 embedded-alloc = "0.7.0"
 embedded-graphics = { workspace = true }
 embedded-graphics-framebuf = "0.5.0"
+embedded-nal-async = "0.9.0"
 panic-probe = { version = "1", features = ["print-defmt"] }
 portable-atomic = { version = "1.14.0", features = ["critical-section"] }
 rand = { workspace = true }
@@ -120,5 +121,5 @@ temperature = ["embassy-dht-rp2350-sensor"]
 board = [
   "embassy-rp",
   "embassy-executor",
-  "cyw43-pio"
+  "cyw43-pio",
 ]

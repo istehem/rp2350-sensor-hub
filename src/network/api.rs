@@ -1,8 +1,7 @@
 use crate::TempHumidityChannel;
 use crate::network::error::ReqwlessError;
 use defmt::{debug, error, warn};
-use embassy_net::dns::DnsSocket;
-use embassy_net::tcp::client::TcpClient;
+use embedded_nal_async::{Dns, TcpConnect};
 use reqwless::client::HttpClient;
 use reqwless::headers::ContentType;
 use reqwless::request::{Method, RequestBuilder};
@@ -12,15 +11,15 @@ const MEASUREMENTS_ENDPOINT: &str = env!("MEASUREMENTS_ENDPOINT");
 const REST_USER: &str = env!("REST_USER");
 const REST_USER_PASSWORD: &str = env!("REST_USER_PASSWORD");
 
-const TCP_TX_SIZE: usize = 4096;
-const TCP_RX_SIZE: usize = TCP_TX_SIZE;
+const TCP_RX_SIZE: usize = 4096;
 
-type TcpHttpClient<'a> = HttpClient<'a, TcpClient<'a, 1, TCP_TX_SIZE, TCP_RX_SIZE>, DnsSocket<'a>>;
-
-pub async fn post_measurement(
-    http_client: &mut TcpHttpClient<'_>,
+pub async fn post_measurement<T, D>(
+    http_client: &mut HttpClient<'_, T, D>,
     temp_humidity_channel: &'static TempHumidityChannel,
-) {
+) where
+    T: TcpConnect,
+    D: Dns,
+{
     let measurement = temp_humidity_channel.receive().await;
     match &serde_json_core::to_string::<_, TCP_RX_SIZE>(&measurement) {
         Ok(body) => {
@@ -46,13 +45,17 @@ pub async fn post_measurement(
     }
 }
 
-async fn http_post(
-    http_client: &mut TcpHttpClient<'_>,
+async fn http_post<T, D>(
+    http_client: &mut HttpClient<'_, T, D>,
     url: &str,
     user: &str,
     password: &str,
     body: &str,
-) -> Result<StatusCode, ReqwlessError> {
+) -> Result<StatusCode, ReqwlessError>
+where
+    T: TcpConnect,
+    D: Dns,
+{
     let mut rx_buffer = [0; TCP_RX_SIZE];
     Ok(http_client
         .request(Method::POST, url)
