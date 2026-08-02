@@ -8,7 +8,7 @@ use embassy_rp::{
 use embassy_time::Timer;
 
 use crate::temperature_and_humidity::error::FormattableDHTSensorError;
-use rp2350_sensor_hub::{Measurement, TempHumidityChannel};
+use crate::{Measurement, TempHumidityChannel};
 
 type Pio = PIO0;
 type DHTStateMachine = StateMachine<'static, Pio, 0>;

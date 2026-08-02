@@ -1,6 +1,5 @@
 #![no_std]
 #![no_main]
-extern crate alloc;
 
 use cyw43_pio::{PioSpi, RM2_CLOCK_DIVIDER};
 use embassy_executor::Spawner;
@@ -18,7 +17,12 @@ use {defmt_rtt as _, panic_probe as _};
 
 use rp2350_sensor_hub::LedChannel;
 use rp2350_sensor_hub::TempHumidityChannel;
+use rp2350_sensor_hub::game;
 use rp2350_sensor_hub::network;
+#[cfg(feature = "temperature")]
+use rp2350_sensor_hub::temperature_and_humidity;
+#[cfg(feature = "temperature")]
+use rp2350_sensor_hub::temperature_and_humidity::PIO0;
 
 static LED_CHANNEL: StaticCell<LedChannel> = StaticCell::new();
 static TEMP_HUMIDITY_CHANNEL: StaticCell<TempHumidityChannel> = StaticCell::new();
@@ -27,23 +31,6 @@ const I2C_FREQUENCY: u32 = 400_000;
 
 #[global_allocator]
 static HEAP: LlffHeap = LlffHeap::empty();
-
-mod game {
-    mod cache;
-    mod entities;
-    mod error;
-    mod player;
-    pub mod tasks;
-}
-
-#[cfg(feature = "temperature")]
-mod temperature_and_humidity {
-    mod error;
-    pub mod tasks;
-    pub use embassy_rp::peripherals::PIO0;
-}
-#[cfg(feature = "temperature")]
-use temperature_and_humidity::PIO0;
 
 bind_interrupts!(struct Irqs {
     I2C1_IRQ => i2c::InterruptHandler<I2C1>;
