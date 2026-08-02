@@ -8,6 +8,7 @@ vim.g.rustaceanvim = {
 						REST_USER_PASSWORD = "",
 						WIFI_NETWORK = "",
 						WIFI_PASSWORD = "",
+						MEASUREMENTS_SERVER_URL = "",
 						MEASUREMENTS_ENDPOINT = "",
 					},
 					allTargets = false,

@@ -1,4 +1,5 @@
-export MEASUREMENTS_ENDPOINT := "http://192.168.132.170:5000/api/measurements"
+export MEASUREMENTS_SERVER_URL := "http://192.168.132.170:5000"
+export MEASUREMENTS_ENDPOINT := "/api/measurements"
 PROJECT_ROOT := justfile_directory()
 
 DOCKER_REGISTRY := "192.168.132.170:5002"
