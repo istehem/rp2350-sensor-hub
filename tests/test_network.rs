@@ -70,11 +70,11 @@ mod tests {
         let stack = Stack::default();
         let mut client = HttpClient::new(&stack, &stack);
         let channel = TEMP_HUMIDITY_CHANNEL.init(Channel::new());
-        let _measurement = Measurement {
+        let measurement = Measurement {
             temperature: 25.0,
             humidity: 45.0,
         };
-        channel.send(_measurement).await;
+        channel.send(measurement).await;
         let status_code = api::post_measurement(&mut client, endpoint.as_str(), channel).await?;
 
         mock_server.verify().await;
