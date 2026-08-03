@@ -5,10 +5,11 @@ mod tests {
     use embedded_graphics::{pixelcolor::BinaryColor, prelude::*};
     use embedded_graphics_simulator::{OutputSettingsBuilder, SimulatorDisplay};
     use game_logic::two_four_eighteen::Game;
-    use rand::SeedableRng;
     use rand::rngs::SmallRng;
     use rp2350_sensor_hub::game;
     use rstest::{fixture, rstest};
+
+    use rand::SeedableRng;
 
     const SCALE: u32 = 5;
     const SCREEN_WIDTH: u32 = SCALE * 128;

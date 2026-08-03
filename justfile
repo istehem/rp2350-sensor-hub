@@ -197,6 +197,7 @@ pre-push: \
   build-all-pico \
   build-all-pico-no-temperature \
   (test 'network') \
+  (test 'game') \
   fmt-server \
   clippy-server \
   build-server \
@@ -215,6 +216,7 @@ ci-check: \
   build-all-pico \
   build-all-pico-no-temperature \
   (test 'network') \
+  (test 'game') \
   fmt-check-server \
   clippy-server \
   build-server \
