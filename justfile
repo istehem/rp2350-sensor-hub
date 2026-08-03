@@ -83,6 +83,11 @@ test-all:
 test TEST:
   cargo test --target=x86_64-unknown-linux-gnu -p tests --test test-{{TEST}} -- --nocapture
 
+# TEST := game|network
+[group: 'test']
+ci-test TEST:
+  cargo test --no-default-features --target=x86_64-unknown-linux-gnu -p tests --test test-{{TEST}} -- --nocapture
+
 # build code for rp2350
 [group: 'build']
 build-all-pico:
@@ -196,8 +201,8 @@ pre-push: \
   clippy-all-pico-no-temperature \
   build-all-pico \
   build-all-pico-no-temperature \
-  (test 'network') \
-  (test 'game') \
+  (ci-test 'network') \
+  (ci-test 'game') \
   fmt-server \
   clippy-server \
   build-server \
@@ -215,8 +220,8 @@ ci-check: \
   clippy-all-pico-no-temperature \
   build-all-pico \
   build-all-pico-no-temperature \
-  (test 'network') \
-  (test 'game') \
+  (ci-test 'network') \
+  (ci-test 'game') \
   fmt-check-server \
   clippy-server \
   build-server \

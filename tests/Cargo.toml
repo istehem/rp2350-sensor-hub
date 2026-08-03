@@ -10,7 +10,7 @@ rstest = "0.26.1"
 tracing = "0.1.44"
 test-log = { version = "0.2.21", features = ["trace"] }
 embedded-graphics = { workspace = true }
-embedded-graphics-simulator = "0.8.0"
+embedded-graphics-simulator = { version = "0.8.0", default-features = false }
 rand = { workspace = true, default-features = true }
 pico-display = { path = "../crates/pico-display" }
 game-logic = { path = "../crates/game-logic" }
@@ -41,3 +41,7 @@ path = "test_game_logic.rs"
 [[test]]
 name = "test-network"
 path = "test_network.rs"
+
+[features]
+default = ["sdl2"]
+sdl2 = ["embedded-graphics-simulator/with-sdl"]

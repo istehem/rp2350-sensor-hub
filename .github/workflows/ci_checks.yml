@@ -51,11 +51,6 @@ jobs:
       - uses: extractions/setup-just@v3
         with:
           just-version: '1.46.0'
-      - name: Setup SDL
-        uses: libsdl-org/setup-sdl@main
-        with:
-          version: 2-latest
-          install-linux-dependencies: true
       - name: Install Playwright Browsers
         working-directory: axum-server/measurements-frontend
         run: npm install && npx playwright install chromium
