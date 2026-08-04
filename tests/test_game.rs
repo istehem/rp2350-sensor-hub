@@ -73,9 +73,6 @@ mod tests {
         assert_eq!(game_result, GameResult::Won);
     }
 
-    //generated_roll_image
-    //   .save_png(format!("resources/fish_roll_{}.png", roll))
-    //  .unwrap();
     #[rstest]
     #[test_log::test]
     fn fish_game(#[from(init_display)] mut display: Display) {
@@ -95,5 +92,28 @@ mod tests {
             roll += 1;
         }
         assert_eq!(game_result, GameResult::Fish);
+    }
+
+    #[rstest]
+    #[test_log::test]
+    fn fifteen_points_game(#[from(init_display)] mut display: Display) {
+        let output_settings = OutputSettingsBuilder::new().build();
+        let seed = 9966001620121918306;
+        let mut game = Game::new(SmallRng::seed_from_u64(seed));
+        let mut game_result = GameResult::Playing;
+        let mut roll = 0;
+
+        while game_result == GameResult::Playing {
+            game_result = game::player::play_and_draw(&mut display, &mut game).unwrap();
+            let generated_roll_image = display.to_grayscale_output_image(&output_settings);
+            let expected_roll_image = get_expected_image(
+                format!("fifteen_points_roll_{}.png", roll).as_str(),
+                &output_settings,
+            );
+
+            assert_eq!(generated_roll_image, expected_roll_image);
+            roll += 1;
+        }
+        assert_eq!(game_result, GameResult::GameOver(15));
     }
 }
