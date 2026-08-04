@@ -8,7 +8,7 @@ use pico_display::aliases::Display as DisplayTrait;
 
 use crate::game::error::DrawError;
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Debug)]
 pub enum GameResult {
     Won,
     Fish,
