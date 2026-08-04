@@ -2,8 +2,7 @@ include!("common/defmt_mock.rs");
 
 #[cfg(test)]
 mod tests {
-    use embedded_graphics::pixelcolor::Gray8;
-    use embedded_graphics::{pixelcolor::BinaryColor, prelude::*};
+    use embedded_graphics::{pixelcolor::BinaryColor, pixelcolor::Gray8, prelude::Size};
     use embedded_graphics_simulator::{
         OutputImage, OutputSettings, OutputSettingsBuilder, SimulatorDisplay,
     };
