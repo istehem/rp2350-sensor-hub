@@ -89,6 +89,7 @@ mod tests {
                 get_expected_image(format!("fish_roll_{}.png", roll).as_str(), &output_settings);
 
             assert_eq!(generated_roll_image, expected_roll_image);
+
             roll += 1;
         }
         assert_eq!(game_result, GameResult::Fish);
@@ -112,6 +113,7 @@ mod tests {
             );
 
             assert_eq!(generated_roll_image, expected_roll_image);
+
             roll += 1;
         }
         assert_eq!(game_result, GameResult::GameOver(15));
