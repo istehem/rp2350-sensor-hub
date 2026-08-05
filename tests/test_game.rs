@@ -7,9 +7,11 @@ mod tests {
         OutputImage, OutputSettings, OutputSettingsBuilder, SimulatorDisplay,
     };
     use game_logic::two_four_eighteen::Game;
+    use image::error::ImageError;
     use rand::rngs::SmallRng;
-    use rp2350_sensor_hub::game::{self, player::GameResult};
+    use rp2350_sensor_hub::game::{self, error::DrawError, player::GameResult};
     use rstest::{fixture, rstest};
+    use std::convert::Infallible;
 
     use rand::SeedableRng;
 
@@ -19,11 +21,17 @@ mod tests {
 
     type Display = SimulatorDisplay<BinaryColor>;
 
+    fn load_image(
+        path: &str,
+        output_settings: &OutputSettings,
+    ) -> Result<OutputImage<Gray8>, ImageError> {
+        Ok(Display::load_png(path)?.to_grayscale_output_image(output_settings))
+    }
+
     fn get_expected_image(filename: &str, output_settings: &OutputSettings) -> OutputImage<Gray8> {
-        let path_to_expected_roll_image = format!("resources/{}", filename);
-        Display::load_png(path_to_expected_roll_image)
-            .unwrap()
-            .to_grayscale_output_image(output_settings)
+        let path = format!("resources/{}", filename);
+        return load_image(path.as_str(), output_settings)
+            .expect(format!("Couldn't load image: {}", path).as_str());
     }
 
     #[fixture]
@@ -35,22 +43,29 @@ mod tests {
     #[case::seed_17035409315052165818(17035409315052165818)]
     #[case::seed_2056713228146178055(2056713228146178055)]
     #[test_log::test]
-    fn play_and_draw(#[from(init_display)] mut display: Display, #[case] seed: u64) {
+    fn play_and_draw(
+        #[from(init_display)] mut display: Display,
+        #[case] seed: u64,
+    ) -> Result<(), DrawError<Infallible>> {
         let output_settings = OutputSettingsBuilder::new().build();
         let mut game = Game::new(SmallRng::seed_from_u64(seed));
 
-        game::player::play_and_draw(&mut display, &mut game).unwrap();
+        game::player::play_and_draw(&mut display, &mut game)?;
         let generated_roll_image = display.to_grayscale_output_image(&output_settings);
 
         let expected_roll_image =
             get_expected_image(format!("roll_{}.png", seed).as_str(), &output_settings);
 
         assert_eq!(generated_roll_image, expected_roll_image);
+
+        Ok(())
     }
 
     #[rstest]
     #[test_log::test]
-    fn winning_game(#[from(init_display)] mut display: Display) {
+    fn winning_game(
+        #[from(init_display)] mut display: Display,
+    ) -> Result<(), DrawError<Infallible>> {
         let output_settings = OutputSettingsBuilder::new().build();
         let seed = 488748144120125711;
         let mut game = Game::new(SmallRng::seed_from_u64(seed));
@@ -58,7 +73,7 @@ mod tests {
         let mut roll = 0;
 
         while game_result == GameResult::Playing {
-            game_result = game::player::play_and_draw(&mut display, &mut game).unwrap();
+            game_result = game::player::play_and_draw(&mut display, &mut game)?;
             let generated_roll_image = display.to_grayscale_output_image(&output_settings);
             let expected_roll_image = get_expected_image(
                 format!("winning_roll_{}.png", roll).as_str(),
@@ -70,11 +85,13 @@ mod tests {
             roll += 1;
         }
         assert_eq!(game_result, GameResult::Won);
+
+        Ok(())
     }
 
     #[rstest]
     #[test_log::test]
-    fn fish_game(#[from(init_display)] mut display: Display) {
+    fn fish_game(#[from(init_display)] mut display: Display) -> Result<(), DrawError<Infallible>> {
         let output_settings = OutputSettingsBuilder::new().build();
         let seed = 6375483379391604375;
         let mut game = Game::new(SmallRng::seed_from_u64(seed));
@@ -82,7 +99,7 @@ mod tests {
         let mut roll = 0;
 
         while game_result == GameResult::Playing {
-            game_result = game::player::play_and_draw(&mut display, &mut game).unwrap();
+            game_result = game::player::play_and_draw(&mut display, &mut game)?;
             let generated_roll_image = display.to_grayscale_output_image(&output_settings);
             let expected_roll_image =
                 get_expected_image(format!("fish_roll_{}.png", roll).as_str(), &output_settings);
@@ -92,11 +109,15 @@ mod tests {
             roll += 1;
         }
         assert_eq!(game_result, GameResult::Fish);
+
+        Ok(())
     }
 
     #[rstest]
     #[test_log::test]
-    fn fifteen_points_game(#[from(init_display)] mut display: Display) {
+    fn fifteen_points_game(
+        #[from(init_display)] mut display: Display,
+    ) -> Result<(), DrawError<Infallible>> {
         let output_settings = OutputSettingsBuilder::new().build();
         let seed = 9966001620121918306;
         let mut game = Game::new(SmallRng::seed_from_u64(seed));
@@ -104,7 +125,7 @@ mod tests {
         let mut roll = 0;
 
         while game_result == GameResult::Playing {
-            game_result = game::player::play_and_draw(&mut display, &mut game).unwrap();
+            game_result = game::player::play_and_draw(&mut display, &mut game)?;
             let generated_roll_image = display.to_grayscale_output_image(&output_settings);
             let expected_roll_image = get_expected_image(
                 format!("fifteen_points_roll_{}.png", roll).as_str(),
@@ -116,5 +137,7 @@ mod tests {
             roll += 1;
         }
         assert_eq!(game_result, GameResult::GameOver(15));
+
+        Ok(())
     }
 }
