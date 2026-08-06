@@ -25,12 +25,16 @@ mod tests {
         io::Error::new(io::ErrorKind::ConnectionReset, "Connection reset by peer")
     }
 
-    async fn mock_measurements_success(mock_server: &MockServer, measurement: &Measurement) {
+    fn measurements_mock_builder(measurement: &Measurement) -> wiremock::MockBuilder {
         Mock::given(method("POST"))
             .and(basic_auth(REST_USER, REST_USER_PASSWORD))
             .and(header("Content-Type", "application/json"))
             .and(path(MEASUREMENTS_ENDPOINT))
             .and(body_json(measurement))
+    }
+
+    async fn mock_measurements_success(mock_server: &MockServer, measurement: &Measurement) {
+        measurements_mock_builder(measurement)
             .respond_with(ResponseTemplate::new(201))
             .mount(&mock_server)
             .await;
@@ -40,11 +44,7 @@ mod tests {
         mock_server: &MockServer,
         measurement: &Measurement,
     ) {
-        Mock::given(method("POST"))
-            .and(basic_auth(REST_USER, REST_USER_PASSWORD))
-            .and(header("Content-Type", "application/json"))
-            .and(path(MEASUREMENTS_ENDPOINT))
-            .and(body_json(measurement))
+        measurements_mock_builder(measurement)
             .respond_with_err(connection_reset_error)
             .mount(&mock_server)
             .await;
