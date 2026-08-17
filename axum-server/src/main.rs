@@ -14,7 +14,10 @@ use chrono::{DateTime, Utc};
 use include_dir::{Dir, include_dir};
 use ringbuffer::{AllocRingBuffer, RingBuffer};
 use serde::{Deserialize, Serialize};
-use std::sync::{Arc, Mutex};
+use std::{
+    sync::{Arc, Mutex},
+    vec,
+};
 use tokio::signal::unix::{SignalKind, signal};
 use tower_http::cors::{Any, CorsLayer};
 use tracing::{debug, error, info, warn};
@@ -29,6 +32,25 @@ const PASSWORD: &str = env!("REST_USER_PASSWORD");
 struct CreateMeasurement {
     temperature: f64,
     humidity: f64,
+}
+
+#[derive(Clone, Copy, Debug, Serialize)]
+struct Band {
+    minimum: f64,
+    maximum: f64,
+}
+
+#[derive(Clone, Copy, Debug, Serialize)]
+struct MedianAndBand {
+    date: DateTime<Utc>,
+    median: f64,
+    band: Band,
+}
+
+#[derive(Clone, Copy, Debug, Serialize)]
+struct MeasurementSnapshot {
+    humidty: MedianAndBand,
+    temperature: MedianAndBand,
 }
 
 #[derive(Clone, Copy, Debug, Serialize)]
@@ -131,6 +153,10 @@ async fn main() {
         .route("/api/version", get(version))
         .route("/api/measurements/latest", get(latest_measurement))
         .route("/api/measurements", get(query_measurements))
+        .route(
+            "/api/measurement-snapshots",
+            get(query_measurement_snapshots),
+        )
         .route("/api/measurements", post(create_measurement))
         .with_state(state)
         .fallback(fallback)
@@ -210,6 +236,15 @@ async fn query_measurements(
     }
 
     Ok(Json(measurements))
+}
+
+async fn query_measurement_snapshots(
+    State(_state): State<AppState>,
+    OptionalQuery(_params): OptionalQuery<Params>,
+) -> Result<Json<Vec<MeasurementSnapshot>>, MeasurementError> {
+    let snapshots = vec![];
+
+    Ok(Json(snapshots))
 }
 
 async fn version() -> Json<Version> {
