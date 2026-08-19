@@ -48,7 +48,7 @@ struct MedianAndBand {
 
 #[derive(Clone, Copy, Debug, Serialize)]
 struct MeasurementSnapshot {
-    humidty: MedianAndBand,
+    humidity: MedianAndBand,
     temperature: MedianAndBand,
 }
 
@@ -342,7 +342,7 @@ fn calculate_snapshot(measurements: &[Measurement]) -> Option<MeasurementSnapsho
     };
 
     Some(MeasurementSnapshot {
-        humidty: median_and_band_humidity,
+        humidity: median_and_band_humidity,
         temperature: median_and_band_temperature,
     })
 }
