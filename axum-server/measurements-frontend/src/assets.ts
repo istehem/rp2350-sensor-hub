@@ -9,6 +9,21 @@ export const MeasurementCodec = t.type({
 
 export type Measurement = t.TypeOf<typeof MeasurementCodec>
 
+const MedianAndBand = t.type({
+  median: t.number,
+  band: t.type({
+    minimum: t.number,
+    maximum: t.number,
+  }),
+  date: DateFromISOString,
+})
+
+export const MeasurementSnapshotCodec = t.type({
+  temperature: MedianAndBand,
+  humidity: MedianAndBand,
+})
+export type MeasurementSnapshot = t.TypeOf<typeof MeasurementSnapshotCodec>
+
 export const VersionCodec = t.type({
   version: t.string,
 })

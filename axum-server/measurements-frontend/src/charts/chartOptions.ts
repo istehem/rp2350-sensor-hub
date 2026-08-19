@@ -1,5 +1,5 @@
 import type { ChartOptions, TooltipItem } from 'chart.js'
-import type { Measurement } from '../assets.js'
+import type { MeasurementSnapshot } from '../assets.js'
 
 interface Colors {
   textColor: string
@@ -60,9 +60,9 @@ function timeAxis(
 }
 
 export function calculateMeasurementAxisMinMax(
-  measurements: Measurement[],
+  measurements: MeasurementSnapshot[],
   defaultMinMax: MeasurementAxisMinMax,
-  callback: (measurement: Measurement) => number,
+  callback: (measurement: MeasurementSnapshot) => number,
 ): MeasurementAxisMinMax {
   if (measurements.length === 0) {
     return defaultMinMax

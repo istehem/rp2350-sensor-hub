@@ -57,14 +57,47 @@ test('mock measurements success', async ({ page }) => {
   const temperature = 33.1
   const humidity = 33.2
   await mockLatestMeasurementSuccess(page, temperature, humidity)
-  await page.route(/\/api\/measurements(\?.*)?$/, async (route) => {
+  await page.route(/\/api\/measurement-snapshots(\?.*)?$/, async (route) => {
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
       body: JSON.stringify([
-        { date: '2026-06-23T20:38:43.688746298Z', temperature: temperature, humidity: humidity },
-        { date: '2026-06-23T20:38:53.688746298Z', temperature: temperature, humidity: humidity },
-        { date: '2026-06-23T20:39:03.688746298Z', temperature: temperature, humidity: humidity },
+        {
+          humidity: {
+            date: '2026-06-23T20:38:43.688746298Z',
+            median: humidity,
+            band: { minimum: humidity, maximum: humidity },
+          },
+          temperature: {
+            date: '2026-06-23T20:38:43.688746298Z',
+            median: temperature,
+            band: { minimum: temperature, maximum: temperature },
+          },
+        },
+        {
+          humidity: {
+            date: '2026-06-23T20:38:44.688746298Z',
+            median: humidity,
+            band: { minimum: humidity, maximum: humidity },
+          },
+          temperature: {
+            date: '2026-06-23T20:38:44.688746298Z',
+            median: temperature,
+            band: { minimum: temperature, maximum: temperature },
+          },
+        },
+        {
+          humidity: {
+            date: '2026-06-23T20:38:45.688746298Z',
+            median: humidity,
+            band: { minimum: humidity, maximum: humidity },
+          },
+          temperature: {
+            date: '2026-06-23T20:38:45.688746298Z',
+            median: temperature,
+            band: { minimum: temperature, maximum: temperature },
+          },
+        },
       ]),
     })
   })
@@ -76,7 +109,7 @@ test('mock measurements success', async ({ page }) => {
 test('mock measurements with error', async ({ page }) => {
   await mockLatestMeasurementSuccess(page, 33, 33)
   const error = 'measurements failed to load with server error'
-  await page.route(/\/api\/measurements(\?.*)?$/, async (route) => {
+  await page.route(/\/api\/measurement-snapshots(\?.*)?$/, async (route) => {
     await route.fulfill({
       status: 500,
       contentType: 'application/json',

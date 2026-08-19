@@ -1,5 +1,10 @@
-import type { ApiError, Measurement, Version } from './assets.ts'
-import { ApiErrorCodec, MeasurementCodec, VersionCodec } from './assets.ts'
+import type { ApiError, Measurement, MeasurementSnapshot, Version } from './assets.ts'
+import {
+  ApiErrorCodec,
+  MeasurementCodec,
+  MeasurementSnapshotCodec,
+  VersionCodec,
+} from './assets.ts'
 import config from './config.ts'
 
 import * as t from 'io-ts'
@@ -38,6 +43,7 @@ const handleResponse = (response: Response): TE.TaskEither<ApiError, unknown> =>
   )
 
 const MeasurementsCodec = t.array(MeasurementCodec)
+const MeasurementSnapshotsCodec = t.array(MeasurementSnapshotCodec)
 
 export const fetchMeasurements = (): TE.TaskEither<ApiError, Measurement[]> =>
   pipe(
@@ -48,6 +54,21 @@ export const fetchMeasurements = (): TE.TaskEither<ApiError, Measurement[]> =>
     ),
     TE.chain(handleResponse),
     TE.chain((data) => pipe(MeasurementsCodec.decode(data), E.mapLeft(toApiError), TE.fromEither)),
+  )
+
+export const fetchMeasurementSnapshots = (): TE.TaskEither<ApiError, MeasurementSnapshot[]> =>
+  pipe(
+    TE.tryCatch(
+      () =>
+        fetch(
+          `${config.apiHost}/api/measurement-snapshots?downsample=${config.measurements.downsample}`,
+        ),
+      (reason): ApiError => ({ message: getErrorMessage(reason) }),
+    ),
+    TE.chain(handleResponse),
+    TE.chain((data) =>
+      pipe(MeasurementSnapshotsCodec.decode(data), E.mapLeft(toApiError), TE.fromEither),
+    ),
   )
 
 export const fetchLatestMeasurement = (): TE.TaskEither<ApiError, Measurement> =>

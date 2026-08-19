@@ -14,7 +14,11 @@ import type { AppState, Colors, Mode } from './appState.ts'
 import TemperatureChart from './charts/TemperatureChart.vue'
 import HumidityChart from './charts/HumidityChart.vue'
 import ErrorPanel from './ErrorPanel.vue'
-import { fetchLatestMeasurement, fetchMeasurements, fetchServerVersion } from './measurementsApi.ts'
+import {
+  fetchLatestMeasurement,
+  fetchMeasurementSnapshots,
+  fetchServerVersion,
+} from './measurementsApi.ts'
 
 const state = ref(AS.initialState)
 
@@ -80,10 +84,10 @@ const handleLatestMeasurement = (): T.Task<void> =>
 
 const handleMeasurements = (): T.Task<void> =>
   pipe(
-    fetchMeasurements(),
-    T.chain((latestMeasurement) =>
+    fetchMeasurementSnapshots(),
+    T.chain((latestMeasurementSnapshots) =>
       pipe(
-        latestMeasurement,
+        latestMeasurementSnapshots,
         E.match(
           (error) => transferStateToVue(AS.setMeasurementsApiError(O.some(error))),
           (success) =>

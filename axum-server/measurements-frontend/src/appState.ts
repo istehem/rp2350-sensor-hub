@@ -1,7 +1,7 @@
 import * as O from 'fp-ts/Option'
 import * as S from 'fp-ts/State'
 
-import type { ApiError, Measurement } from './assets.ts'
+import type { ApiError, Measurement, MeasurementSnapshot } from './assets.ts'
 
 export interface Colors {
   primary: string
@@ -14,7 +14,7 @@ export type Mode = 'light' | 'dark'
 export interface AppState {
   latestMeasurement: O.Option<Measurement>
   latestMeasurementApiError: O.Option<ApiError>
-  measurements: Measurement[]
+  measurements: MeasurementSnapshot[]
   measurementsApiError: O.Option<ApiError>
   colors: Colors
   mode: Mode
@@ -41,7 +41,7 @@ export const setLatestMeasurement = (measurement: O.Option<Measurement>) =>
 export const setLatestMeasurementApiError = (error: O.Option<ApiError>) =>
   S.modify((s: AppState) => ({ ...s, latestMeasurementApiError: error }))
 
-export const setMeasurements = (measurements: Measurement[]) =>
+export const setMeasurements = (measurements: MeasurementSnapshot[]) =>
   S.modify((s: AppState) => ({ ...s, measurements: measurements }))
 
 export const setMeasurementsApiError = (error: O.Option<ApiError>) =>

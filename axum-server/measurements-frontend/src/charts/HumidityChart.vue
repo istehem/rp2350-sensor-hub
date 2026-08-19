@@ -5,13 +5,13 @@ import { pipe } from 'fp-ts/function'
 import { computed } from 'vue'
 import { Line } from 'vue-chartjs'
 import type { ChartData, ChartOptions } from 'chart.js'
-import type { ApiError, Measurement } from '../assets.ts'
+import type { ApiError, MeasurementSnapshot } from '../assets.ts'
 
 import ErrorPanel from '../ErrorPanel.vue'
 import { calculateMeasurementAxisMinMax, generateChartOptions, tension } from './chartOptions.ts'
 
 const properties = defineProps<{
-  measurements: Measurement[]
+  measurements: MeasurementSnapshot[]
   apiError: Option<ApiError>
   datasetColor: string
   textColor: string
@@ -20,10 +20,10 @@ const properties = defineProps<{
 
 const title = 'Humidity (%)'
 
-function toChartData(measurements: Measurement[]): ChartData<'line'> {
+function toChartData(measurements: MeasurementSnapshot[]): ChartData<'line'> {
   const data = measurements.map((measurement) => ({
-    x: measurement.date.getTime(),
-    y: measurement.humidity,
+    x: measurement.humidity.date.getTime(),
+    y: measurement.humidity.median,
   }))
   return {
     datasets: [
@@ -44,7 +44,7 @@ const chartOptions = computed<ChartOptions<'line'>>(() => {
   const minMax = calculateMeasurementAxisMinMax(
     properties.measurements,
     { min: 29, max: 32 },
-    (measurement: Measurement) => measurement.humidity,
+    (measurement: MeasurementSnapshot) => measurement.humidity.median,
   )
   return generateChartOptions(title, minMax, 1, {
     textColor: properties.textColor,
