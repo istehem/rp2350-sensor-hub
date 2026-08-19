@@ -12,12 +12,11 @@ use axum_extra::{
 };
 use chrono::{DateTime, Utc};
 use include_dir::{Dir, include_dir};
+use medians::{Median, Medians};
 use ringbuffer::{AllocRingBuffer, RingBuffer};
 use serde::{Deserialize, Serialize};
-use std::{
-    sync::{Arc, Mutex},
-    vec,
-};
+use std::cmp::Ordering;
+use std::sync::{Arc, Mutex};
 use tokio::signal::unix::{SignalKind, signal};
 use tower_http::cors::{Any, CorsLayer};
 use tracing::{debug, error, info, warn};
@@ -239,12 +238,113 @@ async fn query_measurements(
 }
 
 async fn query_measurement_snapshots(
-    State(_state): State<AppState>,
-    OptionalQuery(_params): OptionalQuery<Params>,
+    State(state): State<AppState>,
+    OptionalQuery(params): OptionalQuery<Params>,
 ) -> Result<Json<Vec<MeasurementSnapshot>>, MeasurementError> {
-    let snapshots = vec![];
+    let measurements_guard = state
+        .measurements
+        .lock()
+        .map_err(|_| MeasurementError::Unreadable)?;
+
+    let mut number_of_chunks = 50;
+
+    if let Some(Params {
+        downsample: Some(wanted_count),
+    }) = params
+    {
+        number_of_chunks = wanted_count;
+    }
+    let measurements: Vec<Measurement> = measurements_guard.iter().copied().collect();
+    let snapshots = measurements
+        .chunks(number_of_chunks)
+        .filter_map(calculate_snapshot)
+        .collect();
 
     Ok(Json(snapshots))
+}
+
+fn calculate_snapshot(measurements: &[Measurement]) -> Option<MeasurementSnapshot> {
+    let temperatures: Vec<f64> = measurements
+        .iter()
+        .map(|measurement| measurement.temperature)
+        .collect();
+    let minimun_temperature = temperatures
+        .iter()
+        .copied()
+        .reduce(f64::min)
+        .filter(|v| v.is_finite())?;
+    let maximum_temperature = temperatures
+        .iter()
+        .copied()
+        .reduce(f64::max)
+        .filter(|v| v.is_finite())?;
+
+    let mut compare_temperatures = |a: &Measurement, b: &Measurement| {
+        a.temperature
+            .partial_cmp(&b.temperature)
+            .unwrap_or(Ordering::Greater)
+    };
+    let median_temperature_result = measurements.median_by(&mut compare_temperatures);
+    let median_temperature = match median_temperature_result {
+        Ok(Medians::Odd(entry)) => Some((entry.date, entry.temperature)),
+        Ok(Medians::Even((lower, upper))) => {
+            Some((lower.date, (lower.temperature + upper.temperature) / 2.0))
+        }
+
+        _ => None,
+    }?;
+
+    let humidities: Vec<f64> = measurements
+        .iter()
+        .map(|measurement| measurement.humidity)
+        .collect();
+    let mininum_humidity = humidities
+        .iter()
+        .copied()
+        .reduce(f64::min)
+        .filter(|v| v.is_finite())?;
+    let maximum_humidity = humidities
+        .iter()
+        .copied()
+        .reduce(f64::max)
+        .filter(|v| v.is_finite())?;
+
+    let mut compare_humidities = |a: &Measurement, b: &Measurement| {
+        a.humidity
+            .partial_cmp(&b.humidity)
+            .unwrap_or(Ordering::Greater)
+    };
+    let median_humidity_result = measurements.median_by(&mut compare_humidities);
+    let median_humidity = match median_humidity_result {
+        Ok(Medians::Odd(entry)) => Some((entry.date, entry.humidity)),
+        Ok(Medians::Even((lower, upper))) => {
+            Some((lower.date, (lower.humidity + upper.humidity) / 2.0))
+        }
+        _ => None,
+    }?;
+
+    let median_and_band_temperature = MedianAndBand {
+        date: median_temperature.0,
+        median: median_temperature.1,
+        band: Band {
+            minimum: minimun_temperature,
+            maximum: maximum_temperature,
+        },
+    };
+
+    let median_and_band_humidity = MedianAndBand {
+        date: median_humidity.0,
+        median: median_humidity.1,
+        band: Band {
+            minimum: mininum_humidity,
+            maximum: maximum_humidity,
+        },
+    };
+
+    Some(MeasurementSnapshot {
+        humidty: median_and_band_humidity,
+        temperature: median_and_band_temperature,
+    })
 }
 
 async fn version() -> Json<Version> {
