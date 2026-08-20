@@ -15,7 +15,7 @@ use include_dir::{Dir, include_dir};
 use medians::{Median, Medians};
 use ringbuffer::{AllocRingBuffer, RingBuffer};
 use serde::{Deserialize, Serialize};
-use std::cmp::Ordering;
+use std::cmp::{Ordering, max};
 use std::sync::{Arc, Mutex};
 use tokio::signal::unix::{SignalKind, signal};
 use tower_http::cors::{Any, CorsLayer};
@@ -254,9 +254,11 @@ async fn query_measurement_snapshots(
     {
         number_of_chunks = wanted_count;
     }
+
     let measurements: Vec<Measurement> = measurements_guard.iter().copied().collect();
+    let chunk_size = max(measurements.len() / max(number_of_chunks, 1), 1);
     let snapshots = measurements
-        .chunks(number_of_chunks)
+        .chunks(chunk_size)
         .filter_map(calculate_snapshot)
         .collect();
 
