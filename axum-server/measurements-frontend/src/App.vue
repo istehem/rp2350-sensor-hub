@@ -221,7 +221,8 @@ const toggleModeIcon = computed(() => (state.value.mode === 'light' ? 'dark_mode
         <HumidityChart
           :measurements="measurements"
           :api-error="measurementsError"
-          :dataset-color="colors.primary"
+          :median-dataset-color="colors.primary"
+          :band-dataset-color="colors.surfaceVariant"
           :text-color="colors.secondary"
           :grid-color="colors.surfaceVariant"
         />

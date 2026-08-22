@@ -13,7 +13,8 @@ import { calculateMeasurementAxisMinMax, generateChartOptions, tension } from '.
 const properties = defineProps<{
   measurements: MeasurementSnapshot[]
   apiError: Option<ApiError>
-  datasetColor: string
+  medianDatasetColor: string
+  bandDatasetColor: string
   textColor: string
   gridColor: string
 }>()
@@ -21,18 +22,46 @@ const properties = defineProps<{
 const title = 'Humidity (%)'
 
 function toChartData(measurements: MeasurementSnapshot[]): ChartData<'line'> {
-  const data = measurements.map((measurement) => ({
+  const medianData = measurements.map((measurement) => ({
     x: measurement.humidity.date.getTime(),
     y: measurement.humidity.median,
+  }))
+  const maximumData = measurements.map((measurement) => ({
+    x: measurement.humidity.date.getTime(),
+    y: measurement.humidity.band.maximum,
+  }))
+  const minimumData = measurements.map((measurement) => ({
+    x: measurement.humidity.date.getTime(),
+    y: measurement.humidity.band.minimum,
   }))
   return {
     datasets: [
       {
+        label: 'maximum',
+        data: maximumData,
+        borderColor: 'transparent',
+        backgroundColor: properties.bandDatasetColor,
+        fill: false,
+        pointRadius: 0,
+        order: 1,
+      },
+      {
+        label: 'minimum',
+        data: minimumData,
+        borderColor: 'transparent',
+        backgroundColor: properties.bandDatasetColor,
+        fill: 0,
+        pointRadius: 0,
+        order: 1,
+      },
+      {
         label: title,
-        data: data,
-        borderColor: properties.datasetColor,
-        backgroundColor: properties.datasetColor,
+        data: medianData,
+        borderColor: properties.medianDatasetColor,
+        backgroundColor: properties.medianDatasetColor,
         tension: tension,
+        fill: false,
+        order: 0,
       },
     ],
   }

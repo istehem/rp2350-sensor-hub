@@ -11,9 +11,10 @@ import {
   LineElement,
   TimeScale,
   LinearScale,
+  Filler,
 } from 'chart.js'
 
 import 'chartjs-adapter-date-fns'
 
-ChartJS.register(Title, Tooltip, Legend, LineElement, PointElement, LinearScale, TimeScale)
+ChartJS.register(Title, Tooltip, Legend, LineElement, PointElement, LinearScale, TimeScale, Filler)
 createApp(App).mount('#app')

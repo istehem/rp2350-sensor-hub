@@ -110,7 +110,14 @@ export function generateChartOptions(
       },
     },
     plugins: {
-      legend: { labels: { color: colors.textColor } },
+      legend: {
+        labels: {
+          color: colors.textColor,
+          filter: function (legendItem) {
+            return !['minimum', 'maximum'].includes(legendItem.text)
+          },
+        },
+      },
     },
   }
 }
