@@ -1,5 +1,6 @@
+use crate::api::error::MeasurementError;
 use crate::utils::chunk;
-use crate::{AppState, Measurement, Params, api::error::MeasurementError};
+use crate::{AppState, Measurement, Params};
 use axum::{Json, extract::State, response::Result};
 use axum_extra::extract::OptionalQuery;
 use chrono::{DateTime, Utc};
