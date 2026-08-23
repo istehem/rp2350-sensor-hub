@@ -59,10 +59,30 @@ impl IntoResponse for MeasurementError {
     }
 }
 
+#[derive(Clone, Copy, Debug, Serialize)]
+pub struct Band {
+    pub minimum: f64,
+    pub maximum: f64,
+}
+
+#[derive(Clone, Copy, Debug, Serialize)]
+pub struct MedianAndBand {
+    pub date: DateTime<Utc>,
+    pub median: f64,
+    pub band: Band,
+}
+
+#[derive(Clone, Copy, Debug, Serialize)]
+pub struct MeasurementSnapshot {
+    pub humidity: MedianAndBand,
+    pub temperature: MedianAndBand,
+}
+
 pub mod utils {
     pub mod chunk;
 }
 
 pub mod api {
+    pub mod measurement_snapshots;
     pub mod measurements;
 }
