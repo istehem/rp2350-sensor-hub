@@ -1,45 +1,18 @@
 use axum::{
     Router,
-    extract::Path,
-    http::{Method, StatusCode, Uri, header},
-    response::{Html, IntoResponse, Response, Result},
+    http::{Method, StatusCode, Uri},
+    response::IntoResponse,
     routing::{get, post},
 };
 use axum_server::AppState;
 use axum_server::api::{measurement_snapshots, measurements, version};
-use include_dir::{Dir, include_dir};
+use axum_server::static_content;
 use ringbuffer::AllocRingBuffer;
 use std::sync::{Arc, Mutex};
 use tokio::signal::unix::{SignalKind, signal};
 use tower_http::cors::{Any, CorsLayer};
-use tracing::{debug, error, info};
+use tracing::info;
 use tracing_subscriber::EnvFilter;
-
-static STATIC_CONTENT_DIR: Dir<'_> = include_dir!("$CARGO_MANIFEST_DIR/static-content");
-
-#[derive(Debug)]
-enum StaticContentError {
-    NotFound,
-    InvalidEncoding,
-}
-
-impl IntoResponse for StaticContentError {
-    fn into_response(self) -> Response {
-        let (status, message) = match self {
-            Self::NotFound => {
-                let message = "File Not Found";
-                debug!("{}", message);
-                (StatusCode::NOT_FOUND, message)
-            }
-            Self::InvalidEncoding => {
-                let message = "UTF-8 Encoding Error";
-                error!("{}", message);
-                (StatusCode::INTERNAL_SERVER_ERROR, message)
-            }
-        };
-        (status, message).into_response()
-    }
-}
 
 #[tokio::main]
 async fn main() {
@@ -56,8 +29,11 @@ async fn main() {
         .allow_methods([Method::GET]);
 
     let app = Router::new()
-        .route("/", get(index))
-        .route("/static-content/{*param}", get(static_content))
+        .route("/", get(static_content::index))
+        .route(
+            "/static-content/{*param}",
+            get(static_content::static_content),
+        )
         .route("/api/version", get(version::version))
         .route(
             "/api/measurements/latest",
@@ -94,26 +70,4 @@ async fn fallback(uri: Uri) -> impl IntoResponse {
         StatusCode::NOT_FOUND,
         axum::Json(serde_json::json!({ "message": message })),
     )
-}
-
-async fn static_content(Path(path): Path<String>) -> Result<impl IntoResponse, StaticContentError> {
-    let path = path.trim_start_matches('/');
-    let file = STATIC_CONTENT_DIR
-        .get_file(path)
-        .ok_or(StaticContentError::NotFound)?;
-    let mime = mime_guess::from_path(path).first_or_octet_stream();
-    Ok((
-        [(header::CONTENT_TYPE, mime.as_ref().to_string())],
-        file.contents(),
-    ))
-}
-
-async fn index() -> Result<Html<&'static str>, StaticContentError> {
-    let file = STATIC_CONTENT_DIR
-        .get_file("index.html")
-        .ok_or(StaticContentError::NotFound)?;
-    Ok(Html(
-        file.contents_utf8()
-            .ok_or(StaticContentError::InvalidEncoding)?,
-    ))
 }

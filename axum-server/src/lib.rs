@@ -30,3 +30,5 @@ pub mod api {
     pub mod measurements;
     pub mod version;
 }
+
+pub mod static_content;
