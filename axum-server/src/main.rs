@@ -10,6 +10,7 @@ use axum_extra::{
     extract::OptionalQuery,
     headers::{Authorization, authorization::Basic},
 };
+use axum_server::utils::chunk;
 use chrono::{DateTime, Utc};
 use include_dir::{Dir, include_dir};
 use medians::{Median, Medians};
@@ -17,7 +18,6 @@ use ringbuffer::{AllocRingBuffer, RingBuffer};
 use serde::{Deserialize, Serialize};
 use std::cmp::{Ordering, max};
 use std::sync::{Arc, Mutex};
-use std::vec::IntoIter;
 use tokio::signal::unix::{SignalKind, signal};
 use tower_http::cors::{Any, CorsLayer};
 use tracing::{debug, error, info, warn};
@@ -257,7 +257,7 @@ async fn query_measurement_snapshots(
     }
 
     let measurements: Vec<Measurement> = measurements_guard.iter().copied().collect();
-    let snapshots = split_into_n_chunks(&measurements, max(number_of_chunks, 1))
+    let snapshots = chunk::split_into_n_chunks(&measurements, max(number_of_chunks, 1))
         .filter_map(calculate_snapshot)
         .collect();
 
@@ -414,23 +414,4 @@ async fn index() -> Result<Html<&'static str>, StaticContentError> {
         file.contents_utf8()
             .ok_or(StaticContentError::InvalidEncoding)?,
     ))
-}
-
-fn split_into_n_chunks<T>(slice: &[T], n: usize) -> IntoIter<&[T]> {
-    if n == 0 {
-        return Vec::new().into_iter();
-    }
-    let length = slice.len();
-    let base_size = length / n;
-    let remainder = length % n;
-
-    let mut result = Vec::with_capacity(n);
-    let mut start = 0;
-    for i in 0..n {
-        let size = base_size + if i < remainder { 1 } else { 0 };
-        let end = start + size;
-        result.push(&slice[start..end]);
-        start = end;
-    }
-    result.into_iter()
 }
