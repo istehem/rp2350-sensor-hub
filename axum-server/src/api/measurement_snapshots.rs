@@ -1,12 +1,31 @@
 use crate::utils::chunk;
-use crate::{
-    AppState, Band, Measurement, MeasurementError, MeasurementSnapshot, MedianAndBand, Params,
-};
+use crate::{AppState, Measurement, MeasurementError, Params};
 use axum::{Json, extract::State, response::Result};
 use axum_extra::extract::OptionalQuery;
+use chrono::{DateTime, Utc};
 use medians::{Median, Medians};
 use ringbuffer::RingBuffer;
+use serde::Serialize;
 use std::cmp::{Ordering, max};
+
+#[derive(Clone, Copy, Debug, Serialize)]
+pub struct Band {
+    pub minimum: f64,
+    pub maximum: f64,
+}
+
+#[derive(Clone, Copy, Debug, Serialize)]
+pub struct MedianAndBand {
+    pub date: DateTime<Utc>,
+    pub median: f64,
+    pub band: Band,
+}
+
+#[derive(Clone, Copy, Debug, Serialize)]
+pub struct MeasurementSnapshot {
+    pub humidity: MedianAndBand,
+    pub temperature: MedianAndBand,
+}
 
 pub async fn query_measurement_snapshots(
     State(state): State<AppState>,
