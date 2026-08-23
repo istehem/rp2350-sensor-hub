@@ -1,7 +1,45 @@
 use crate::{AppState, Measurement, MeasurementError, Params};
-use axum::{Json, extract::State, response::Result};
-use axum_extra::extract::OptionalQuery;
+use axum::{Json, extract::State, http::StatusCode, response::Result};
+use axum_extra::{
+    TypedHeader,
+    extract::OptionalQuery,
+    headers::{Authorization, authorization::Basic},
+};
+use chrono::Utc;
 use ringbuffer::RingBuffer;
+use serde::Deserialize;
+use tracing::debug;
+
+const USER: &str = env!("REST_USER");
+const PASSWORD: &str = env!("REST_USER_PASSWORD");
+
+#[derive(Deserialize)]
+pub struct CreateMeasurement {
+    pub temperature: f64,
+    pub humidity: f64,
+}
+
+pub async fn create_measurement(
+    auth: Option<TypedHeader<Authorization<Basic>>>,
+    State(state): State<AppState>,
+    Json(payload): Json<CreateMeasurement>,
+) -> Result<(StatusCode, Json<Measurement>), MeasurementError> {
+    validate_authorization(auth)?;
+
+    let measurement = Measurement {
+        date: Utc::now(),
+        temperature: payload.temperature,
+        humidity: payload.humidity,
+    };
+    let mut measurements = state
+        .measurements
+        .lock()
+        .map_err(|_| MeasurementError::Unreadable)?;
+    measurements.enqueue(measurement);
+    debug!("new measurement: {:?}", measurement);
+
+    Ok((StatusCode::CREATED, Json(measurement)))
+}
 
 pub async fn latest_measurement(
     State(state): State<AppState>,
@@ -53,4 +91,22 @@ fn downsample_measurements(
     }
 
     picked
+}
+
+fn validate_authorization(
+    auth: Option<TypedHeader<Authorization<Basic>>>,
+) -> Result<(), MeasurementError> {
+    let credentials = match auth {
+        Some(TypedHeader(Authorization(basic))) => basic,
+        None => {
+            return Err(MeasurementError::Unauthorized);
+        }
+    };
+
+    let username = credentials.username();
+    let password = credentials.password();
+    if username != USER || password != PASSWORD {
+        return Err(MeasurementError::Unauthorized);
+    }
+    Ok(())
 }

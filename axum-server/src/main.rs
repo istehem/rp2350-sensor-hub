@@ -1,20 +1,15 @@
 use axum::{
     Json, Router,
-    extract::{Path, State},
+    extract::Path,
     http::{Method, StatusCode, Uri, header},
     response::{Html, IntoResponse, Response, Result},
     routing::{get, post},
 };
-use axum_extra::{
-    TypedHeader,
-    headers::{Authorization, authorization::Basic},
-};
+use axum_server::AppState;
 use axum_server::api::{measurement_snapshots, measurements};
-use axum_server::{AppState, Measurement, MeasurementError};
-use chrono::Utc;
 use include_dir::{Dir, include_dir};
-use ringbuffer::{AllocRingBuffer, RingBuffer};
-use serde::{Deserialize, Serialize};
+use ringbuffer::AllocRingBuffer;
+use serde::Serialize;
 use std::sync::{Arc, Mutex};
 use tokio::signal::unix::{SignalKind, signal};
 use tower_http::cors::{Any, CorsLayer};
@@ -22,15 +17,6 @@ use tracing::{debug, error, info};
 use tracing_subscriber::EnvFilter;
 
 static STATIC_CONTENT_DIR: Dir<'_> = include_dir!("$CARGO_MANIFEST_DIR/static-content");
-
-const USER: &str = env!("REST_USER");
-const PASSWORD: &str = env!("REST_USER_PASSWORD");
-
-#[derive(Deserialize)]
-struct CreateMeasurement {
-    temperature: f64,
-    humidity: f64,
-}
 
 #[derive(Serialize)]
 struct Version {
@@ -88,7 +74,7 @@ async fn main() {
             "/api/measurement-snapshots",
             get(measurement_snapshots::query_measurement_snapshots),
         )
-        .route("/api/measurements", post(create_measurement))
+        .route("/api/measurements", post(measurements::create_measurement))
         .with_state(state)
         .fallback(fallback)
         .layer(cors);
@@ -120,46 +106,6 @@ async fn version() -> Json<Version> {
     Json(Version {
         version: env!("CARGO_PKG_VERSION").to_string(),
     })
-}
-
-fn validate_authorization(
-    auth: Option<TypedHeader<Authorization<Basic>>>,
-) -> Result<(), MeasurementError> {
-    let credentials = match auth {
-        Some(TypedHeader(Authorization(basic))) => basic,
-        None => {
-            return Err(MeasurementError::Unauthorized);
-        }
-    };
-
-    let username = credentials.username();
-    let password = credentials.password();
-    if username != USER || password != PASSWORD {
-        return Err(MeasurementError::Unauthorized);
-    }
-    Ok(())
-}
-
-async fn create_measurement(
-    auth: Option<TypedHeader<Authorization<Basic>>>,
-    State(state): State<AppState>,
-    Json(payload): Json<CreateMeasurement>,
-) -> Result<(StatusCode, Json<Measurement>), MeasurementError> {
-    validate_authorization(auth)?;
-
-    let measurement = Measurement {
-        date: Utc::now(),
-        temperature: payload.temperature,
-        humidity: payload.humidity,
-    };
-    let mut measurements = state
-        .measurements
-        .lock()
-        .map_err(|_| MeasurementError::Unreadable)?;
-    measurements.enqueue(measurement);
-    debug!("new measurement: {:?}", measurement);
-
-    Ok((StatusCode::CREATED, Json(measurement)))
 }
 
 async fn static_content(Path(path): Path<String>) -> Result<impl IntoResponse, StaticContentError> {
