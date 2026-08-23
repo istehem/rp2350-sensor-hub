@@ -85,4 +85,5 @@ pub mod utils {
 pub mod api {
     pub mod measurement_snapshots;
     pub mod measurements;
+    pub mod version;
 }

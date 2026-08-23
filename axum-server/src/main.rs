@@ -1,15 +1,14 @@
 use axum::{
-    Json, Router,
+    Router,
     extract::Path,
     http::{Method, StatusCode, Uri, header},
     response::{Html, IntoResponse, Response, Result},
     routing::{get, post},
 };
 use axum_server::AppState;
-use axum_server::api::{measurement_snapshots, measurements};
+use axum_server::api::{measurement_snapshots, measurements, version};
 use include_dir::{Dir, include_dir};
 use ringbuffer::AllocRingBuffer;
-use serde::Serialize;
 use std::sync::{Arc, Mutex};
 use tokio::signal::unix::{SignalKind, signal};
 use tower_http::cors::{Any, CorsLayer};
@@ -17,11 +16,6 @@ use tracing::{debug, error, info};
 use tracing_subscriber::EnvFilter;
 
 static STATIC_CONTENT_DIR: Dir<'_> = include_dir!("$CARGO_MANIFEST_DIR/static-content");
-
-#[derive(Serialize)]
-struct Version {
-    version: String,
-}
 
 #[derive(Debug)]
 enum StaticContentError {
@@ -64,7 +58,7 @@ async fn main() {
     let app = Router::new()
         .route("/", get(index))
         .route("/static-content/{*param}", get(static_content))
-        .route("/api/version", get(version))
+        .route("/api/version", get(version::version))
         .route(
             "/api/measurements/latest",
             get(measurements::latest_measurement),
@@ -100,12 +94,6 @@ async fn fallback(uri: Uri) -> impl IntoResponse {
         StatusCode::NOT_FOUND,
         axum::Json(serde_json::json!({ "message": message })),
     )
-}
-
-async fn version() -> Json<Version> {
-    Json(Version {
-        version: env!("CARGO_PKG_VERSION").to_string(),
-    })
 }
 
 async fn static_content(Path(path): Path<String>) -> Result<impl IntoResponse, StaticContentError> {
