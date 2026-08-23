@@ -1,4 +1,4 @@
-use crate::{AppState, Measurement, MeasurementError, Params};
+use crate::{AppState, Measurement, Params, api::error::MeasurementError};
 use axum::{Json, extract::State, http::StatusCode, response::Result};
 use axum_extra::{
     TypedHeader,
