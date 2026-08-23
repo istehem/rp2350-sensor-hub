@@ -4,7 +4,7 @@ use axum::{
 };
 use chrono::{DateTime, Utc};
 use ringbuffer::AllocRingBuffer;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use std::sync::{Arc, Mutex};
 use tracing::{error, warn};
 
@@ -18,6 +18,11 @@ pub struct Measurement {
 #[derive(Clone)]
 pub struct AppState {
     pub measurements: Arc<Mutex<AllocRingBuffer<Measurement>>>,
+}
+
+#[derive(Deserialize)]
+pub struct Params {
+    pub downsample: Option<usize>,
 }
 
 #[derive(Debug)]
