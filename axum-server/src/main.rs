@@ -10,7 +10,9 @@ use axum_extra::{
     extract::OptionalQuery,
     headers::{Authorization, authorization::Basic},
 };
+use axum_server::api::measurements;
 use axum_server::utils::chunk;
+use axum_server::{AppState, Measurement, MeasurementError};
 use chrono::{DateTime, Utc};
 use include_dir::{Dir, include_dir};
 use medians::{Median, Medians};
@@ -20,7 +22,7 @@ use std::cmp::{Ordering, max};
 use std::sync::{Arc, Mutex};
 use tokio::signal::unix::{SignalKind, signal};
 use tower_http::cors::{Any, CorsLayer};
-use tracing::{debug, error, info, warn};
+use tracing::{debug, error, info};
 use tracing_subscriber::EnvFilter;
 
 static STATIC_CONTENT_DIR: Dir<'_> = include_dir!("$CARGO_MANIFEST_DIR/static-content");
@@ -53,25 +55,6 @@ struct MeasurementSnapshot {
     temperature: MedianAndBand,
 }
 
-#[derive(Clone, Copy, Debug, Serialize)]
-struct Measurement {
-    date: DateTime<Utc>,
-    temperature: f64,
-    humidity: f64,
-}
-
-#[derive(Clone)]
-struct AppState {
-    measurements: Arc<Mutex<AllocRingBuffer<Measurement>>>,
-}
-
-#[derive(Debug)]
-enum MeasurementError {
-    NotFound,
-    Unreadable,
-    Unauthorized,
-}
-
 #[derive(Deserialize)]
 struct Params {
     downsample: Option<usize>,
@@ -80,33 +63,6 @@ struct Params {
 #[derive(Serialize)]
 struct Version {
     version: String,
-}
-
-impl IntoResponse for MeasurementError {
-    fn into_response(self) -> Response {
-        let (status, message) = match self {
-            Self::NotFound => {
-                let message = "No measurement available yet.";
-                warn!("{}", message);
-                (StatusCode::NOT_FOUND, message)
-            }
-            Self::Unreadable => {
-                let message = "Couldn't acquire the measurement lock.";
-                error!("{}", message);
-                (StatusCode::INTERNAL_SERVER_ERROR, message)
-            }
-            Self::Unauthorized => {
-                let message = "Request was unauthorized.";
-                warn!("{}", message);
-                (StatusCode::UNAUTHORIZED, message)
-            }
-        };
-        (
-            status,
-            axum::Json(serde_json::json!({ "message": message })),
-        )
-            .into_response()
-    }
 }
 
 #[derive(Debug)]
@@ -151,7 +107,10 @@ async fn main() {
         .route("/", get(index))
         .route("/static-content/{*param}", get(static_content))
         .route("/api/version", get(version))
-        .route("/api/measurements/latest", get(latest_measurement))
+        .route(
+            "/api/measurements/latest",
+            get(measurements::latest_measurement),
+        )
         .route("/api/measurements", get(query_measurements))
         .route(
             "/api/measurement-snapshots",
@@ -185,21 +144,6 @@ async fn fallback(uri: Uri) -> impl IntoResponse {
     )
 }
 
-async fn latest_measurement(
-    State(state): State<AppState>,
-) -> Result<Json<Measurement>, MeasurementError> {
-    let measurements = state
-        .measurements
-        .lock()
-        .map_err(|_| MeasurementError::Unreadable)?;
-
-    match measurements.back() {
-        Some(measurements) => Ok(Json(*measurements)),
-        None => Err(MeasurementError::NotFound),
-    }
-}
-
-// decimation with interval offset
 fn downsample_measurements(
     measurements: Vec<Measurement>,
     wanted_count: usize,
