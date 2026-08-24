@@ -14,6 +14,7 @@ import type { AppState, Colors, Mode } from './appState.ts'
 import TemperatureChart from './charts/TemperatureChart.vue'
 import HumidityChart from './charts/HumidityChart.vue'
 import ErrorPanel from './ErrorPanel.vue'
+import ChartSelect from './ChartSelect.vue'
 import {
   fetchLatestMeasurement,
   fetchMeasurementSnapshots,
@@ -208,6 +209,7 @@ const toggleModeIcon = computed(() => (state.value.mode === 'light' ? 'dark_mode
           </div>
         </div>
       </article>
+      <ChartSelect :name="'temperature'" />
       <article class="medium">
         <TemperatureChart
           :measurements="measurements"
@@ -218,6 +220,7 @@ const toggleModeIcon = computed(() => (state.value.mode === 'light' ? 'dark_mode
           :grid-color="colors.surfaceVariant"
         />
       </article>
+      <ChartSelect :name="'humidity'" />
       <article class="medium">
         <HumidityChart
           :measurements="measurements"
