@@ -8,7 +8,7 @@ const properties = defineProps<{
     <nav>
       <label class="radio">
         <input type="radio" :name="properties.name" checked />
-        <span>Median And Band Plot</span>
+        <span>Median And Band</span>
       </label>
       <label class="radio">
         <input type="radio" :name="properties.name" />

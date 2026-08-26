@@ -5,13 +5,14 @@ import { pipe } from 'fp-ts/function'
 import { computed } from 'vue'
 import { Line } from 'vue-chartjs'
 import type { ChartData, ChartOptions } from 'chart.js'
-import type { ApiError, MeasurementSnapshot } from '../assets.ts'
+import type { ApiError, MeasurementSnapshot, Plottable } from '../assets.ts'
+import { MeasurementSnapshotsCodec } from '../assets.ts'
 
 import ErrorPanel from '../ErrorPanel.vue'
 import { calculateMeasurementAxisMinMax, generateChartOptions, tension } from './chartOptions.ts'
 
 const properties = defineProps<{
-  measurements: MeasurementSnapshot[]
+  measurements: Plottable
   apiError: Option<ApiError>
   medianDatasetColor: string
   bandDatasetColor: string
@@ -21,7 +22,7 @@ const properties = defineProps<{
 
 const title = 'Humidity (%)'
 
-function toChartData(measurements: MeasurementSnapshot[]): ChartData<'line'> {
+function measurementSnapshotsToChartData(measurements: MeasurementSnapshot[]): ChartData<'line'> {
   const medianData = measurements.map((measurement) => ({
     x: measurement.humidity.date.getTime(),
     y: measurement.humidity.median,
@@ -69,11 +70,16 @@ function toChartData(measurements: MeasurementSnapshot[]): ChartData<'line'> {
   }
 }
 
-const chartData = computed<ChartData<'line'>>(() => toChartData(properties.measurements))
+function toChartData(measurements: Plottable): ChartData<'line'> {
+  if (MeasurementSnapshotsCodec.is(measurements)) {
+    return measurementSnapshotsToChartData(measurements)
+  }
+  throw new Error('Not Implemented for Measurements yet')
+}
 
-const chartOptions = computed<ChartOptions<'line'>>(() => {
+function toChartOptions(measurements: MeasurementSnapshot[]): ChartOptions<'line'> {
   const minMax = calculateMeasurementAxisMinMax(
-    properties.measurements,
+    measurements,
     { min: 29, max: 32 },
     (measurement: MeasurementSnapshot) => measurement.humidity.median,
   )
@@ -81,6 +87,15 @@ const chartOptions = computed<ChartOptions<'line'>>(() => {
     textColor: properties.textColor,
     gridColor: properties.gridColor,
   })
+}
+
+const chartData = computed<ChartData<'line'>>(() => toChartData(properties.measurements))
+
+const chartOptions = computed<ChartOptions<'line'>>(() => {
+  if (MeasurementSnapshotsCodec.is(properties.measurements)) {
+    return toChartOptions(properties.measurements)
+  }
+  throw new Error('Not Implemented for Measurements yet')
 })
 
 const error = computed(() =>

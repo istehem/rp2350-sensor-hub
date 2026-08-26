@@ -35,3 +35,9 @@ export const ApiErrorCodec = t.type({
 })
 
 export type ApiError = t.TypeOf<typeof ApiErrorCodec>
+
+export const MeasurementsCodec = t.array(MeasurementCodec)
+export const MeasurementSnapshotsCodec = t.array(MeasurementSnapshotCodec)
+
+export const PlottableCodec = t.union([MeasurementsCodec, MeasurementSnapshotsCodec])
+export type Plottable = t.TypeOf<typeof PlottableCodec>

@@ -2,7 +2,8 @@ import type { ApiError, Measurement, MeasurementSnapshot, Version } from './asse
 import {
   ApiErrorCodec,
   MeasurementCodec,
-  MeasurementSnapshotCodec,
+  MeasurementsCodec,
+  MeasurementSnapshotsCodec,
   VersionCodec,
 } from './assets.ts'
 import config from './config.ts'
@@ -41,9 +42,6 @@ const handleResponse = (response: Response): TE.TaskEither<ApiError, unknown> =>
     },
     (error): ApiError => error as ApiError,
   )
-
-const MeasurementsCodec = t.array(MeasurementCodec)
-const MeasurementSnapshotsCodec = t.array(MeasurementSnapshotCodec)
 
 export const fetchMeasurements = (): TE.TaskEither<ApiError, Measurement[]> =>
   pipe(
