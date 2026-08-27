@@ -1,7 +1,7 @@
 import * as O from 'fp-ts/Option'
 import * as S from 'fp-ts/State'
 
-import { type ApiError, type Measurement, type Plottable } from './assets.ts'
+import { ChartSelectMode, type ApiError, type Measurement, type Plottable } from './assets.ts'
 
 export interface Colors {
   primary: string
@@ -18,7 +18,8 @@ export interface AppState {
   measurementsApiError: O.Option<ApiError>
   colors: Colors
   mode: Mode
-  serverVersion: O.Option<string>
+  serverVersion: O.Option<string>,
+  chartSelectMode: ChartSelectMode,
 }
 
 export const initialState: AppState = {
@@ -33,6 +34,7 @@ export const initialState: AppState = {
   },
   mode: 'dark',
   serverVersion: O.none,
+  chartSelectMode: ChartSelectMode.MedianAndBand,
 }
 
 export const setLatestMeasurement = (measurement: O.Option<Measurement>) =>
@@ -53,3 +55,6 @@ export const setMode = (mode: Mode) => S.modify((s: AppState) => ({ ...s, mode: 
 
 export const setServerVersion = (version: string) =>
   S.modify((s: AppState) => ({ ...s, serverVersion: O.some(version) }))
+
+export const setChartSelectMode = (mode: ChartSelectMode) =>
+  S.modify((s: AppState) => ({ ...s, chartSelectMode: mode }))

@@ -4,6 +4,7 @@ import * as E from 'fp-ts/Either'
 import * as O from 'fp-ts/Option'
 import * as S from 'fp-ts/State'
 import * as T from 'fp-ts/Task'
+import * as IO from 'fp-ts/IO'
 import { pipe } from 'fp-ts/function'
 import { computed, ref, onMounted } from 'vue'
 
@@ -20,6 +21,7 @@ import {
   fetchMeasurementSnapshots,
   fetchServerVersion,
 } from './measurementsApi.ts'
+import type { ChartSelectMode } from './assets.ts'
 
 const state = ref(AS.initialState)
 
@@ -120,6 +122,13 @@ const onToggleModeClicked = async () =>
     T.chain((mode) => adaptToMode(mode)),
   )()
 
+const onChartSelectionChanged = async (mode: ChartSelectMode) =>
+  await pipe(
+    T.fromIO(IO.of(mode)),
+    T.chain((mode) => transferStateToVue(AS.setChartSelectMode(mode))),
+    T.chain(() => handleMeasurements()),
+  )()
+
 onMounted(() =>
   A.sequenceT(T.ApplyPar)(
     pipe(
@@ -209,7 +218,7 @@ const toggleModeIcon = computed(() => (state.value.mode === 'light' ? 'dark_mode
           </div>
         </div>
       </article>
-      <ChartSelect :name="'temperature'" />
+      <ChartSelect :name="'chart-selector'" @chart-selection-changed="onChartSelectionChanged" />
       <article class="medium">
         <TemperatureChart
           :measurements="measurements"
@@ -220,7 +229,6 @@ const toggleModeIcon = computed(() => (state.value.mode === 'light' ? 'dark_mode
           :grid-color="colors.surfaceVariant"
         />
       </article>
-      <ChartSelect :name="'humidity'" />
       <article class="medium">
         <HumidityChart
           :measurements="measurements"
