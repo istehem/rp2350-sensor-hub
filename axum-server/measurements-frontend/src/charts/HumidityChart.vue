@@ -5,11 +5,16 @@ import { pipe } from 'fp-ts/function'
 import { computed } from 'vue'
 import { Line } from 'vue-chartjs'
 import type { ChartData, ChartOptions } from 'chart.js'
-import type { ApiError, MeasurementSnapshot, Plottable } from '../assets.ts'
-import { MeasurementSnapshotsCodec } from '../assets.ts'
+import type { ApiError, MeasurementSnapshot, Measurement, Plottable } from '../assets.ts'
+import { MeasurementsCodec, MeasurementSnapshotsCodec } from '../assets.ts'
 
 import ErrorPanel from '../ErrorPanel.vue'
-import { calculateMeasurementAxisMinMax, generateChartOptions, tension } from './chartOptions.ts'
+import {
+  calculateMeasurementAxisMinMax,
+  calculateMeasurementAxisMinMax2,
+  generateChartOptions,
+  tension,
+} from './chartOptions.ts'
 
 const properties = defineProps<{
   measurements: Plottable
@@ -70,14 +75,50 @@ function measurementSnapshotsToChartData(measurements: MeasurementSnapshot[]): C
   }
 }
 
+function measurementsToChartData(measurements: Measurement[]): ChartData<'line'> {
+  const medianData = measurements.map((measurement) => ({
+    x: measurement.date.getTime(),
+    y: measurement.humidity,
+  }))
+  return {
+    datasets: [
+      {
+        label: title,
+        data: medianData,
+        borderColor: properties.medianDatasetColor,
+        backgroundColor: properties.medianDatasetColor,
+        tension: tension,
+        fill: false,
+        order: 0,
+      },
+    ],
+  }
+}
+
 function toChartData(measurements: Plottable): ChartData<'line'> {
   if (MeasurementSnapshotsCodec.is(measurements)) {
     return measurementSnapshotsToChartData(measurements)
+  } else if (MeasurementsCodec.is(measurements)) {
+    return measurementsToChartData(measurements)
   }
-  throw new Error('Not Implemented for Measurements yet')
+  throw new Error('Not somethig we can plot.')
 }
 
-function toChartOptions(measurements: MeasurementSnapshot[]): ChartOptions<'line'> {
+function toMeasurementsChartOptions(measurements: Measurement[]): ChartOptions<'line'> {
+  const minMax = calculateMeasurementAxisMinMax2(
+    measurements,
+    { min: 22, max: 25 },
+    (measurement: Measurement) => measurement.humidity,
+  )
+  return generateChartOptions(title, minMax, 1, {
+    textColor: properties.textColor,
+    gridColor: properties.gridColor,
+  })
+}
+
+function toMeasurementSnapshatsChartOptions(
+  measurements: MeasurementSnapshot[],
+): ChartOptions<'line'> {
   const minMax = calculateMeasurementAxisMinMax(
     measurements,
     { min: 29, max: 32 },
@@ -93,9 +134,12 @@ const chartData = computed<ChartData<'line'>>(() => toChartData(properties.measu
 
 const chartOptions = computed<ChartOptions<'line'>>(() => {
   if (MeasurementSnapshotsCodec.is(properties.measurements)) {
-    return toChartOptions(properties.measurements)
+    return toMeasurementSnapshatsChartOptions(properties.measurements)
   }
-  throw new Error('Not Implemented for Measurements yet')
+  if (MeasurementsCodec.is(properties.measurements)) {
+    return toMeasurementsChartOptions(properties.measurements)
+  }
+  throw new Error('Not somethig we can plot.')
 })
 
 const error = computed(() =>

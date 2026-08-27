@@ -10,11 +10,9 @@ const emit = defineEmits<{
 }>()
 
 const onMedianBandSelected = async () => {
-  console.log('Median And Band')
   emit('chartSelectionChanged', ChartSelectMode.MedianAndBand)
 }
 const onDecimationSelected = async () => {
-  console.log('Decimation')
   emit('chartSelectionChanged', ChartSelectMode.Decimation)
 }
 </script>

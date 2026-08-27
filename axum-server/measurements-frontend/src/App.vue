@@ -18,10 +18,11 @@ import ErrorPanel from './ErrorPanel.vue'
 import ChartSelect from './ChartSelect.vue'
 import {
   fetchLatestMeasurement,
+  fetchMeasurements,
   fetchMeasurementSnapshots,
   fetchServerVersion,
 } from './measurementsApi.ts'
-import type { ChartSelectMode } from './assets.ts'
+import { ChartSelectMode } from './assets.ts'
 
 const state = ref(AS.initialState)
 
@@ -85,12 +86,12 @@ const handleLatestMeasurement = (): T.Task<void> =>
     ),
   )
 
-const handleMeasurements = (): T.Task<void> =>
+const fetchMeasurementSnapshotsHandler = (): T.Task<void> =>
   pipe(
     fetchMeasurementSnapshots(),
-    T.chain((latestMeasurementSnapshots) =>
+    T.chain((measurementSnapshots) =>
       pipe(
-        latestMeasurementSnapshots,
+        measurementSnapshots,
         E.match(
           (error) => transferStateToVue(AS.setMeasurementsApiError(O.some(error))),
           (success) =>
@@ -99,6 +100,33 @@ const handleMeasurements = (): T.Task<void> =>
             ),
         ),
       ),
+    ),
+  )
+
+const fetchMeasurementsHandler = (): T.Task<void> =>
+  pipe(
+    fetchMeasurements(),
+    T.chain((measurements) =>
+      pipe(
+        measurements,
+        E.match(
+          (error) => transferStateToVue(AS.setMeasurementsApiError(O.some(error))),
+          (success) =>
+            transferStateToVue(
+              S.sequenceArray([AS.setMeasurementsApiError(O.none), AS.setMeasurements(success)]),
+            ),
+        ),
+      ),
+    ),
+  )
+
+const handleMeasurements = (): T.Task<void> =>
+  pipe(
+    T.fromIO(IO.of(state.value.chartSelectMode)),
+    T.chain((mode) =>
+      ChartSelectMode.MedianAndBand === mode
+        ? fetchMeasurementSnapshotsHandler()
+        : fetchMeasurementsHandler(),
     ),
   )
 

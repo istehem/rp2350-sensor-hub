@@ -10,10 +10,17 @@ import {
   type ApiError,
   type MeasurementSnapshot,
   type Plottable,
+  type Measurement,
+  MeasurementsCodec,
 } from '../assets.ts'
 
 import ErrorPanel from '../ErrorPanel.vue'
-import { calculateMeasurementAxisMinMax, generateChartOptions, tension } from './chartOptions.ts'
+import {
+  calculateMeasurementAxisMinMax,
+  calculateMeasurementAxisMinMax2,
+  generateChartOptions,
+  tension,
+} from './chartOptions.ts'
 
 const properties = defineProps<{
   measurements: Plottable
@@ -73,16 +80,41 @@ function measurementSnapshotsToChartData(measurements: MeasurementSnapshot[]): C
   }
 }
 
+function measurementsToChartData(measurements: Measurement[]): ChartData<'line'> {
+  const data = measurements.map((measurement) => ({
+    x: measurement.date.getTime(),
+    y: measurement.temperature,
+  }))
+  return {
+    datasets: [
+      {
+        label: title,
+        data: data,
+        borderColor: properties.medianDatasetColor,
+        backgroundColor: properties.medianDatasetColor,
+        tension: tension,
+        fill: false,
+        order: 0,
+      },
+    ],
+  }
+}
+
 function toChartData(measurements: Plottable): ChartData<'line'> {
   if (MeasurementSnapshotsCodec.is(measurements)) {
     return measurementSnapshotsToChartData(measurements)
   }
-  throw new Error('Not Implemented for Measurements yet')
+  if (MeasurementsCodec.is(measurements)) {
+    return measurementsToChartData(measurements)
+  }
+  throw new Error('Not somethig we can plot.')
 }
 
 const chartData = computed<ChartData<'line'>>(() => toChartData(properties.measurements))
 
-function toChartOptions(measurements: MeasurementSnapshot[]): ChartOptions<'line'> {
+function toMeasurementSnapshotsChartOptions(
+  measurements: MeasurementSnapshot[],
+): ChartOptions<'line'> {
   const minMax = calculateMeasurementAxisMinMax(
     measurements,
     { min: 22, max: 25 },
@@ -94,11 +126,26 @@ function toChartOptions(measurements: MeasurementSnapshot[]): ChartOptions<'line
   })
 }
 
+function toMeasurementsChartOptions(measurements: Measurement[]): ChartOptions<'line'> {
+  const minMax = calculateMeasurementAxisMinMax2(
+    measurements,
+    { min: 22, max: 25 },
+    (measurement: Measurement) => measurement.temperature,
+  )
+  return generateChartOptions(title, minMax, 1, {
+    textColor: properties.textColor,
+    gridColor: properties.gridColor,
+  })
+}
+
 const chartOptions = computed<ChartOptions<'line'>>(() => {
   if (MeasurementSnapshotsCodec.is(properties.measurements)) {
-    return toChartOptions(properties.measurements)
+    return toMeasurementSnapshotsChartOptions(properties.measurements)
   }
-  throw new Error('Not Implemented for Measurements yet')
+  if (MeasurementsCodec.is(properties.measurements)) {
+    return toMeasurementsChartOptions(properties.measurements)
+  }
+  throw new Error('Not somethig we can plot.')
 })
 
 const error = computed(() =>
