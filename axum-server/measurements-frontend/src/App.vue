@@ -122,9 +122,9 @@ const fetchMeasurementsHandler = (): T.Task<void> =>
 
 const handleMeasurements = (): T.Task<void> =>
   pipe(
-    T.fromIO(IO.of(state.value.chartSelectMode)),
+    T.fromIO(() => IO.of(state.value.chartSelectMode)),
     T.chain((mode) =>
-      ChartSelectMode.MedianAndBand === mode
+      ChartSelectMode.MedianAndBand === mode()
         ? fetchMeasurementSnapshotsHandler()
         : fetchMeasurementsHandler(),
     ),
