@@ -42,4 +42,7 @@ export const MeasurementSnapshotsCodec = t.array(MeasurementSnapshotCodec)
 export const PlottableCodec = t.union([MeasurementsCodec, MeasurementSnapshotsCodec])
 export type Plottable = t.TypeOf<typeof PlottableCodec>
 
-export enum ChartSelectMode { MedianAndBand, Decimation }
+export enum ChartSelectMode {
+  MedianAndBand,
+  Decimation,
+}

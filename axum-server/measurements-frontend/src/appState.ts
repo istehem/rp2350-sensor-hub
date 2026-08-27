@@ -18,8 +18,8 @@ export interface AppState {
   measurementsApiError: O.Option<ApiError>
   colors: Colors
   mode: Mode
-  serverVersion: O.Option<string>,
-  chartSelectMode: ChartSelectMode,
+  serverVersion: O.Option<string>
+  chartSelectMode: ChartSelectMode
 }
 
 export const initialState: AppState = {
