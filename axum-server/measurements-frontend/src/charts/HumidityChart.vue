@@ -9,12 +9,7 @@ import type { ApiError, MeasurementSnapshot, Measurement, Plottable } from '../a
 import { MeasurementsCodec, MeasurementSnapshotsCodec } from '../assets.ts'
 
 import ErrorPanel from '../ErrorPanel.vue'
-import {
-  calculateMeasurementAxisMinMax,
-  calculateMeasurementAxisMinMax2,
-  generateChartOptions,
-  tension,
-} from './chartOptions.ts'
+import { calculateMeasurementAxisMinMax, generateChartOptions, tension } from './chartOptions.ts'
 
 const properties = defineProps<{
   measurements: Plottable
@@ -105,7 +100,7 @@ function toChartData(measurements: Plottable): ChartData<'line'> {
 }
 
 function toMeasurementsChartOptions(measurements: Measurement[]): ChartOptions<'line'> {
-  const minMax = calculateMeasurementAxisMinMax2(
+  const minMax = calculateMeasurementAxisMinMax(
     measurements,
     { min: 22, max: 25 },
     (measurement: Measurement) => measurement.humidity,
