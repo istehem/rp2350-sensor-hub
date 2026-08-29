@@ -4,6 +4,7 @@ import * as E from 'fp-ts/Either'
 import * as O from 'fp-ts/Option'
 import * as S from 'fp-ts/State'
 import * as T from 'fp-ts/Task'
+import * as TE from 'fp-ts/TaskEither'
 import * as IO from 'fp-ts/IO'
 import { pipe } from 'fp-ts/function'
 import { computed, ref, onMounted } from 'vue'
@@ -22,7 +23,7 @@ import {
   fetchMeasurementSnapshots,
   fetchServerVersion,
 } from './measurementsApi.ts'
-import { ChartSelectMode } from './assets.ts'
+import { ChartSelectMode, type ApiError, type Plottable } from './assets.ts'
 
 const state = ref(AS.initialState)
 
@@ -86,12 +87,12 @@ const handleLatestMeasurement = (): T.Task<void> =>
     ),
   )
 
-const fetchMeasurementSnapshotsHandler = (): T.Task<void> =>
+const handlePlottable = (plottable: TE.TaskEither<ApiError, Plottable>): T.Task<void> =>
   pipe(
-    fetchMeasurementSnapshots(),
-    T.chain((measurementSnapshots) =>
+    plottable,
+    T.chain((plottable) =>
       pipe(
-        measurementSnapshots,
+        plottable,
         E.match(
           (error) => transferStateToVue(AS.setMeasurementsApiError(O.some(error))),
           (success) =>
@@ -103,22 +104,10 @@ const fetchMeasurementSnapshotsHandler = (): T.Task<void> =>
     ),
   )
 
-const fetchMeasurementsHandler = (): T.Task<void> =>
-  pipe(
-    fetchMeasurements(),
-    T.chain((measurements) =>
-      pipe(
-        measurements,
-        E.match(
-          (error) => transferStateToVue(AS.setMeasurementsApiError(O.some(error))),
-          (success) =>
-            transferStateToVue(
-              S.sequenceArray([AS.setMeasurementsApiError(O.none), AS.setMeasurements(success)]),
-            ),
-        ),
-      ),
-    ),
-  )
+const fetchMeasurementSnapshotsHandler = (): T.Task<void> =>
+  handlePlottable(fetchMeasurementSnapshots())
+
+const fetchMeasurementsHandler = (): T.Task<void> => handlePlottable(fetchMeasurements())
 
 const handleMeasurements = (): T.Task<void> =>
   pipe(
