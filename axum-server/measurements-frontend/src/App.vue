@@ -90,17 +90,12 @@ const handleLatestMeasurement = (): T.Task<void> =>
 const handlePlottable = (plottable: TE.TaskEither<ApiError, Plottable>): T.Task<void> =>
   pipe(
     plottable,
-    T.chain((plottable) =>
-      pipe(
-        plottable,
-        E.match(
-          (error) => transferStateToVue(AS.setMeasurementsApiError(O.some(error))),
-          (success) =>
-            transferStateToVue(
-              S.sequenceArray([AS.setMeasurementsApiError(O.none), AS.setMeasurements(success)]),
-            ),
+    TE.matchE(
+      (error) => transferStateToVue(AS.setMeasurementsApiError(O.some(error))),
+      (success) =>
+        transferStateToVue(
+          S.sequenceArray([AS.setMeasurementsApiError(O.none), AS.setMeasurements(success)]),
         ),
-      ),
     ),
   )
 
