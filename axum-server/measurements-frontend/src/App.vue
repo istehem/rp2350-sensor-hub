@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import * as A from 'fp-ts/Apply'
-import * as E from 'fp-ts/Either'
 import * as O from 'fp-ts/Option'
 import * as S from 'fp-ts/State'
 import * as T from 'fp-ts/Task'
@@ -70,20 +69,15 @@ const poll = (task: T.Task<void>, delayMs: number): T.Task<never> =>
 const handleLatestMeasurement = (): T.Task<void> =>
   pipe(
     fetchLatestMeasurement(),
-    T.chain((latestMeasurement) =>
-      pipe(
-        latestMeasurement,
-        E.match(
-          (error) => transferStateToVue(AS.setLatestMeasurementApiError(O.some(error))),
-          (success) =>
-            transferStateToVue(
-              S.sequenceArray([
-                AS.setLatestMeasurementApiError(O.none),
-                AS.setLatestMeasurement(O.some(success)),
-              ]),
-            ),
+    TE.matchE(
+      (error) => transferStateToVue(AS.setLatestMeasurementApiError(O.some(error))),
+      (success) =>
+        transferStateToVue(
+          S.sequenceArray([
+            AS.setLatestMeasurementApiError(O.none),
+            AS.setLatestMeasurement(O.some(success)),
+          ]),
         ),
-      ),
     ),
   )
 
@@ -100,9 +94,9 @@ const handlePlottable = (plottable: TE.TaskEither<ApiError, Plottable>): T.Task<
   )
 
 const fetchMeasurementSnapshotsHandler = (): T.Task<void> =>
-  handlePlottable(fetchMeasurementSnapshots())
+  pipe(fetchMeasurementSnapshots(), handlePlottable)
 
-const fetchMeasurementsHandler = (): T.Task<void> => handlePlottable(fetchMeasurements())
+const fetchMeasurementsHandler = (): T.Task<void> => pipe(fetchMeasurements(), handlePlottable)
 
 const handleMeasurements = (): T.Task<void> =>
   pipe(
@@ -117,14 +111,9 @@ const handleMeasurements = (): T.Task<void> =>
 const handleServerVersion = (): T.Task<void> =>
   pipe(
     fetchServerVersion(),
-    T.chain((serverVersion) =>
-      pipe(
-        serverVersion,
-        E.match(
-          (error) => T.fromIO(() => console.error(error.message)),
-          (success) => transferStateToVue(AS.setServerVersion(success.version)),
-        ),
-      ),
+    TE.matchE(
+      (error) => T.fromIO(() => console.error(error.message)),
+      (success) => transferStateToVue(AS.setServerVersion(success.version)),
     ),
   )
 
