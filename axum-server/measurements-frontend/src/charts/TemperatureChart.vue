@@ -17,6 +17,8 @@ import {
 import ErrorPanel from '../ErrorPanel.vue'
 import { calculateMeasurementAxisMinMax, generateChartOptions, tension } from './chartOptions.ts'
 
+const UNREACHABLE_ERROR = '[UNREACHABLE] received value has type which can not be plotted.'
+
 const properties = defineProps<{
   measurements: Plottable
   apiError: Option<ApiError>
@@ -102,7 +104,7 @@ function toChartData(measurements: Plottable): ChartData<'line'> {
   if (MeasurementsCodec.is(measurements)) {
     return measurementsToChartData(measurements)
   }
-  throw new Error('Not somethig we can plot.')
+  throw new Error(UNREACHABLE_ERROR)
 }
 
 const chartData = computed<ChartData<'line'>>(() => toChartData(properties.measurements))
@@ -140,7 +142,7 @@ const chartOptions = computed<ChartOptions<'line'>>(() => {
   if (MeasurementsCodec.is(properties.measurements)) {
     return toMeasurementsChartOptions(properties.measurements)
   }
-  throw new Error('Not somethig we can plot.')
+  throw new Error(UNREACHABLE_ERROR)
 })
 
 const error = computed(() =>
