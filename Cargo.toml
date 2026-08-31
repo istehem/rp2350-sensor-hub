@@ -9,14 +9,14 @@ license = "MIT OR Apache-2.0"
 exclude = ["axum-server/"]
 
 [dependencies]
-cortex-m = "0.7"
-cortex-m-rt = "0.7"
+cortex-m = { workspace = true }
+cortex-m-rt = { workspace = true }
 cyw43 = { version = "0.7.0", features = ["defmt", "firmware-logs"] }
 cyw43-pio = { version = "0.10.0", optional = true }
 embedded-hal = "1.0.0"
 
-defmt = {workspace = true}
-defmt-rtt = { workspace = true}
+defmt = { workspace = true }
+defmt-rtt = { workspace = true }
 
 display-interface = "0.5.0"
 embassy-executor = { version = "0.10.0", features = [
@@ -61,6 +61,8 @@ pico-display = { path = "./crates/pico-display" }
 embassy-dht-rp2350-sensor = { path = "./crates/embassy-dht-rp2350-sensor", optional = true }
 
 [workspace.dependencies]
+cortex-m = "0.7.9"
+cortex-m-rt = "0.7.6"
 embedded-graphics = "0.8.1"
 rand = { version = "0.10.2", default-features = false }
 trait-set = "0.5.0"
