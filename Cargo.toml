@@ -47,7 +47,7 @@ embedded-graphics = { workspace = true }
 embedded-graphics-framebuf = "0.5.0"
 embedded-nal-async = "0.9.0"
 panic-probe = { version = "1", features = ["print-defmt"] }
-portable-atomic = { version = "1.14.0", features = ["critical-section"] }
+portable-atomic = { version = "1.15.0", features = ["critical-section"] }
 rand = { workspace = true }
 reqwless = { workspace = true }
 ssd1306 = { version = "0.10.0", features = ["async"] }
@@ -63,7 +63,6 @@ embassy-dht-rp2350-sensor = { path = "./crates/embassy-dht-rp2350-sensor", optio
 [workspace.dependencies]
 embedded-graphics = "0.8.1"
 rand = { version = "0.10.2", default-features = false }
-trait-set = "0.3.0"
 u8g2-fonts = "0.8.0"
 defmt = "1.1.1"
 defmt-rtt = "1.3.0"
