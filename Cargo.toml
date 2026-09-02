@@ -61,8 +61,8 @@ pico-display = { path = "./crates/pico-display" }
 embassy-dht-rp2350-sensor = { path = "./crates/embassy-dht-rp2350-sensor", optional = true }
 
 [workspace.dependencies]
-cortex-m = "0.7.9"
-cortex-m-rt = "0.7.6"
+cortex-m = "0.7.7"
+cortex-m-rt = "0.7.5"
 embedded-graphics = "0.8.1"
 rand = { version = "0.10.2", default-features = false }
 u8g2-fonts = "0.8.0"
