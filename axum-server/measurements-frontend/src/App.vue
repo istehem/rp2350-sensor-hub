@@ -219,7 +219,11 @@ const toggleModeIcon = computed(() => (state.value.mode === 'light' ? 'dark_mode
           </div>
         </div>
       </article>
-      <ChartSelect :name="'chart-selector'" @chart-selection-changed="onChartSelectionChanged" />
+      <ChartSelect
+        :name="'chart-selector'"
+        :init-state="state.chartSelectMode"
+        @chart-selection-changed="onChartSelectionChanged"
+      />
       <article class="medium">
         <TemperatureChart
           :measurements="measurements"
