@@ -25,20 +25,20 @@ const selected = ref<ChartSelectMode>(properties.initState)
     <nav>
       <label class="radio">
         <input
+          v-model="selected"
           type="radio"
           :name="properties.name"
           :value="ChartSelectMode.MedianAndBand"
-          v-model="selected"
           @change="onMedianBandSelected"
         />
         <span>Median And Band</span>
       </label>
       <label class="radio">
         <input
+          v-model="selected"
           type="radio"
           :name="properties.name"
           :value="ChartSelectMode.Decimation"
-          v-model="selected"
           @change="onDecimationSelected"
         />
         <span>Decimation</span>
