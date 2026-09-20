@@ -32,7 +32,7 @@ export const initialState: AppState = {
     primary: '#cfbcff',
     secondary: '#cbc2db',
     surfaceVariant: '#49454e',
-    primaryContainer: '#4f378a'
+    primaryContainer: '#4f378a',
   },
   mode: 'dark',
   serverVersion: O.none,
