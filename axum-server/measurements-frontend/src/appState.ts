@@ -7,6 +7,7 @@ export interface Colors {
   primary: string
   secondary: string
   surfaceVariant: string
+  primaryContainer: string
 }
 
 export type Mode = 'light' | 'dark'
@@ -31,6 +32,7 @@ export const initialState: AppState = {
     primary: '#cfbcff',
     secondary: '#cbc2db',
     surfaceVariant: '#49454e',
+    primaryContainer: '#4f378a'
   },
   mode: 'dark',
   serverVersion: O.none,

@@ -37,11 +37,13 @@ const transferStateToVue = (f: (state: AppState) => [unknown, AppState]): T.Task
 const asColors =
   (primary: string) =>
   (secondary: string) =>
-  (surfaceVariant: string): Colors => {
+  (surfaceVariant: string) =>
+  (primaryContainer: string): Colors => {
     return {
       primary,
       secondary,
       surfaceVariant,
+      primaryContainer,
     }
   }
 
@@ -51,6 +53,7 @@ const setColors = (mode: Mode): T.Task<void> =>
     T.ap(css.getColorOrDefault(mode, 'primary', AS.initialState.colors.primary)),
     T.ap(css.getColorOrDefault(mode, 'secondary', AS.initialState.colors.secondary)),
     T.ap(css.getColorOrDefault(mode, 'surface-variant', AS.initialState.colors.surfaceVariant)),
+    T.ap(css.getColorOrDefault(mode, 'primary-container', AS.initialState.colors.primaryContainer)),
     T.chain((colors) => transferStateToVue(AS.setColors(colors))),
   )
 
@@ -229,7 +232,7 @@ const toggleModeIcon = computed(() => (state.value.mode === 'light' ? 'dark_mode
           :measurements="measurements"
           :api-error="measurementsError"
           :median-dataset-color="colors.primary"
-          :band-dataset-color="colors.surfaceVariant"
+          :band-dataset-color="colors.primaryContainer"
           :text-color="colors.secondary"
           :grid-color="colors.surfaceVariant"
         />
@@ -239,7 +242,7 @@ const toggleModeIcon = computed(() => (state.value.mode === 'light' ? 'dark_mode
           :measurements="measurements"
           :api-error="measurementsError"
           :median-dataset-color="colors.primary"
-          :band-dataset-color="colors.surfaceVariant"
+          :band-dataset-color="colors.primaryContainer"
           :text-color="colors.secondary"
           :grid-color="colors.surfaceVariant"
         />
