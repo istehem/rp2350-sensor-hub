@@ -35,7 +35,7 @@ impl fmt::Debug for FontError {
 
 impl From<Infallible> for FontError {
     fn from(e: Infallible) -> Self {
-        FontError::Infallible(e)
+        match e {}
     }
 }
 
