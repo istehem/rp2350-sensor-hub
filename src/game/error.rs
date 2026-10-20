@@ -42,7 +42,7 @@ impl From<Infallible> for FontError {
 impl From<U8g2Error<Infallible>> for FontError {
     fn from(e: U8g2Error<Infallible>) -> Self {
         match e {
-            U8g2Error::DisplayError(err) => Self::Infallible(err),
+            U8g2Error::DisplayError(err) => match err {},
             err => Self::U8g2Error(err),
         }
     }
