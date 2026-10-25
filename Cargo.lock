@@ -2046,7 +2046,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0bfb9eb618601c89945a70e254898da93b13be0388091d42117462b265bb3fad"
 dependencies = [
  "hash32 0.3.1",
- "serde",
  "stable_deref_trait",
 ]
 
@@ -2058,6 +2057,7 @@ checksum = "2af2455f757db2b292a9b1768c4b70186d443bcb3b316252d6b540aec1cd89ed"
 dependencies = [
  "defmt 1.1.1",
  "hash32 0.3.1",
+ "serde_core",
  "stable_deref_trait",
 ]
 
@@ -3629,9 +3629,9 @@ dependencies = [
 
 [[package]]
 name = "rstest"
-version = "0.26.1"
+version = "0.28.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f5a3193c063baaa2a95a33f03035c8a72b83d97a54916055ba22d35ed3839d49"
+checksum = "b376e512f30a7686a8dbc6aeaace99b3ade1c26c1c63473473a817ade226dafc"
 dependencies = [
  "futures-timer",
  "futures-util",
@@ -3640,9 +3640,9 @@ dependencies = [
 
 [[package]]
 name = "rstest_macros"
-version = "0.26.1"
+version = "0.28.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9c845311f0ff7951c5506121a9ad75aec44d083c31583b2ea5a30bcb0b0abba0"
+checksum = "88512dbfb5b73a0dfa38aef7bc73b5657035fce477b923faf12d332dd83051ea"
 dependencies = [
  "cfg-if",
  "glob",
@@ -3789,11 +3789,11 @@ dependencies = [
 
 [[package]]
 name = "serde-json-core"
-version = "0.6.0"
+version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5b81787e655bd59cecadc91f7b6b8651330b2be6c33246039a65e5cd6f4e0828"
+checksum = "d51e6795fbc00a1b26d78c7a0dbda143215d9dd0ee27c8a63ae0e1ccd6b83706"
 dependencies = [
- "heapless 0.8.0",
+ "heapless 0.9.2",
  "ryu",
  "serde",
 ]

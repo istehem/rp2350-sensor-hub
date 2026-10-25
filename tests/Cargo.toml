@@ -6,7 +6,7 @@ publish = false
 
 [dev-dependencies]
 lazy_static = "1.5.0"
-rstest = "0.26.1"
+rstest = "0.28.0"
 tracing = "0.1.44"
 test-log = { version = "0.2.21", features = ["trace"] }
 embedded-graphics = { workspace = true }
