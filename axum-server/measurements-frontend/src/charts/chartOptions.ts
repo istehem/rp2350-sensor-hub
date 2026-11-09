@@ -1,4 +1,6 @@
 import type { ChartOptions, TooltipItem } from 'chart.js'
+import type { Comparator } from '../utils.ts'
+import * as utils from '../utils.ts'
 
 interface Colors {
   textColor: string
@@ -62,24 +64,17 @@ export function calculateMeasurementAxisMinMax<T>(
   measurements: T[],
   defaultMinMax: MeasurementAxisMinMax,
   callback: (measurement: T) => number,
+  comparator: Comparator<T>,
 ): MeasurementAxisMinMax {
   if (measurements.length === 0) {
     return defaultMinMax
   }
-  const measurementsForType = measurements.map(callback)
-  const minMeasured = Math.floor(Math.min(...measurementsForType))
-  const maxMeasured = Math.ceil(Math.max(...measurementsForType))
-
-  if (maxMeasured - minMeasured <= 1) {
-    return {
-      min: minMeasured - 1,
-      max: maxMeasured + 1,
-    }
-  }
+  const minMeasured = utils.min(measurements, comparator, measurements[0]);
+  const maxMeasured = utils.max(measurements, comparator, measurements[0]);
 
   return {
-    min: minMeasured,
-    max: maxMeasured,
+    min: callback(minMeasured),
+    max: callback(maxMeasured),
   }
 }
 
