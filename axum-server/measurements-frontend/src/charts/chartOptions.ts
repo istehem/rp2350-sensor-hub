@@ -69,12 +69,19 @@ export function calculateMeasurementAxisMinMax<T>(
   if (measurements.length === 0) {
     return defaultMinMax
   }
-  const minMeasured = utils.min(measurements, comparator, measurements[0]);
-  const maxMeasured = utils.max(measurements, comparator, measurements[0]);
+  const minMeasured = Math.floor(callback(utils.min(measurements, comparator, measurements[0])))
+  const maxMeasured = Math.ceil(callback(utils.max(measurements, comparator, measurements[0])))
+
+  if (maxMeasured - minMeasured <= 1) {
+    return {
+      min: minMeasured - 1,
+      max: maxMeasured + 1,
+    }
+  }
 
   return {
-    min: callback(minMeasured),
-    max: callback(maxMeasured),
+    min: minMeasured,
+    max: maxMeasured,
   }
 }
 

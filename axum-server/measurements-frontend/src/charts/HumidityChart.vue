@@ -106,6 +106,7 @@ function toMeasurementsChartOptions(measurements: Measurement[]): ChartOptions<'
     measurements,
     { min: 22, max: 25 },
     (measurement: Measurement) => measurement.humidity,
+    (a: Measurement, b: Measurement) => (a.humidity < b.humidity ? -1 : 1),
   )
   return generateChartOptions(title, minMax, 1, {
     textColor: properties.textColor,
@@ -120,6 +121,8 @@ function toMeasurementSnapshatsChartOptions(
     measurements,
     { min: 29, max: 32 },
     (measurement: MeasurementSnapshot) => measurement.humidity.median,
+    (a: MeasurementSnapshot, b: MeasurementSnapshot) =>
+      a.humidity.median < b.humidity.median ? -1 : 1,
   )
   return generateChartOptions(title, minMax, 1, {
     textColor: properties.textColor,
