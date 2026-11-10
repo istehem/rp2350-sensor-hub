@@ -112,10 +112,11 @@ const chartData = computed<ChartData<'line'>>(() => toChartData(properties.measu
 function toMeasurementSnapshotsChartOptions(
   measurements: MeasurementSnapshot[],
 ): ChartOptions<'line'> {
+  const extractor = (measurement: MeasurementSnapshot) => measurement.temperature.median
   const minMax = calculateMeasurementAxisMinMax(
     measurements,
     { min: 22, max: 25 },
-    (measurement: MeasurementSnapshot) => measurement.temperature.median,
+    { minExtract: extractor, maxExtract: extractor },
     (a: MeasurementSnapshot, b: MeasurementSnapshot) =>
       a.temperature.median < b.temperature.median ? -1 : 1,
   )
@@ -126,10 +127,11 @@ function toMeasurementSnapshotsChartOptions(
 }
 
 function toMeasurementsChartOptions(measurements: Measurement[]): ChartOptions<'line'> {
+  const extractor = (measurement: Measurement) => measurement.temperature
   const minMax = calculateMeasurementAxisMinMax(
     measurements,
     { min: 22, max: 25 },
-    (measurement: Measurement) => measurement.temperature,
+    { minExtract: extractor, maxExtract: extractor },
     (a: Measurement, b: Measurement) => (a.temperature < b.temperature ? -1 : 1),
   )
   return generateChartOptions(title, minMax, 1, {

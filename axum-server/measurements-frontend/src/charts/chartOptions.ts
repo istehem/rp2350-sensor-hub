@@ -12,6 +12,13 @@ interface MeasurementAxisMinMax {
   max: number
 }
 
+type Extactor<T> = (t: T) => number
+
+interface MinMaxExtractor<T> {
+  minExtract: Extactor<T>
+  maxExtract: Extactor<T>
+}
+
 function timeAxis(
   textColor: string,
   gridColor: string,
@@ -63,14 +70,18 @@ function timeAxis(
 export function calculateMeasurementAxisMinMax<T>(
   measurements: T[],
   defaultMinMax: MeasurementAxisMinMax,
-  callback: (measurement: T) => number,
+  extractor: MinMaxExtractor<T>,
   comparator: Comparator<T>,
 ): MeasurementAxisMinMax {
   if (measurements.length === 0) {
     return defaultMinMax
   }
-  const minMeasured = Math.floor(callback(utils.min(measurements, comparator, measurements[0])))
-  const maxMeasured = Math.ceil(callback(utils.max(measurements, comparator, measurements[0])))
+  const minMeasured = Math.floor(
+    extractor.minExtract(utils.min(measurements, comparator, measurements[0])),
+  )
+  const maxMeasured = Math.ceil(
+    extractor.maxExtract(utils.max(measurements, comparator, measurements[0])),
+  )
 
   if (maxMeasured - minMeasured <= 1) {
     return {
