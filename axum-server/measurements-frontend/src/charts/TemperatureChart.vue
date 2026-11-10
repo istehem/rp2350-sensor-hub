@@ -118,8 +118,6 @@ function toMeasurementSnapshotsChartOptions(
     measurements,
     { min: 22, max: 25 },
     { minExtract: minExtractor, maxExtract: maxExtractor },
-    (a: MeasurementSnapshot, b: MeasurementSnapshot) =>
-      a.temperature.median < b.temperature.median ? -1 : 1,
   )
   return generateChartOptions(title, minMax, 1, {
     textColor: properties.textColor,
@@ -133,7 +131,6 @@ function toMeasurementsChartOptions(measurements: Measurement[]): ChartOptions<'
     measurements,
     { min: 22, max: 25 },
     { minExtract: extractor, maxExtract: extractor },
-    (a: Measurement, b: Measurement) => (a.temperature < b.temperature ? -1 : 1),
   )
   return generateChartOptions(title, minMax, 1, {
     textColor: properties.textColor,
