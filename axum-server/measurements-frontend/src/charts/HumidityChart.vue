@@ -118,11 +118,12 @@ function toMeasurementsChartOptions(measurements: Measurement[]): ChartOptions<'
 function toMeasurementSnapshatsChartOptions(
   measurements: MeasurementSnapshot[],
 ): ChartOptions<'line'> {
-  const extractor = (measurement: MeasurementSnapshot) => measurement.humidity.median
+  const minExtractor = (measurement: MeasurementSnapshot) => measurement.humidity.band.minimum
+  const maxExtractor = (measurement: MeasurementSnapshot) => measurement.humidity.band.maximum
   const minMax = calculateMeasurementAxisMinMax(
     measurements,
     { min: 29, max: 32 },
-    { minExtract: extractor, maxExtract: extractor },
+    { minExtract: minExtractor, maxExtract: maxExtractor },
     (a: MeasurementSnapshot, b: MeasurementSnapshot) =>
       a.humidity.median < b.humidity.median ? -1 : 1,
   )
